@@ -1,5 +1,6 @@
 package com.carrental.web;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -14,7 +15,10 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login(HttpServletRequest request, Model model, Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.getPrincipal() instanceof UserDetails) {
             return "redirect:/dashboard";
         }
 

@@ -23,6 +23,14 @@
                         <i class="bi bi-exclamation-circle-fill flex-shrink-0" aria-hidden="true"></i>
                         <span>Invalid username or password.</span>
                     </div>
+                    <div th:if="${param.expired}" class="alert login-alert login-alert--warning d-flex align-items-center gap-2 mb-3" role="alert">
+                        <i class="bi bi-arrow-clockwise flex-shrink-0" aria-hidden="true"></i>
+                        <span>Your session or security token expired (often after using the back button). Please sign in again.</span>
+                    </div>
+                    <div th:if="${param.signedOut}" class="alert login-alert login-alert--success d-flex align-items-center gap-2 mb-3" role="alert">
+                        <i class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></i>
+                        <span>You have been signed out.</span>
+                    </div>
 
                     <form method="post" th:attr="action=@{/login}" class="login-form">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>

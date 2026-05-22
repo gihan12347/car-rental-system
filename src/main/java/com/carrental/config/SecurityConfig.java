@@ -1,6 +1,7 @@
 package com.carrental.config;
 
 import com.carrental.security.DatabaseUserDetailsService;
+import com.carrental.security.FriendlyAccessDeniedHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,6 +35,10 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .invalidSessionUrl("/login?expired=1"))
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(new FriendlyAccessDeniedHandler()))
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/dashboard", true)

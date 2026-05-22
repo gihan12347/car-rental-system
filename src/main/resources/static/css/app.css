@@ -481,6 +481,12 @@ body.login-page {
   border: 1px solid rgba(52, 211, 153, 0.35);
 }
 
+.login-alert--warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
 /* App shell — mobile / tablet / desktop */
 .app-shell {
   height: 100vh;

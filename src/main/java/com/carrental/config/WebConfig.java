@@ -25,10 +25,23 @@ public class WebConfig implements WebMvcConfigurer {
             @Override
             public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                 String uri = request.getRequestURI();
-                if (uri != null && uri.startsWith("/login")) {
+                if (uri != null && shouldPreventBrowserCache(uri)) {
                     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
                     response.setHeader("Pragma", "no-cache");
                     response.setDateHeader("Expires", 0);
+                }
+                return true;
+            }
+
+            private boolean shouldPreventBrowserCache(String uri) {
+                if (uri.startsWith("/css/")
+                        || uri.startsWith("/images/")
+                        || uri.startsWith("/js/")
+                        || uri.startsWith("/uploads/cars/")
+                        || uri.startsWith("/icons/")
+                        || "/sw.js".equals(uri)
+                        || "/site.webmanifest".equals(uri)) {
+                    return false;
                 }
                 return true;
             }
