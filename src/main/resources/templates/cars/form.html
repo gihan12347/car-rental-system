@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:with="pageTitle=${car.id != null} ? 'Edit vehicle' : 'Add vehicle'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main app-main--narrow">
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header mb-4">
+                <h1 class="h2 mb-1" th:text="${car.id != null} ? 'Edit vehicle' : 'Add vehicle'">Edit</h1>
+                <p class="lead mb-0" th:text="${car.id != null} ? 'Update details and pricing for this car.' : 'Register a new vehicle in your fleet.'"></p>
+            </header>
+
+            <form class="app-form-card p-4 p-lg-5"
+                  th:action="${car.id != null} ? @{/cars/{id}(id=${car.id})} : @{/cars}"
+                  th:object="${car}" method="post" enctype="multipart/form-data" novalidate>
+                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                <div class="row g-3">
+                    <div class="col-12" th:if="${car.imagePath != null and !car.imagePath.isEmpty()}">
+                        <label class="form-label">Current photo</label>
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
+                            <img class="car-photo-preview rounded-3 border" th:src="${car.imagePath}" alt="Car" style="max-height: 140px; max-width: 240px; object-fit: cover;"/>
+                            <span class="small text-muted">Upload a new file below to replace it.</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="carImage" th:text="${car.id != null} ? 'Replace photo' : 'Photo'">Photo</label>
+                        <input class="form-control" type="file" id="carImage" name="carImage" accept="image/*"/>
+                        <div class="form-text">Optional when adding. Images only (e.g. JPEG, PNG).</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="registrationNumber">Registration number</label>
+                        <input class="form-control" id="registrationNumber" th:field="*{registrationNumber}" placeholder="e.g. ABC-1234" required/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('registrationNumber')}" th:errors="*{registrationNumber}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="modelName">Model name</label>
+                        <input class="form-control" id="modelName" th:field="*{modelName}" placeholder="e.g. Prius 2020"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="vehicleType">Vehicle type</label>
+                        <select class="form-select" id="vehicleType" th:field="*{vehicleType}">
+                            <option th:each="vt : ${vehicleTypes}" th:value="${vt}" th:text="${vt}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="nextServiceKm">Next service at (km)</label>
+                        <input class="form-control" type="number" min="0" id="nextServiceKm" th:field="*{nextServiceKm}" placeholder="Optional"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="mileageKm">Current mileage</label>
+                        <div class="input-group">
+                            <input class="form-control" type="number" min="0" id="mileageKm" th:field="*{mileageKm}" required/>
+                            <span class="input-group-text">km</span>
+                        </div>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('mileageKm')}" th:errors="*{mileageKm}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="passengerCount">Passenger seats</label>
+                        <input class="form-control" type="number" min="1" id="passengerCount" th:field="*{passengerCount}" required/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('passengerCount')}" th:errors="*{passengerCount}"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch py-1">
+                            <input class="form-check-input" type="checkbox" id="withDriver" th:field="*{withDriver}"/>
+                            <label class="form-check-label" for="withDriver">Chauffeur service available</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="rentalPricePerDay">Price per day</label>
+                        <input class="form-control" type="number" step="0.01" min="0" id="rentalPricePerDay" th:field="*{rentalPricePerDay}" required/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('rentalPricePerDay')}" th:errors="*{rentalPricePerDay}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="extraPricePerKm">Extra charge per km</label>
+                        <input class="form-control" type="number" step="0.01" min="0" id="extraPricePerKm" th:field="*{extraPricePerKm}" required/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('extraPricePerKm')}" th:errors="*{extraPricePerKm}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="freeKmPerDay">Free km per day</label>
+                        <input class="form-control" type="number" min="0" step="1" id="freeKmPerDay" th:field="*{freeKmPerDay}" required/>
+                        <div class="form-text">Km included per rental day before extra km charges apply.</div>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('freeKmPerDay')}" th:errors="*{freeKmPerDay}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="status">Fleet status</label>
+                        <select class="form-select" id="status" th:field="*{status}">
+                            <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-grid d-sm-flex gap-2 mt-4 pt-3 border-top app-form-actions">
+                    <button class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2" type="submit">
+                        <i class="bi bi-check-lg"></i> Save changes
+                    </button>
+                    <a class="btn btn-outline-soft" th:href="${car.id != null} ? @{/cars/{id}(id=${car.id})} : @{/cars}">Cancel</a>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:with="pageTitle=${activeOnly} ? 'Active rentals' : 'Rentals'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main">
+            <div th:if="${successMessage}" class="alert app-alert alert-success d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header mb-3 mb-lg-4">
+                <h1 class="h2 mb-1" th:text="${activeOnly} ? 'Active rentals' : 'All rentals'">Rentals</h1>
+                <p class="lead mb-0" th:text="${activeOnly} ? 'Hires in progress — complete when the car is returned.' : 'Full history of rental bookings.'"></p>
+                <button type="button" class="btn btn-app-primary d-lg-none mt-3 w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                        data-bs-toggle="modal" data-bs-target="#newHireModal">
+                    <i class="bi bi-person-plus"></i> New hire
+                </button>
+            </header>
+
+            <div th:replace="~{fragments/page-search :: pageSearch(${activeOnly} ? @{/rentals/active} : @{/rentals}, ${activeOnly} ? 'Vehicle or customer…' : 'Vehicle, customer, contact…')}"></div>
+
+            <div class="app-record-list d-xl-none" th:if="${!rentals.isEmpty()}">
+                <article class="app-record-card" th:each="r : ${rentals}">
+                    <div class="app-record-card__header">
+                        <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
+                             class="app-record-card__thumb rounded-2 border"
+                             th:src="${r.car.imagePath}" alt=""/>
+                        <span th:if="${r.car.imagePath == null or r.car.imagePath.isEmpty()}"
+                              class="app-record-card__thumb app-record-card__thumb--placeholder rounded-2">
+                            <i class="bi bi-image"></i>
+                        </span>
+                        <div class="min-w-0 flex-grow-1">
+                            <h3 class="app-record-card__title mb-1" th:text="${r.car.registrationNumber}">—</h3>
+                            <span class="badge badge-status"
+                                  th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : ' text-bg-success'"
+                                  th:text="${r.rentalStatus}"></span>
+                        </div>
+                    </div>
+                    <dl class="app-record-card__meta">
+                        <div class="app-record-card__row">
+                            <dt>Customer</dt>
+                            <dd>
+                                <span th:text="${r.customerName}"></span>
+                                <span class="d-block small text-muted" th:if="${r.customerAddress}" th:text="${r.customerAddress}"></span>
+                            </dd>
+                        </div>
+                        <div class="app-record-card__row">
+                            <dt>Contact</dt>
+                            <dd>
+                                <a class="app-record-card__link" th:href="|tel:${r.customerContact}|" th:text="${r.customerContact}"></a>
+                            </dd>
+                        </div>
+                        <div class="app-record-card__row">
+                            <dt>Rental period</dt>
+                            <dd>
+                                <span class="text-nowrap"
+                                      th:text="|${r.pickupDate != null ? r.pickupDate : r.hireDate} – ${r.returnDate != null ? r.returnDate : r.hireDate}|"></span>
+                                <span class="d-block small text-muted"
+                                      th:text="|${r.numberOfDays} ${r.numberOfDays == 1 ? 'day' : 'days'}|"></span>
+                            </dd>
+                        </div>
+                    </dl>
+                    <a th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                       class="btn btn-app-primary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                       th:href="@{/rentals/{id}/complete(id=${r.id})}">
+                        <i class="bi bi-check2-circle"></i> Complete rental
+                    </a>
+                </article>
+            </div>
+
+            <div class="app-card-table d-none d-xl-block" th:if="${!rentals.isEmpty()}">
+                <div class="table-responsive">
+                    <table class="table app-table mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th style="width:72px;"></th>
+                            <th>Vehicle</th>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Period</th>
+                            <th>Days</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${rentals}">
+                            <td>
+                                <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
+                                     class="car-thumb rounded-2 border" th:src="${r.car.imagePath}" alt=""/>
+                                <span th:if="${r.car.imagePath == null or r.car.imagePath.isEmpty()}"
+                                      class="car-thumb-placeholder rounded-2 d-inline-flex align-items-center justify-content-center border bg-light text-muted">
+                                    <i class="bi bi-image"></i>
+                                </span>
+                            </td>
+                            <td class="fw-semibold" th:text="${r.car.registrationNumber}"></td>
+                            <td>
+                                <div th:text="${r.customerName}"></div>
+                                <div class="small text-muted" th:text="${r.customerAddress}"></div>
+                            </td>
+                            <td>
+                                <a class="text-decoration-none" th:href="|tel:${r.customerContact}|">
+                                    <i class="bi bi-telephone me-1 text-muted"></i><span th:text="${r.customerContact}"></span>
+                                </a>
+                            </td>
+                            <td class="text-nowrap">
+                                <span th:text="${r.pickupDate != null ? r.pickupDate : r.hireDate}"></span>
+                                <span class="text-muted"> – </span>
+                                <span th:text="${r.returnDate != null ? r.returnDate : r.hireDate}"></span>
+                            </td>
+                            <td th:text="${r.numberOfDays}"></td>
+                            <td>
+                                <span class="badge badge-status"
+                                      th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : ' text-bg-success'"
+                                      th:text="${r.rentalStatus}"></span>
+                            </td>
+                            <td class="text-end">
+                                <a th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                                   class="btn btn-sm btn-app-primary d-inline-flex align-items-center gap-1"
+                                   th:href="@{/rentals/{id}/complete(id=${r.id})}">
+                                    <i class="bi bi-check2-circle"></i> Complete
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="app-card-table empty-state"
+                 th:if="${rentals.isEmpty() and (searchQuery == null or #strings.isEmpty(searchQuery))}">
+                <i class="bi bi-calendar-x"></i>
+                <p class="fw-semibold mb-1" th:text="${activeOnly} ? 'No active rentals' : 'No rentals to show'">No rentals</p>
+                <p class="small mb-3" th:text="${activeOnly} ? 'All vehicles are back in the fleet.' : 'When customers book a car, entries will appear here.'"></p>
+                <button type="button" class="btn btn-app-primary" data-bs-toggle="modal" data-bs-target="#newHireModal"
+                        th:if="${!activeOnly}">
+                    <i class="bi bi-person-plus me-1"></i> New hire
+                </button>
+            </div>
+            <div class="app-card-table empty-state"
+                 th:if="${rentals.isEmpty() and searchQuery != null and !#strings.isEmpty(searchQuery)}">
+                <i class="bi bi-search"></i>
+                <p class="fw-semibold mb-1">No matching rentals</p>
+                <p class="small mb-3">Try another vehicle registration or customer name.</p>
+                <a class="btn btn-outline-soft"
+                   th:href="${activeOnly} ? @{/rentals/active} : @{/rentals}">Clear search</a>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

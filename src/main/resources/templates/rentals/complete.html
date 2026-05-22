@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Complete rental'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main app-main--narrow">
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header mb-4">
+                <h1 class="h2 mb-1">Complete rental</h1>
+                <p class="lead mb-0">Enter return date and odometer reading. The total charge is calculated automatically.</p>
+            </header>
+
+            <div class="app-summary p-4 mb-4">
+                <dl class="app-record-card__meta mb-0">
+                    <div class="app-record-card__row">
+                        <dt>Vehicle</dt>
+                        <dd th:text="${rental.car.registrationNumber}">—</dd>
+                    </div>
+                    <div class="app-record-card__row">
+                        <dt>Customer</dt>
+                        <dd th:text="${rental.customerName}">—</dd>
+                    </div>
+                    <div class="app-record-card__row">
+                        <dt>Rental start</dt>
+                        <dd th:text="${pickupDate}">—</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <form class="app-form-card p-4 p-lg-5" id="completeRentalForm"
+                  th:action="@{/rentals/{id}/complete(id=${rental.id})}"
+                  th:object="${completeForm}" method="post" novalidate
+                  th:attr="data-pickup-date=${#temporals.format(pickupDate, 'yyyy-MM-dd')},
+                           data-start-mileage=${startMileageKm},
+                           data-daily-rate=${dailyRate},
+                           data-km-rate=${kmRate},
+                           data-free-km-per-day=${freeKmPerDay}">
+                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+
+                <div class="mb-3">
+                    <label class="form-label" for="returnDate">Return date</label>
+                    <input class="form-control" type="date" id="returnDate" required
+                           th:field="*{returnDate}"
+                           th:attr="min=${#temporals.format(pickupDate, 'yyyy-MM-dd')}"/>
+                    <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('returnDate')}" th:errors="*{returnDate}"></div>
+                </div>
+
+                <fieldset class="mb-4">
+                    <legend class="form-label fs-6 fw-semibold mb-3">Odometer (km)</legend>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted" for="existingMileageKm">Existing mileage at handover</label>
+                            <div class="input-group">
+                                <input class="form-control bg-light fw-semibold text-secondary" type="text"
+                                       id="existingMileageKm" th:value="${startMileageKm}"
+                                       readonly="readonly" disabled="disabled" tabindex="-1"
+                                       aria-readonly="true" autocomplete="off"/>
+                                <span class="input-group-text bg-light text-muted">km</span>
+                            </div>
+                            <div class="form-text">Recorded on the vehicle when this rental started.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted" for="returnMileageKm">Odometer after trip</label>
+                            <div class="input-group">
+                                <input class="form-control" type="number" min="0" step="1" id="returnMileageKm"
+                                       required th:field="*{returnMileageKm}"
+                                       placeholder="Enter odometer reading"
+                                       th:attr="min=${startMileageKm}"/>
+                                <span class="input-group-text">km</span>
+                            </div>
+                            <div class="form-text">Must be ≥ <span th:text="${startMileageKm}">0</span> km.</div>
+                            <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('returnMileageKm')}" th:errors="*{returnMileageKm}"></div>
+                        </div>
+                    </div>
+                    <p class="small mb-0 mt-2 complete-trip-km text-primary fw-semibold" id="previewTripKmInline" aria-live="polite">
+                        Distance driven: <span id="previewTripKmInlineValue">—</span>
+                    </p>
+                </fieldset>
+
+                <div class="complete-price-breakdown border rounded-3 p-3 p-md-4 mb-4" id="pricePreview" aria-live="polite">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                        <h2 class="h6 mb-0 fw-bold">Price breakdown</h2>
+                        <span class="badge bg-light text-primary border" id="previewTotalBadge"
+                              th:if="${priceBreakdown != null}"
+                              th:text="|Total: ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')}|">Total</span>
+                    </div>
+
+                    <dl class="complete-price-breakdown__list mb-0">
+                        <div class="complete-price-breakdown__row">
+                            <dt>Rental period</dt>
+                            <dd id="previewPeriod" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${pickupDate} → ${completeForm.returnDate} (${priceBreakdown.days} days)| : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Existing mileage</dt>
+                            <dd id="previewStartMileage" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${priceBreakdown.startMileageKm} km| : |${startMileageKm} km|">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Return mileage</dt>
+                            <dd id="previewReturnMileage" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${priceBreakdown.returnMileageKm} km| : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Distance driven</dt>
+                            <dd id="previewTripKm" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${priceBreakdown.tripKm} km| : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__section-label small fw-semibold text-muted text-uppercase pt-2">
+                            Vehicle rates
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Price per day</dt>
+                            <dd id="previewDailyRate" class="mb-0"
+                                th:text="|${#numbers.formatDecimal(dailyRate, 1, 'COMMA', 2, 'POINT')} / day|">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Free km per day</dt>
+                            <dd id="previewFreeKmPerDay" class="mb-0"
+                                th:text="|${freeKmPerDay} km / day|">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Extra price per km</dt>
+                            <dd id="previewKmRate" class="mb-0"
+                                th:text="|${#numbers.formatDecimal(kmRate, 1, 'COMMA', 2, 'POINT')} / km (over allowance)|">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__section-label small fw-semibold text-muted text-uppercase pt-2">
+                            Charges
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Included km (free)</dt>
+                            <dd id="previewIncludedKm" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${priceBreakdown.includedKm} km (${priceBreakdown.freeKmPerDay} × ${priceBreakdown.days} days)| : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
+                            <dt>Billable extra km</dt>
+                            <dd id="previewBillableExtraKm" class="mb-0"
+                                th:text="${priceBreakdown != null} ? |${priceBreakdown.billableExtraKm} km| : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--charge">
+                            <dt>
+                                Daily rental
+                                <span class="d-block small fw-normal text-muted" id="previewDailyFormula"></span>
+                            </dt>
+                            <dd id="previewDailyCharge" class="mb-0"
+                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.dailyCharge, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--charge">
+                            <dt>
+                                Extra km charge
+                                <span class="d-block small fw-normal text-muted" id="previewKmFormula"></span>
+                            </dt>
+                            <dd id="previewKmCharge" class="mb-0"
+                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.kmCharge, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--total">
+                            <dt class="fw-bold">Total charge</dt>
+                            <dd id="previewTotal" class="mb-0 fw-bold"
+                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                        </div>
+                    </dl>
+                    <p class="small text-muted mb-0 mt-3" id="previewHint"
+                       th:text="${priceBreakdown != null} ? 'Amount saved when you complete this rental.' : 'Enter return date and return odometer to calculate the total.'">
+                        Enter return date and return odometer to calculate the total.
+                    </p>
+                </div>
+
+                <div class="mb-4 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="documentReturned" th:field="*{documentReturned}"/>
+                    <label class="form-check-label" for="documentReturned">Customer documents returned</label>
+                </div>
+
+                <div class="d-grid d-sm-flex gap-2 app-form-actions">
+                    <button class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 fw-semibold px-4"
+                            type="submit" id="completeSubmitBtn" disabled>
+                        <i class="bi bi-check-circle"></i> Complete &amp; release car
+                    </button>
+                    <a class="btn btn-outline-soft" th:href="@{/rentals/active}">Cancel</a>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/complete-rental.js}" defer></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

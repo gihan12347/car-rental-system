@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="quickActions" class="app-sidebar-quick px-3 py-3 border-top border-secondary border-opacity-25">
+    <p class="app-sidebar-quick-label small text-white-50 text-uppercase mb-2">Quick actions</p>
+    <div class="d-grid gap-2">
+        <button type="button"
+                class="btn btn-primary btn-sm d-flex align-items-center justify-content-center gap-2 rounded-3 py-2"
+                data-bs-toggle="modal" data-bs-target="#newCarModal">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New car
+        </button>
+        <button type="button"
+                class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center gap-2 rounded-3 py-2 border-opacity-25"
+                data-bs-toggle="modal" data-bs-target="#newHireModal">
+            <i class="bi bi-person-plus" aria-hidden="true"></i> New hire
+        </button>
+    </div>
+</section>
+
+<section th:fragment="quickActionsOffcanvas" class="app-sidebar-quick px-3 py-3 border-top border-secondary border-opacity-25">
+    <p class="app-sidebar-quick-label small text-white-50 text-uppercase mb-2">Quick actions</p>
+    <div class="d-grid gap-2">
+        <button type="button"
+                class="btn btn-primary btn-sm d-flex align-items-center justify-content-center gap-2 rounded-3 py-2"
+                data-bs-toggle="modal" data-bs-target="#newCarModal" data-bs-dismiss="offcanvas">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New car
+        </button>
+        <button type="button"
+                class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center gap-2 rounded-3 py-2 border-opacity-25"
+                data-bs-toggle="modal" data-bs-target="#newHireModal" data-bs-dismiss="offcanvas">
+            <i class="bi bi-person-plus" aria-hidden="true"></i> New hire
+        </button>
+    </div>
+</section>
+</body>
+</html>

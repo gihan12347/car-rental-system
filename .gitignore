@@ -1,0 +1,13 @@
+/build/
+/.gradle/
+/out/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+/data/
+/uploads/
+
+# Local overrides (passwords)
+application-local.properties

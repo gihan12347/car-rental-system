@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="d=${dashboard}, pageTitle='Dashboard'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body dashboard-page">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main dashboard-main">
+            <header class="app-page-header dashboard-header mb-2 mb-lg-3">
+                <div class="dashboard-header-bar d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 gap-md-3">
+                    <div class="min-w-0">
+                        <h1 class="h2 mb-0 dashboard-header-title">Analytics dashboard</h1>
+                        <p class="lead mb-0 dashboard-header-lead">Revenue, fleet utilization, and customer insights.</p>
+                        <p class="small text-muted mb-0 dashboard-header-range" th:text="${d.rangeLabel}">—</p>
+                    </div>
+                    <form method="get" th:action="@{/dashboard}" class="dashboard-period-form flex-shrink-0">
+                        <label class="form-label small fw-semibold mb-1" for="dashboardPeriod">Period</label>
+                        <select id="dashboardPeriod" name="period" class="form-select dashboard-period-select" onchange="this.form.submit()">
+                            <option th:each="p : ${dashboardPeriods}"
+                                    th:value="${p.name()}"
+                                    th:text="${p.label}"
+                                    th:selected="${p == selectedPeriod}"></option>
+                        </select>
+                    </form>
+                </div>
+            </header>
+
+            <!-- Summary KPIs -->
+            <div class="row g-2 g-md-3 mb-3 mb-xl-3 dashboard-summary-row">
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card p-3 p-lg-4 h-100">
+                        <div class="stat-label mb-1">Total revenue</div>
+                        <div class="stat-value stat-value--sm" th:text="${#numbers.formatDecimal(d.totalRevenue, 1, 'COMMA', 0, 'POINT')}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card p-3 p-lg-4 h-100">
+                        <div class="stat-label mb-1">Outstanding</div>
+                        <div class="stat-value stat-value--sm" th:text="${#numbers.formatDecimal(d.outstandingBalances, 1, 'COMMA', 0, 'POINT')}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card p-3 p-lg-4 h-100">
+                        <div class="stat-label mb-1">Total bookings</div>
+                        <div class="stat-value stat-value--sm" th:text="${d.totalBookings}">0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card p-3 p-lg-4 h-100">
+                        <div class="stat-label mb-1">Fleet utilization</div>
+                        <div class="stat-value stat-value--sm" th:text="${d.averageFleetUtilization + '%'}">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Revenue Analytics -->
+            <section class="dashboard-section dashboard-section--revenue mb-4">
+                <div class="dashboard-section-head dashboard-section-head--compact">
+                    <h2 class="h5 mb-0"><i class="bi bi-currency-dollar me-2 text-primary"></i>Revenue analytics</h2>
+                    <p class="small text-muted mb-0 dashboard-section-subtitle">Which cars earn the most and which months need promotions.</p>
+                </div>
+                <div class="row g-2 g-lg-3 dashboard-metrics-row mb-2">
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-metric dashboard-metric--inline">
+                            <span class="dashboard-metric-label">Most profitable vehicle</span>
+                            <strong th:text="${d.mostProfitableVehicle}">—</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-metric dashboard-metric--inline">
+                            <span class="dashboard-metric-label">Highest earning month</span>
+                            <strong th:text="${d.highestEarningMonth}">—</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-metric dashboard-metric--inline">
+                            <span class="dashboard-metric-label">Avg booking value</span>
+                            <strong th:text="${#numbers.formatDecimal(d.averageBookingValue, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="dashboard-metric dashboard-metric--inline">
+                            <span class="dashboard-metric-label">Outstanding balances</span>
+                            <strong th:text="${#numbers.formatDecimal(d.outstandingBalances, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 dashboard-revenue-charts">
+                    <div class="col-12 col-xl-8">
+                        <div class="dashboard-chart-card h-100">
+                            <div class="d-flex align-items-baseline justify-content-between gap-2 mb-1">
+                                <h3 class="dashboard-chart-title mb-0" th:text="${d.revenueChartTitle}">Revenue</h3>
+                                <span class="small text-muted dashboard-chart-period" th:text="${selectedPeriod.label}">Period</span>
+                            </div>
+                            <div class="dashboard-chart-shell">
+                                <div class="dashboard-chart-canvas dashboard-chart-canvas--revenue">
+                                    <canvas id="chartRevenue" aria-label="Revenue chart"></canvas>
+                                </div>
+                                <div class="chart-empty" id="chartRevenueEmpty" hidden>
+                                    <i class="bi bi-bar-chart-line chart-empty__icon"></i>
+                                    <p class="mb-0">No revenue in this period</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-4">
+                        <div class="dashboard-chart-card h-100">
+                            <h3 class="dashboard-chart-title mb-1">By vehicle type</h3>
+                            <div class="dashboard-chart-shell dashboard-chart-shell--doughnut">
+                                <div class="dashboard-chart-canvas dashboard-chart-canvas--revenue-side">
+                                    <canvas id="chartRevenueByType" aria-label="Revenue by vehicle type"></canvas>
+                                </div>
+                                <div class="chart-empty" id="chartRevenueByTypeEmpty" hidden>
+                                    <i class="bi bi-pie-chart chart-empty__icon"></i>
+                                    <p class="mb-0">No revenue by type</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Fleet Utilization -->
+            <section class="dashboard-section dashboard-section--fleet mb-4">
+                <div class="dashboard-section-head dashboard-section-head--compact">
+                    <h2 class="h5 mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Fleet utilization</h2>
+                    <p class="small text-muted mb-0 dashboard-section-subtitle">Sell low performers, buy high-demand vehicles, track service needs.</p>
+                </div>
+                <div class="row g-2 g-lg-3 dashboard-fleet-layout">
+                    <div class="col-12 col-lg-5 col-xl-4">
+                        <div class="dashboard-chart-card dashboard-chart-card--fleet-table">
+                            <h3 class="dashboard-chart-title">Vehicle utilization</h3>
+                            <div class="table-responsive">
+                                <table class="table app-table dashboard-util-table mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Vehicle</th>
+                                        <th>Registration</th>
+                                        <th>Utilization</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="row : ${d.vehicleUtilization}">
+                                        <td class="fw-semibold" th:text="${row.vehicle}">—</td>
+                                        <td th:text="${row.registration}">—</td>
+                                        <td>
+                                            <div class="dashboard-util-bar-wrap">
+                                                <div class="dashboard-util-bar" th:style="|width: ${row.utilizationPercent}%|"></div>
+                                                <span th:text="${row.utilizationPercent + '%'}">0%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${d.vehicleUtilization.isEmpty()}">
+                                        <td colspan="3" class="text-muted text-center py-3">No fleet data for this period.</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-7 col-xl-8">
+                        <div class="row g-2 dashboard-fleet-insights">
+                            <div class="col-12 col-sm-6">
+                                <div class="dashboard-list-card dashboard-list-card--compact">
+                                    <h3 class="dashboard-chart-title">Idle vehicles</h3>
+                                    <ul class="dashboard-mini-list mb-0" th:if="${!d.idleVehicles.isEmpty()}">
+                                        <li th:each="item : ${d.idleVehicles}">
+                                            <span th:text="${item.name}">—</span>
+                                            <small class="text-muted" th:text="${item.detail}"></small>
+                                        </li>
+                                    </ul>
+                                    <p class="small text-muted mb-0" th:if="${d.idleVehicles.isEmpty()}">No idle vehicles flagged.</p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="dashboard-list-card dashboard-list-card--compact">
+                                    <h3 class="dashboard-chart-title">Frequently rented</h3>
+                                    <ul class="dashboard-mini-list mb-0" th:if="${!d.frequentlyRented.isEmpty()}">
+                                        <li th:each="item : ${d.frequentlyRented}">
+                                            <span th:text="${item.name}">—</span>
+                                            <small th:text="${item.detail}"></small>
+                                        </li>
+                                    </ul>
+                                    <p class="small text-muted mb-0" th:if="${d.frequentlyRented.isEmpty()}">No repeat hires yet.</p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="dashboard-list-card dashboard-list-card--compact">
+                                    <h3 class="dashboard-chart-title">Low performing</h3>
+                                    <ul class="dashboard-mini-list mb-0" th:if="${!d.lowPerformingVehicles.isEmpty()}">
+                                        <li th:each="item : ${d.lowPerformingVehicles}">
+                                            <span th:text="${item.name}">—</span>
+                                            <small class="text-muted" th:text="${item.detail}"></small>
+                                        </li>
+                                    </ul>
+                                    <p class="small text-muted mb-0" th:if="${d.lowPerformingVehicles.isEmpty()}">No low performers in period.</p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="dashboard-list-card dashboard-list-card--compact">
+                                    <h3 class="dashboard-chart-title">Currently rented · nearing service</h3>
+                                    <p class="small fw-semibold mb-1 dashboard-fleet-subhead">On hire now</p>
+                                    <ul class="dashboard-mini-list mb-2" th:if="${!d.currentlyRented.isEmpty()}">
+                                        <li th:each="item : ${d.currentlyRented}" th:text="${item.name}">—</li>
+                                    </ul>
+                                    <p class="small text-muted mb-0" th:if="${d.currentlyRented.isEmpty()}">No cars on hire.</p>
+                                    <p class="small fw-semibold mb-1 mt-2 dashboard-fleet-subhead">Service due soon</p>
+                                    <ul class="dashboard-mini-list mb-0" th:if="${!d.nearingService.isEmpty()}">
+                                        <li th:each="item : ${d.nearingService}">
+                                            <span th:text="${item.name}">—</span>
+                                            <small class="text-muted" th:text="${item.detail}"></small>
+                                        </li>
+                                    </ul>
+                                    <p class="small text-muted mb-0" th:if="${d.nearingService.isEmpty()}">All vehicles within service limits.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Customer Insights -->
+            <section class="dashboard-section mb-4">
+                <div class="dashboard-section-head">
+                    <h2 class="h5 mb-1"><i class="bi bi-people me-2 text-primary"></i>Customer insights</h2>
+                    <p class="small text-muted mb-0">Loyalty programs and risk management.</p>
+                </div>
+                <div class="row g-3 g-lg-4">
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">Repeat customers</span><strong th:text="${d.repeatCustomers}">0</strong></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">New customers</span><strong th:text="${d.newCustomers}">0</strong></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">Blacklisted</span><strong th:text="${d.blacklistedCustomers}">0</strong></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">Complaints</span><strong th:text="${d.customerComplaints}">0</strong></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">Retention rate</span><strong th:text="${d.customerRetentionRate + '%'}">0%</strong></div>
+                    </div>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="dashboard-metric"><span class="dashboard-metric-label">Avg rental duration</span><strong th:text="${d.averageRentalDuration + ' days'}">0</strong></div>
+                    </div>
+                    <div class="col-12 col-lg-5">
+                        <div class="dashboard-list-card h-100">
+                            <h3 class="dashboard-chart-title">Top customers</h3>
+                            <ul class="dashboard-mini-list mb-0" th:if="${!d.topCustomers.isEmpty()}">
+                                <li th:each="item : ${d.topCustomers}">
+                                    <span th:text="${item.name}">—</span>
+                                    <strong th:text="${#numbers.formatDecimal(item.value, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                                </li>
+                            </ul>
+                            <p class="small text-muted mb-0" th:if="${d.topCustomers.isEmpty()}">No customer revenue in this period.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="application/json" id="dashboardChartPayload" th:utext="${chartsJson}">{}</script>
+<script th:src="@{/js/charts-common.js}"></script>
+<script th:src="@{/js/dashboard-charts.js}" defer></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

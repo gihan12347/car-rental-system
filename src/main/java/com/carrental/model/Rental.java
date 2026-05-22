@@ -1,0 +1,202 @@
+package com.carrental.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "rentals")
+public class Rental {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "car_id", nullable = false)
+    private Car car;
+
+    @NotNull
+    @Min(1)
+    @Column(nullable = false)
+    private Integer numberOfDays;
+
+    @NotBlank
+    @Column(nullable = false)
+    private String customerName;
+
+    @NotBlank
+    @Column(nullable = false, length = 500)
+    private String customerAddress;
+
+    @NotBlank
+    @Column(nullable = false)
+    private String customerContact;
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDate hireDate = LocalDate.now();
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDate pickupDate = LocalDate.now();
+
+    @Column
+    private LocalDate returnDate;
+
+    @Column
+    private LocalDate completedDate;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private RentalStatus rentalStatus = RentalStatus.ACTIVE;
+
+    @Column(nullable = false)
+    private Boolean customerComplaint = Boolean.FALSE;
+
+    @Min(0)
+    @Column(precision = 12, scale = 2)
+    private BigDecimal extraKm;
+
+    @Min(0)
+    @Column(precision = 12, scale = 2)
+    private BigDecimal totalPrice;
+
+    @Column(nullable = false)
+    private Boolean documentReturned = Boolean.FALSE;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Car getCar() {
+        return car;
+    }
+
+    public void setCar(Car car) {
+        this.car = car;
+    }
+
+    public Integer getNumberOfDays() {
+        return numberOfDays;
+    }
+
+    public void setNumberOfDays(Integer numberOfDays) {
+        this.numberOfDays = numberOfDays;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerAddress() {
+        return customerAddress;
+    }
+
+    public void setCustomerAddress(String customerAddress) {
+        this.customerAddress = customerAddress;
+    }
+
+    public String getCustomerContact() {
+        return customerContact;
+    }
+
+    public void setCustomerContact(String customerContact) {
+        this.customerContact = customerContact;
+    }
+
+    public LocalDate getHireDate() {
+        return hireDate;
+    }
+
+    public void setHireDate(LocalDate hireDate) {
+        this.hireDate = hireDate;
+    }
+
+    public LocalDate getPickupDate() {
+        return pickupDate;
+    }
+
+    public void setPickupDate(LocalDate pickupDate) {
+        this.pickupDate = pickupDate;
+    }
+
+    public LocalDate getReturnDate() {
+        return returnDate;
+    }
+
+    public void setReturnDate(LocalDate returnDate) {
+        this.returnDate = returnDate;
+    }
+
+    public LocalDate getCompletedDate() {
+        return completedDate;
+    }
+
+    public void setCompletedDate(LocalDate completedDate) {
+        this.completedDate = completedDate;
+    }
+
+    public Boolean getCustomerComplaint() {
+        return customerComplaint;
+    }
+
+    public void setCustomerComplaint(Boolean customerComplaint) {
+        this.customerComplaint = customerComplaint;
+    }
+
+    public RentalStatus getRentalStatus() {
+        return rentalStatus;
+    }
+
+    public void setRentalStatus(RentalStatus rentalStatus) {
+        this.rentalStatus = rentalStatus;
+    }
+
+    public BigDecimal getExtraKm() {
+        return extraKm;
+    }
+
+    public void setExtraKm(BigDecimal extraKm) {
+        this.extraKm = extraKm;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public Boolean getDocumentReturned() {
+        return documentReturned;
+    }
+
+    public void setDocumentReturned(Boolean documentReturned) {
+        this.documentReturned = documentReturned;
+    }
+}

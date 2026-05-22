@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Sign in'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="login-page">
+<div class="login-shell min-vh-100">
+    <div class="login-bg" aria-hidden="true"
+            th:style="|background-image: url('@{/images/login-bg.jpg}');|"></div>
+    <div class="login-bg-overlay" aria-hidden="true"></div>
+
+    <div class="login-layout container-fluid min-vh-100">
+        <div class="row min-vh-100 align-items-center justify-content-start g-0">
+            <div class="col-12 col-md-6 col-lg-5 col-xl-4 px-3 px-sm-4 py-4 py-lg-5">
+                <div class="login-card">
+                    <div class="login-brand mb-4">
+                        <div class="login-brand-icon rounded-3 d-inline-flex align-items-center justify-content-center mb-3">
+                            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                        </div>
+                        <h1 class="h3 mb-1">FleetDesk</h1>
+                        <p class="login-tagline mb-0">Fleet management portal</p>
+                    </div>
+
+                    <div th:if="${param.error}" class="alert login-alert login-alert--danger d-flex align-items-center gap-2 mb-3" role="alert">
+                        <i class="bi bi-exclamation-circle-fill flex-shrink-0" aria-hidden="true"></i>
+                        <span>Invalid username or password.</span>
+                    </div>
+
+                    <form method="post" th:attr="action=@{/login}" class="login-form">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3">
+                            <label class="form-label" for="username">Username</label>
+                            <div class="input-group login-input-group">
+                                <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+                                <input type="text" id="username" name="username" class="form-control" autocomplete="username"
+                                       placeholder="Enter username" required autofocus/>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-group login-input-group">
+                                <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                                <input type="password" id="password" name="password" class="form-control" autocomplete="current-password"
+                                       placeholder="Enter password" required/>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-login-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                            Sign in
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col d-none d-md-block" aria-hidden="true"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

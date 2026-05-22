@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="appModals">
+    <div class="modal fade" id="newCarModal" tabindex="-1" aria-labelledby="newCarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+            <div class="modal-content app-modal">
+                <div class="modal-header app-modal-header">
+                    <div>
+                        <h5 class="modal-title" id="newCarModalLabel">Add vehicle</h5>
+                        <p class="small text-muted mb-0">Register a car and set daily rates.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <form id="newCarForm" th:action="@{/cars}" th:object="${modalCar}" method="post" enctype="multipart/form-data" novalidate>
+                        <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold" for="nc-image">Photo</label>
+                                <input class="form-control" type="file" id="nc-image" name="carImage" accept="image/*"/>
+                                <div class="form-text">Optional — JPEG, PNG, or WebP.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold" for="nc-reg">Registration</label>
+                                <input class="form-control" id="nc-reg" th:field="*{registrationNumber}" placeholder="e.g. ABC-1234" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{registrationNumber}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-model">Model name</label>
+                                <input class="form-control" id="nc-model" th:field="*{modelName}" placeholder="e.g. Prius 2020"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-type">Vehicle type</label>
+                                <select class="form-select" id="nc-type" th:field="*{vehicleType}">
+                                    <option th:each="vt : ${vehicleTypes}" th:value="${vt}" th:text="${vt}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-service">Next service at (km)</label>
+                                <input class="form-control" type="number" min="0" id="nc-service" th:field="*{nextServiceKm}" placeholder="Optional"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-mileage">Mileage</label>
+                                <div class="input-group">
+                                    <input class="form-control" type="number" min="0" id="nc-mileage" th:field="*{mileageKm}" required/>
+                                    <span class="input-group-text">km</span>
+                                </div>
+                                <div class="invalid-feedback d-block small" th:errors="*{mileageKm}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-pax">Passengers</label>
+                                <input class="form-control" type="number" min="1" id="nc-pax" th:field="*{passengerCount}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{passengerCount}"></div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="nc-driver" th:field="*{withDriver}"/>
+                                    <label class="form-check-label" for="nc-driver">Chauffeur / with driver</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-dayprice">Price per day</label>
+                                <input class="form-control" type="number" step="0.01" min="0" id="nc-dayprice" th:field="*{rentalPricePerDay}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{rentalPricePerDay}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-kmprice">Extra per km</label>
+                                <input class="form-control" type="number" step="0.01" min="0" id="nc-kmprice" th:field="*{extraPricePerKm}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{extraPricePerKm}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nc-freekmd">Free km per day</label>
+                                <input class="form-control" type="number" min="0" step="1" id="nc-freekmd" th:field="*{freeKmPerDay}" required/>
+                                <div class="form-text">Included km each day; only distance above the allowance is charged at the extra km rate.</div>
+                                <div class="invalid-feedback d-block small" th:errors="*{freeKmPerDay}"></div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold" for="nc-status">Initial status</label>
+                                <select class="form-select" id="nc-status" th:field="*{status}">
+                                    <option th:each="st : ${carStatuses}" th:value="${st}" th:text="${st}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-app-primary d-inline-flex align-items-center gap-2" form="newCarForm">
+                        <i class="bi bi-check-lg"></i> Save vehicle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newHireModal" tabindex="-1" aria-labelledby="newHireModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+            <div class="modal-content app-modal">
+                <div class="modal-header app-modal-header">
+                    <div>
+                        <h5 class="modal-title" id="newHireModalLabel">New hire</h5>
+                        <p class="small text-muted mb-0">Pick rental dates, then choose a vehicle free for that period.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <form id="newHireForm" th:action="@{/rentals}" th:object="${hireForm}" method="post" novalidate
+                          th:attr="data-available-cars-url=@{/rentals/available-cars}">
+                        <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nh-start">Start date</label>
+                                <input class="form-control" type="date" id="nh-start" th:field="*{startDate}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{startDate}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="nh-end">End date</label>
+                                <input class="form-control" type="date" id="nh-end" th:field="*{endDate}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{endDate}"></div>
+                            </div>
+                            <div class="col-12">
+                                <p class="small text-muted mb-0" id="nh-days-hint">Select start and end dates.</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="nh-car">Vehicle</label>
+                            <div id="nh-pick-dates" class="border rounded-3 px-3 py-3 text-center text-muted small bg-light">
+                                <i class="bi bi-calendar-range d-block fs-4 mb-2 opacity-50"></i>
+                                Choose start and end dates to see available vehicles.
+                            </div>
+                            <div id="nh-no-cars" class="border rounded-3 px-3 py-4 text-center text-muted small bg-light d-none">
+                                <i class="bi bi-emoji-frown d-block fs-2 mb-2 opacity-50"></i>
+                                No vehicles free for these dates. Try different dates or add a car to the fleet.
+                            </div>
+                            <div id="nh-car-wrap" class="d-none">
+                                <select class="form-select" id="nh-car" name="carId" required
+                                        th:attr="data-selected-car-id=${hireForm.carId != null ? hireForm.carId : ''}">
+                                    <option value="">Choose a vehicle…</option>
+                                </select>
+                            </div>
+                            <div class="invalid-feedback d-block small" th:errors="*{carId}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="nh-name">Customer name</label>
+                            <input class="form-control" id="nh-name" th:field="*{customerName}" autocomplete="name" required/>
+                            <div class="invalid-feedback d-block small" th:errors="*{customerName}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="nh-address">Address</label>
+                            <textarea class="form-control" id="nh-address" rows="2" th:field="*{customerAddress}" required></textarea>
+                            <div class="invalid-feedback d-block small" th:errors="*{customerAddress}"></div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label small fw-semibold" for="nh-contact">Phone</label>
+                            <input class="form-control" type="tel" id="nh-contact" th:field="*{customerContact}" autocomplete="tel" required/>
+                            <div class="invalid-feedback d-block small" th:errors="*{customerContact}"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-app-primary d-inline-flex align-items-center gap-2" form="newHireForm" disabled>
+                        <i class="bi bi-calendar-check"></i> Create booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:if="${openNewCarModal == true}">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                var el = document.getElementById('newCarModal');
+                if (el) { bootstrap.Modal.getOrCreateInstance(el).show(); }
+            });
+        </script>
+    </th:block>
+    <th:block th:if="${openNewHireModal == true}">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                var el = document.getElementById('newHireModal');
+                if (el) { bootstrap.Modal.getOrCreateInstance(el).show(); }
+            });
+        </script>
+    </th:block>
+    <script th:src="@{/js/hire-period.js}" defer></script>
+</th:block>
+</body>
+</html>

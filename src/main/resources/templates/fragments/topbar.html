@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="topbar" class="app-topbar border-bottom bg-white sticky-top">
+    <div class="container-fluid px-3 px-lg-5 app-topbar-inner">
+        <div class="d-flex align-items-center justify-content-between gap-2 py-2">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <button type="button" class="btn btn-outline-soft btn-sm d-lg-none app-icon-btn flex-shrink-0"
+                        data-bs-toggle="offcanvas" data-bs-target="#appNavOffcanvas" aria-label="Open menu">
+                    <i class="bi bi-list fs-5" aria-hidden="true"></i>
+                </button>
+                <div class="min-w-0">
+                    <p class="small text-muted mb-0 text-truncate d-none d-sm-block d-lg-block">Fleet management</p>
+                    <h2 class="h6 mb-0 fw-bold text-truncate d-lg-none" th:text="${pageTitle != null} ? ${pageTitle} : 'FleetDesk'">FleetDesk</h2>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0" sec:authorize="isAuthenticated()">
+                <span class="app-topbar-user small text-muted d-none d-md-inline">
+                    <i class="bi bi-person-circle me-1" aria-hidden="true"></i>
+                    <span sec:authentication="name">user</span>
+                </span>
+                <form method="post" th:attr="action=@{/logout}" class="mb-0">
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-outline-soft btn-sm d-inline-flex align-items-center gap-1 app-signout-btn">
+                        <i class="bi bi-box-arrow-left" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline">Sign out</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <nav class="app-topbar-nav d-lg-none pb-2" aria-label="Quick navigation">
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'home'} ? ' active' : ''" th:href="@{/dashboard}">
+                <i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'cars'} ? ' active' : ''" th:href="@{/cars}">
+                <i class="bi bi-car-front" aria-hidden="true"></i><span>Fleet</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'rentals'} ? ' active' : ''" th:href="@{/rentals}">
+                <i class="bi bi-calendar3" aria-hidden="true"></i><span>Rentals</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'active'} ? ' active' : ''" th:href="@{/rentals/active}">
+                <i class="bi bi-lightning-charge" aria-hidden="true"></i><span>Active</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'account'} ? ' active' : ''" th:href="@{/account}">
+                <i class="bi bi-person-gear" aria-hidden="true"></i><span>Account</span>
+            </a>
+        </nav>
+    </div>
+</header>
+</body>
+</html>
