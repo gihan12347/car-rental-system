@@ -7,3 +7,9 @@ dockerfilePath = "Dockerfile"
 healthcheckPath = "/login"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
+
+# Attach a volume in Railway (Dashboard → your app service → Settings → Volumes → mount path /data)
+# so uploaded car photos survive redeploys.
+[[mounts]]
+source = "fleetdesk-uploads"
+destination = "/data"

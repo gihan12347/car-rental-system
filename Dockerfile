@@ -16,8 +16,12 @@ FROM eclipse-temurin:8-jre-jammy
 WORKDIR /app
 
 RUN useradd --system --create-home --home-dir /app appuser \
-    && chown -R appuser:appuser /app
+    && mkdir -p /data/uploads/cars /app/uploads/cars \
+    && chown -R appuser:appuser /app /data
 USER appuser
+
+# Persist car images on a Railway volume mounted at /data (see railway.toml)
+ENV APP_UPLOAD_CARS_DIR=/data/uploads/cars
 
 COPY --from=build --chown=appuser:appuser /app/build/libs/*.jar app.jar
 

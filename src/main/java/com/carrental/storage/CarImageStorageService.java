@@ -1,5 +1,7 @@
 package com.carrental.storage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -18,6 +20,8 @@ import java.util.UUID;
 @Service
 public class CarImageStorageService {
 
+    private static final Logger log = LoggerFactory.getLogger(CarImageStorageService.class);
+
     @Value("${app.upload.cars.dir:uploads/cars}")
     private String uploadDirRelative;
 
@@ -25,9 +29,13 @@ public class CarImageStorageService {
 
     @PostConstruct
     public void init() {
-        uploadRoot = Paths.get(uploadDirRelative).toAbsolutePath().normalize();
+        Path configured = Paths.get(uploadDirRelative);
+        uploadRoot = configured.isAbsolute()
+                ? configured.normalize()
+                : configured.toAbsolutePath().normalize();
         try {
             Files.createDirectories(uploadRoot);
+            log.info("Car image uploads directory: {}", uploadRoot);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not create car image upload directory", e);
         }

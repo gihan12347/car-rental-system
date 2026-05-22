@@ -27,6 +27,7 @@ public class SecurityConfig {
                                 "/login",
                                 "/css/**",
                                 "/images/**",
+                                "/uploads/cars/**",
                                 "/sw.js",
                                 "/site.webmanifest",
                                 "/icons/**",
