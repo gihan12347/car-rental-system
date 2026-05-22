@@ -1,0 +1,9 @@
+# Use Dockerfile instead of Nixpacks (avoids wrong Java version on Railway).
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/login"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
