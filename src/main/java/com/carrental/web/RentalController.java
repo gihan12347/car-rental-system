@@ -2,8 +2,7 @@ package com.carrental.web;
 
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
-import com.carrental.service.RentalPricingHelper;
-import com.carrental.service.RentalPeriodHelper;
+import com.carrental.service.BlacklistedCustomerService;
 import com.carrental.service.RentalPeriodHelper;
 import com.carrental.service.RentalPricingHelper;
 import com.carrental.service.RentalService;
@@ -34,9 +33,11 @@ import java.util.List;
 public class RentalController {
 
     private final RentalService rentalService;
+    private final BlacklistedCustomerService blacklistedCustomerService;
 
-    public RentalController(RentalService rentalService) {
+    public RentalController(RentalService rentalService, BlacklistedCustomerService blacklistedCustomerService) {
         this.rentalService = rentalService;
+        this.blacklistedCustomerService = blacklistedCustomerService;
     }
 
     @GetMapping
@@ -146,15 +147,20 @@ public class RentalController {
             return "rentals/complete";
         }
         try {
+            boolean blacklist = Boolean.TRUE.equals(form.getBlacklistCustomer());
             Rental completed = rentalService.completeRental(
                     id,
                     form.getReturnDate(),
                     form.getReturnMileageKm(),
-                    Boolean.TRUE.equals(form.getDocumentReturned()));
-            redirectAttributes.addFlashAttribute(
-                    "successMessage",
-                    "Rental completed. Total charged: " + completed.getTotalPrice()
-                            + ". Vehicle odometer updated to " + form.getReturnMileageKm() + " km.");
+                    Boolean.TRUE.equals(form.getDocumentReturned()),
+                    blacklist,
+                    form.getBlacklistReason());
+            String success = "Rental completed. Total charged: " + completed.getTotalPrice()
+                    + ". Vehicle odometer updated to " + form.getReturnMileageKm() + " km.";
+            if (blacklist) {
+                success += " Customer was added to the blacklist.";
+            }
+            redirectAttributes.addFlashAttribute("successMessage", success);
         } catch (IllegalStateException | IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "rentals/complete";
@@ -162,13 +168,14 @@ public class RentalController {
         return "redirect:/rentals";
     }
 
-    private static void populateCompletePage(Model model, Rental rental, CompleteRentalForm form) {
+    private void populateCompletePage(Model model, Rental rental, CompleteRentalForm form) {
         model.addAttribute("rental", rental);
         model.addAttribute("startMileageKm", rental.getCar().getMileageKm());
         model.addAttribute("pickupDate", RentalPeriodHelper.startDate(rental));
         model.addAttribute("dailyRate", rental.getCar().getRentalPricePerDay());
         model.addAttribute("kmRate", rental.getCar().getExtraPricePerKm());
         model.addAttribute("freeKmPerDay", rental.getCar().getFreeKmPerDay() != null ? rental.getCar().getFreeKmPerDay() : 0);
+        model.addAttribute("customerBlacklisted", blacklistedCustomerService.isBlacklisted(rental.getCustomerContact()));
         model.addAttribute("activeNav", "rentals");
         if (form != null) {
             model.addAttribute("completeForm", form);

@@ -118,6 +118,12 @@ public class CarController {
         Map<String, Object> chartPayload = new HashMap<String, Object>();
         chartPayload.put("incomeChart", detail.getIncomeChart());
         chartPayload.put("expenseChart", detail.getExpenseChart());
+        chartPayload.put(
+                "calendarDays",
+                carDetailService.buildCalendarDayDetails(
+                        CarDetailService.parseMonth(month),
+                        detail.getRentals(),
+                        detail.getMaintenanceRecords()));
         model.addAttribute("chartsJson", objectMapper.writeValueAsString(chartPayload));
         if (!model.containsAttribute("maintenanceForm")) {
             model.addAttribute("maintenanceForm", new MaintenanceForm());

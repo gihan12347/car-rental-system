@@ -140,8 +140,11 @@ public class CarDetailData {
     public static class CalendarCell {
         private boolean blank;
         private Integer day;
+        private String isoDate;
         private String status = "AVAILABLE";
         private boolean today;
+        private int rentalCount;
+        private int maintenanceCount;
 
         public boolean isBlank() {
             return blank;
@@ -159,6 +162,14 @@ public class CarDetailData {
             this.day = day;
         }
 
+        public String getIsoDate() {
+            return isoDate;
+        }
+
+        public void setIsoDate(String isoDate) {
+            this.isoDate = isoDate;
+        }
+
         public String getStatus() {
             return status;
         }
@@ -173,6 +184,22 @@ public class CarDetailData {
 
         public void setToday(boolean today) {
             this.today = today;
+        }
+
+        public int getRentalCount() {
+            return rentalCount;
+        }
+
+        public void setRentalCount(int rentalCount) {
+            this.rentalCount = rentalCount;
+        }
+
+        public int getMaintenanceCount() {
+            return maintenanceCount;
+        }
+
+        public void setMaintenanceCount(int maintenanceCount) {
+            this.maintenanceCount = maintenanceCount;
         }
     }
 

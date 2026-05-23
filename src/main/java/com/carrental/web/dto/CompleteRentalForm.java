@@ -20,6 +20,10 @@ public class CompleteRentalForm {
 
     private Boolean documentReturned = Boolean.FALSE;
 
+    private Boolean blacklistCustomer = Boolean.FALSE;
+
+    private String blacklistReason;
+
     public Long getRentalId() {
         return rentalId;
     }
@@ -50,5 +54,21 @@ public class CompleteRentalForm {
 
     public void setDocumentReturned(Boolean documentReturned) {
         this.documentReturned = documentReturned;
+    }
+
+    public Boolean getBlacklistCustomer() {
+        return blacklistCustomer;
+    }
+
+    public void setBlacklistCustomer(Boolean blacklistCustomer) {
+        this.blacklistCustomer = blacklistCustomer;
+    }
+
+    public String getBlacklistReason() {
+        return blacklistReason;
+    }
+
+    public void setBlacklistReason(String blacklistReason) {
+        this.blacklistReason = blacklistReason;
     }
 }

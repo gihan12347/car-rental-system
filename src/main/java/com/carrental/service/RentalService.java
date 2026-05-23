@@ -25,10 +25,15 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final CarService carService;
+    private final BlacklistedCustomerService blacklistedCustomerService;
 
-    public RentalService(RentalRepository rentalRepository, CarService carService) {
+    public RentalService(
+            RentalRepository rentalRepository,
+            CarService carService,
+            BlacklistedCustomerService blacklistedCustomerService) {
         this.rentalRepository = rentalRepository;
         this.carService = carService;
+        this.blacklistedCustomerService = blacklistedCustomerService;
     }
 
     public List<Rental> listActive() {
@@ -100,6 +105,7 @@ public class RentalService {
             String customerIdNumber,
             String travelLocation) {
         validatePeriod(startDate, endDate);
+        blacklistedCustomerService.ensureNotBlacklisted(customerContact);
         Car car = carService.getById(carId);
         if (hasOverlappingBooking(carId, startDate, endDate)) {
             throw new IllegalStateException(
@@ -131,7 +137,9 @@ public class RentalService {
             Long rentalId,
             LocalDate returnDate,
             Integer returnMileageKm,
-            boolean documentReturned) {
+            boolean documentReturned,
+            boolean blacklistCustomer,
+            String blacklistReason) {
         Rental rental = getByIdWithCar(rentalId);
         if (rental.getRentalStatus() != RentalStatus.ACTIVE) {
             throw new IllegalStateException("Rental is already completed.");
@@ -161,6 +169,10 @@ public class RentalService {
         carService.save(car);
 
         syncCarAvailability(car, LocalDate.now());
+
+        if (blacklistCustomer) {
+            blacklistedCustomerService.blacklistFromRental(rental, blacklistReason);
+        }
         return rental;
     }
 

@@ -1,5 +1,8 @@
 package com.carrental.service;
 
+import com.carrental.car.CarCalendarDayDetail;
+import com.carrental.car.CarCalendarDayDetail.MaintenanceOnDay;
+import com.carrental.car.CarCalendarDayDetail.RentalOnDay;
 import com.carrental.car.CarDetailData;
 import com.carrental.car.CarDetailData.CalendarCell;
 import com.carrental.car.CarDetailData.ChartPoint;
@@ -18,14 +21,18 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class CarDetailService {
 
     private static final DateTimeFormatter MONTH_PARAM = DateTimeFormatter.ofPattern("yyyy-MM");
     private static final DateTimeFormatter MONTH_LABEL = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter DAY_LABEL = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter SHORT_DAY = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
     private static final int CHART_MONTHS = 6;
 
     private final CarService carService;
@@ -66,6 +73,28 @@ public class CarDetailService {
         return data;
     }
 
+    public Map<String, CarCalendarDayDetail> buildCalendarDayDetails(
+            YearMonth month,
+            List<Rental> rentals,
+            List<MaintenanceRecord> maintenance) {
+        Map<String, CarCalendarDayDetail> byDate = new LinkedHashMap<String, CarCalendarDayDetail>();
+        int daysInMonth = month.lengthOfMonth();
+        for (int day = 1; day <= daysInMonth; day++) {
+            LocalDate date = month.atDay(day);
+            String iso = date.toString();
+            CarCalendarDayDetail detail = new CarCalendarDayDetail();
+            detail.setDate(iso);
+            detail.setDateLabel(date.format(DAY_LABEL));
+            String status = resolveDayStatus(date, rentals, maintenance);
+            detail.setStatus(status);
+            detail.setStatusLabel(statusLabel(status));
+            detail.setRentals(rentalsOnDate(date, rentals));
+            detail.setMaintenance(maintenanceOnDate(date, maintenance));
+            byDate.put(iso, detail);
+        }
+        return byDate;
+    }
+
     public static YearMonth parseMonth(String monthParam) {
         if (monthParam == null || monthParam.trim().isEmpty()) {
             return YearMonth.now();
@@ -97,7 +126,12 @@ public class CarDetailService {
             LocalDate date = month.atDay(day);
             CalendarCell cell = new CalendarCell();
             cell.setDay(day);
+            cell.setIsoDate(date.toString());
             cell.setToday(date.equals(today));
+            List<RentalOnDay> rentalsOnDay = rentalsOnDate(date, rentals);
+            List<MaintenanceOnDay> maintenanceOnDay = maintenanceOnDate(date, maintenance);
+            cell.setRentalCount(rentalsOnDay.size());
+            cell.setMaintenanceCount(maintenanceOnDay.size());
             cell.setStatus(resolveDayStatus(date, rentals, maintenance));
             cells.add(cell);
         }
@@ -140,6 +174,65 @@ public class CarDetailService {
             return "MAINTENANCE";
         }
         return "AVAILABLE";
+    }
+
+    private static String statusLabel(String status) {
+        if ("RENTED".equals(status)) {
+            return "Rented";
+        }
+        if ("MAINTENANCE".equals(status)) {
+            return "Maintenance";
+        }
+        if ("RENTED_MAINTENANCE".equals(status)) {
+            return "Rented & maintenance";
+        }
+        return "Available";
+    }
+
+    private static List<RentalOnDay> rentalsOnDate(LocalDate date, List<Rental> rentals) {
+        List<RentalOnDay> list = new ArrayList<RentalOnDay>();
+        for (Rental rental : rentals) {
+            if (rental.getRentalStatus() == RentalStatus.CANCELLED) {
+                continue;
+            }
+            LocalDate start = RentalPeriodHelper.startDate(rental);
+            LocalDate end = RentalPeriodHelper.endDate(rental);
+            if (!RentalPeriodHelper.includesToday(start, end, date)) {
+                continue;
+            }
+            int days = RentalPeriodHelper.inclusiveDays(start, end);
+            RentalOnDay item = new RentalOnDay();
+            item.setId(rental.getId());
+            item.setCustomerName(rental.getCustomerName());
+            item.setCustomerContact(rental.getCustomerContact());
+            item.setCustomerIdNumber(rental.getCustomerIdNumber());
+            item.setCustomerAddress(rental.getCustomerAddress());
+            item.setRentalStatus(rental.getRentalStatus() != null ? rental.getRentalStatus().name() : "");
+            item.setPickupDate(start.format(SHORT_DAY));
+            item.setReturnDate(end.format(SHORT_DAY));
+            item.setNumberOfDays(days);
+            item.setPeriod(start.format(SHORT_DAY) + " → " + end.format(SHORT_DAY) + " (" + days + " days)");
+            item.setTotalPrice(rental.getTotalPrice());
+            item.setTravelLocation(rental.getTravelLocation());
+            list.add(item);
+        }
+        return list;
+    }
+
+    private static List<MaintenanceOnDay> maintenanceOnDate(LocalDate date, List<MaintenanceRecord> maintenance) {
+        List<MaintenanceOnDay> list = new ArrayList<MaintenanceOnDay>();
+        for (MaintenanceRecord record : maintenance) {
+            if (record.getMaintenanceDate() != null && record.getMaintenanceDate().equals(date)) {
+                MaintenanceOnDay item = new MaintenanceOnDay();
+                item.setId(record.getId());
+                item.setMaintenanceDate(record.getMaintenanceDate().format(SHORT_DAY));
+                item.setDescription(record.getDescription());
+                item.setCost(record.getCost());
+                item.setMileageKm(record.getMileageKm());
+                list.add(item);
+            }
+        }
+        return list;
     }
 
     private List<ChartPoint> buildIncomeChart(List<Rental> rentals, Car car) {

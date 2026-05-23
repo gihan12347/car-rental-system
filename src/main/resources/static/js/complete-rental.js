@@ -41,11 +41,26 @@
         }
     }
 
+    function initBlacklistPanel() {
+        var checkbox = document.getElementById('blacklistCustomer');
+        var reasonWrap = document.getElementById('blacklistReasonWrap');
+        if (!checkbox || !reasonWrap) {
+            return;
+        }
+        function syncReasonVisibility() {
+            reasonWrap.classList.toggle('d-none', !checkbox.checked);
+        }
+        checkbox.addEventListener('change', syncReasonVisibility);
+        syncReasonVisibility();
+    }
+
     function initCompleteRentalPreview() {
         var form = document.getElementById('completeRentalForm');
         if (!form) {
             return;
         }
+
+        initBlacklistPanel();
 
         var pickupDate = parseDateInput(form.getAttribute('data-pickup-date'));
         var startMileage = parseNum(form.getAttribute('data-start-mileage'), 0);

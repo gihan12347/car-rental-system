@@ -99,8 +99,10 @@
                             <span><span class="car-cal-dot car-cal-dot--available"></span> Available</span>
                             <span><span class="car-cal-dot car-cal-dot--rented"></span> Rented</span>
                             <span><span class="car-cal-dot car-cal-dot--maintenance"></span> Maintenance</span>
+                            <span><span class="car-cal-dot car-cal-dot--rented_maintenance"></span> Both</span>
                         </div>
-                        <div class="car-cal-grid">
+                        <p class="small text-muted mb-2">Tap a date: rented days show rental details; maintenance days show service records.</p>
+                        <div class="car-cal-grid" id="carAvailabilityCalendar" role="grid" aria-label="Availability calendar">
                             <div class="car-cal-weekday">Sun</div>
                             <div class="car-cal-weekday">Mon</div>
                             <div class="car-cal-weekday">Tue</div>
@@ -109,10 +111,18 @@
                             <div class="car-cal-weekday">Fri</div>
                             <div class="car-cal-weekday">Sat</div>
                             <th:block th:each="cell : ${detail.calendarCells}">
-                                <div class="car-cal-day"
-                                     th:classappend="${cell.blank} ? ' car-cal-day--blank' : (' car-cal-day--' + ${#strings.toLowerCase(cell.status)} + (${cell.today} ? ' car-cal-day--today' : ''))">
-                                    <span th:if="${!cell.blank}" class="car-cal-day__num" th:text="${cell.day}">1</span>
-                                </div>
+                                <div th:if="${cell.blank}" class="car-cal-day car-cal-day--blank" aria-hidden="true"></div>
+                                <button th:unless="${cell.blank}" type="button"
+                                        class="car-cal-day car-cal-day--clickable"
+                                        th:classappend="| car-cal-day--${#strings.toLowerCase(cell.status)}${cell.today ? ' car-cal-day--today' : ''}|"
+                                        th:attr="data-date=${cell.isoDate}, aria-label=|'Day ${cell.day}, ${cell.status}'|">
+                                    <span class="car-cal-day__num" th:text="${cell.day}">1</span>
+                                    <span class="car-cal-day__marks"
+                                          th:if="${cell.rentalCount > 0 or cell.maintenanceCount > 0}">
+                                        <i th:if="${cell.rentalCount > 0}" class="bi bi-person-fill car-cal-day__mark car-cal-day__mark--rent" title="Rented"></i>
+                                        <i th:if="${cell.maintenanceCount > 0}" class="bi bi-wrench car-cal-day__mark car-cal-day__mark--maint" title="Maintenance"></i>
+                                    </span>
+                                </button>
                             </th:block>
                         </div>
                     </div>
@@ -206,6 +216,24 @@
                 </div>
             </div>
         </main>
+    </div>
+</div>
+
+<div class="modal fade" id="carCalDayModal" tabindex="-1" aria-labelledby="carCalDayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable car-cal-day-modal">
+        <div class="modal-content app-modal">
+            <div class="modal-header app-modal-header car-cal-day-modal__header">
+                <div class="min-w-0">
+                    <h5 class="modal-title mb-1" id="carCalDayModalLabel">Day details</h5>
+                    <span class="car-cal-detail__status car-cal-detail__status--available" id="carCalDayModalStatus">Available</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2" id="carCalDayModalBody"></div>
+            <div class="modal-footer car-cal-day-modal__footer">
+                <button type="button" class="btn btn-outline-soft w-100 w-sm-auto" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 
