@@ -26,6 +26,9 @@
         if (status === 'COMPLETED') {
             return 'text-bg-success';
         }
+        if (status === 'CANCELLED') {
+            return 'text-bg-secondary';
+        }
         return 'text-bg-secondary';
     }
 

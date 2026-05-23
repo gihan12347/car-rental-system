@@ -214,12 +214,17 @@
                     </th:block>
                 </div>
 
-                <div class="d-grid d-sm-flex gap-2 app-form-actions">
+                <div class="d-grid d-sm-flex flex-wrap gap-2 app-form-actions">
                     <button class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 fw-semibold px-4"
                             type="submit" id="completeSubmitBtn" disabled>
                         <i class="bi bi-check-circle"></i> Complete &amp; release car
                     </button>
-                    <a class="btn btn-outline-soft" th:href="@{/rentals/active}">Cancel</a>
+                    <a class="btn btn-outline-soft" th:href="@{/rentals/active}">Back</a>
+                    <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(
+                        ${rental.id},
+                        'btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2',
+                        'Cancel this rental? The vehicle will be available again.',
+                        false)}"></th:block>
                 </div>
             </form>
         </main>

@@ -224,6 +224,90 @@ body.app-body {
   outline-offset: 2px;
 }
 
+.rental-table-actions-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.rental-table-actions {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.rental-table-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  line-height: 1.2;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+}
+
+.rental-table-actions__btn i {
+  font-size: 0.95rem;
+}
+
+.rental-table-actions__btn--complete {
+  color: #fff;
+  background: var(--app-accent);
+  border-color: var(--app-accent);
+}
+
+.rental-table-actions__btn--complete:hover {
+  color: #fff;
+  background: var(--app-accent-hover, #1d4ed8);
+  border-color: var(--app-accent-hover, #1d4ed8);
+}
+
+.rental-table-actions__btn--cancel {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.rental-table-actions__btn--cancel:hover {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.rental-cancel-form {
+  display: inline;
+  margin: 0;
+}
+
+.rental-table-actions .rental-cancel-form {
+  display: inline-flex;
+}
+
+.rental-cancel-form .rental-table-actions__btn--cancel {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1399.98px) {
+  .rental-table-actions__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+}
+
 /* Badges */
 .badge-status {
   font-weight: 600;
@@ -903,6 +987,20 @@ body.login-page {
   background: var(--app-surface);
   box-shadow: var(--app-shadow);
   padding: 1rem 1.1rem;
+}
+
+.app-record-card--overdue {
+  border-color: #fecaca;
+  background: linear-gradient(180deg, #fff 0%, #fef2f2 100%);
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
+}
+
+.app-table-row--overdue {
+  background: #fef2f2;
+}
+
+.app-table-row--overdue:hover {
+  background: #fee2e2;
 }
 
 .app-record-card__header {

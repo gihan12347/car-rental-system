@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<form th:fragment="cancelRentalForm(rentalId, buttonClass, confirmMessage, compactLabel)"
+      th:action="@{/rentals/{id}/cancel(id=${rentalId})}"
+      method="post"
+      class="rental-cancel-form"
+      th:attr="onsubmit=|return confirm('${confirmMessage}');|">
+    <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+    <button type="submit" th:class="${buttonClass}">
+        <i class="bi bi-x-circle"></i>
+        <span th:if="${compactLabel}" class="rental-table-actions__text">Cancel</span>
+        <span th:unless="${compactLabel}">Cancel rental</span>
+    </button>
+</form>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.carrental.service;
 
 import com.carrental.model.Rental;
+import com.carrental.model.RentalStatus;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -18,10 +19,13 @@ public final class RentalPeriodHelper {
     }
 
     public static LocalDate endDate(Rental rental) {
-        if (rental.getReturnDate() != null) {
+        if (rental.getCompletedDate() != null) {
+            return rental.getCompletedDate();
+        } else if (rental.getReturnDate() != null) {
             return rental.getReturnDate();
+        } else {
+            return startDate(rental).plusDays(Math.max(1, rental.getNumberOfDays()) - 1L);
         }
-        return startDate(rental).plusDays(Math.max(1, rental.getNumberOfDays()) - 1L);
     }
 
     public static int inclusiveDays(LocalDate start, LocalDate end) {
@@ -37,5 +41,24 @@ public final class RentalPeriodHelper {
 
     public static boolean includesToday(LocalDate start, LocalDate end, LocalDate today) {
         return overlaps(start, end, today, today);
+    }
+
+    public static boolean isOverdue(Rental rental, LocalDate today) {
+        if (rental == null || today == null) {
+            return false;
+        }
+        RentalStatus status = rental.getRentalStatus();
+        if (status != RentalStatus.ACTIVE && status != RentalStatus.PENDING) {
+            return false;
+        }
+        LocalDate end = endDate(rental);
+        return end != null && end.isBefore(today);
+    }
+
+    public static long daysOverdue(Rental rental, LocalDate today) {
+        if (!isOverdue(rental, today)) {
+            return 0;
+        }
+        return ChronoUnit.DAYS.between(endDate(rental), today);
     }
 }

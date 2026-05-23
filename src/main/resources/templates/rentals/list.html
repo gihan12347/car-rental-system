@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:with="pageTitle=${activeOnly} ? 'Active rentals' : 'Rentals'">
+      th:with="pageTitle=${listMode == 'active'} ? 'Active rentals' : (${listMode == 'overdue'} ? 'Overdue rentals' : 'Rentals'),
+               listBaseUrl=${listMode == 'active'} ? @{/rentals/active} : (${listMode == 'overdue'} ? @{/rentals/overdue} : @{/rentals})">
 <head th:replace="~{fragments/head :: commonHead}"></head>
 <body class="app-body">
 <div class="d-flex min-vh-100 app-shell">
@@ -17,18 +18,28 @@
             </div>
 
             <header class="app-page-header mb-3 mb-lg-4">
-                <h1 class="h2 mb-1" th:text="${activeOnly} ? 'Active rentals' : 'All rentals'">Rentals</h1>
-                <p class="lead mb-0" th:text="${activeOnly} ? 'Hires in progress — complete when the car is returned.' : 'Full history of rental bookings.'"></p>
-                <button type="button" class="btn btn-app-primary d-lg-none mt-3 w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                        data-app-open-modal="#newHireModal">
+                <h1 class="h2 mb-1"
+                    th:text="${listMode == 'active'} ? 'Active rentals' : (${listMode == 'overdue'} ? 'Overdue rentals' : 'All rentals')">Rentals</h1>
+                <p class="lead mb-0"
+                   th:if="${listMode == 'all'}">Full history of rental bookings.</p>
+                <p class="lead mb-0"
+                   th:if="${listMode == 'active'}">Hires in progress — complete when the car is returned.</p>
+                <p class="lead mb-0"
+                   th:if="${listMode == 'overdue'}">Active or pending hires past the expected return date — follow up with customers.</p>
+                <button type="button"
+                        class="btn btn-app-primary d-lg-none mt-3 w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                        data-app-open-modal="#newHireModal"
+                        th:if="${listMode == 'all'}">
                     <i class="bi bi-person-plus"></i> New hire
                 </button>
             </header>
 
-            <div th:replace="~{fragments/page-search :: pageSearch(${activeOnly} ? @{/rentals/active} : @{/rentals}, ${activeOnly} ? 'Vehicle or customer…' : 'Vehicle, customer, contact…')}"></div>
+            <div th:replace="~{fragments/page-search :: pageSearch(${listBaseUrl}, ${listMode == 'overdue'} ? 'Vehicle or customer…' : (${listMode == 'active'} ? 'Vehicle or customer…' : 'Vehicle, customer, contact…'))}"></div>
 
             <div class="app-record-list d-xl-none" th:if="${!rentals.isEmpty()}">
-                <article class="app-record-card" th:each="r : ${rentals}">
+                <article class="app-record-card"
+                         th:each="r : ${rentals}"
+                         th:classappend="${listMode == 'overdue'} ? ' app-record-card--overdue' : ''">
                     <div class="app-record-card__header">
                         <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
                              class="car-avatar car-avatar--md"
@@ -39,9 +50,14 @@
                         </span>
                         <div class="min-w-0 flex-grow-1">
                             <h3 class="app-record-card__title mb-1" th:text="${r.car.registrationNumber}">—</h3>
-                            <span class="badge badge-status"
-                                  th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : ' text-bg-success'"
-                                  th:text="${r.rentalStatus}"></span>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="badge badge-status"
+                                      th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${r.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${r.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"
+                                      th:text="${r.rentalStatus}"></span>
+                                <span class="badge text-bg-danger"
+                                      th:if="${listMode == 'overdue'}"
+                                      th:text="|${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today)} ${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today) == 1 ? 'day' : 'days'} overdue|"></span>
+                            </div>
                         </div>
                     </div>
                     <dl class="app-record-card__meta">
@@ -69,18 +85,34 @@
                                       th:text="|${r.numberOfDays} ${r.numberOfDays == 1 ? 'day' : 'days'}|"></span>
                             </dd>
                         </div>
+                        <div class="app-record-card__row" th:if="${listMode == 'overdue'}">
+                            <dt>Expected return</dt>
+                            <dd>
+                                <span class="text-danger fw-semibold"
+                                      th:text="${T(com.carrental.service.RentalPeriodHelper).endDate(r)}"></span>
+                            </dd>
+                        </div>
                     </dl>
-                    <a th:if="${r.rentalStatus.name() == 'ACTIVE'}"
-                       class="btn btn-app-primary w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                       th:href="@{/rentals/{id}/complete(id=${r.id})}">
-                        <i class="bi bi-check2-circle"></i> Complete rental
-                    </a>
+                    <div class="d-grid gap-2"
+                         th:if="${r.rentalStatus.name() == 'ACTIVE' or r.rentalStatus.name() == 'PENDING'}">
+                        <a class="btn btn-app-primary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                           th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                           th:href="@{/rentals/{id}/complete(id=${r.id})}">
+                            <i class="bi bi-check2-circle"></i> Complete rental
+                        </a>
+                        <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(
+                            ${r.id},
+                            'btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2',
+                            'Cancel this rental? The vehicle will be available again.',
+                            false)}"></th:block>
+                    </div>
                 </article>
             </div>
 
             <div class="app-card-table d-none d-xl-block" th:if="${!rentals.isEmpty()}">
                 <div class="table-responsive">
-                    <table class="table app-table mb-0 align-middle">
+                    <table class="table app-table mb-0 align-middle"
+                           th:classappend="${listMode == 'overdue'} ? ' app-table--overdue' : ''">
                         <thead>
                         <tr>
                             <th style="width:72px;"></th>
@@ -88,13 +120,16 @@
                             <th>Customer</th>
                             <th>Contact</th>
                             <th>Period</th>
+                            <th th:if="${listMode == 'overdue'}">Expected return</th>
+                            <th th:if="${listMode == 'overdue'}">Overdue</th>
                             <th>Days</th>
                             <th>Status</th>
                             <th></th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="r : ${rentals}">
+                        <tr th:each="r : ${rentals}"
+                            th:classappend="${listMode == 'overdue'} ? ' app-table-row--overdue' : ''">
                             <td>
                                 <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
                                      class="car-avatar car-avatar--sm" th:src="${r.car.imagePath}" alt=""/>
@@ -120,18 +155,36 @@
                                 <span class="text-muted"> – </span>
                                 <span th:text="${r.returnDate != null ? r.returnDate : r.hireDate}"></span>
                             </td>
+                            <td class="text-nowrap text-danger fw-semibold"
+                                th:if="${listMode == 'overdue'}"
+                                th:text="${T(com.carrental.service.RentalPeriodHelper).endDate(r)}"></td>
+                            <td th:if="${listMode == 'overdue'}">
+                                <span class="badge text-bg-danger"
+                                      th:text="|${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today)} ${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today) == 1 ? 'day' : 'days'}|"></span>
+                            </td>
                             <td th:text="${r.numberOfDays}"></td>
                             <td>
                                 <span class="badge badge-status"
-                                      th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : ' text-bg-success'"
+                                      th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${r.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${r.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"
                                       th:text="${r.rentalStatus}"></span>
                             </td>
-                            <td class="text-end">
-                                <a th:if="${r.rentalStatus.name() == 'ACTIVE'}"
-                                   class="btn btn-sm btn-app-primary d-inline-flex align-items-center gap-1"
-                                   th:href="@{/rentals/{id}/complete(id=${r.id})}">
-                                    <i class="bi bi-check2-circle"></i> Complete
-                                </a>
+                            <td class="text-end rental-table-actions-col">
+                                <div class="rental-table-actions"
+                                     th:if="${r.rentalStatus.name() == 'ACTIVE' or r.rentalStatus.name() == 'PENDING'}"
+                                     role="group" aria-label="Rental actions">
+                                    <a class="rental-table-actions__btn rental-table-actions__btn--complete"
+                                       th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                                       th:href="@{/rentals/{id}/complete(id=${r.id})}"
+                                       title="Complete rental">
+                                        <i class="bi bi-check2-circle"></i>
+                                        <span class="rental-table-actions__text">Complete</span>
+                                    </a>
+                                    <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(
+                                        ${r.id},
+                                        'rental-table-actions__btn rental-table-actions__btn--cancel',
+                                        'Cancel this rental? The vehicle will be available again.',
+                                        true)}"></th:block>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -141,11 +194,14 @@
 
             <div class="app-card-table empty-state"
                  th:if="${rentals.isEmpty() and (searchQuery == null or #strings.isEmpty(searchQuery))}">
-                <i class="bi bi-calendar-x"></i>
-                <p class="fw-semibold mb-1" th:text="${activeOnly} ? 'No active rentals' : 'No rentals to show'">No rentals</p>
-                <p class="small mb-3" th:text="${activeOnly} ? 'All vehicles are back in the fleet.' : 'When customers book a car, entries will appear here.'"></p>
+                <i class="bi"
+                   th:classappend="${listMode == 'overdue'} ? ' bi-alarm' : ' bi-calendar-x'"></i>
+                <p class="fw-semibold mb-1"
+                   th:text="${listMode == 'active'} ? 'No active rentals' : (${listMode == 'overdue'} ? 'No overdue rentals' : 'No rentals to show')">No rentals</p>
+                <p class="small mb-3"
+                   th:text="${listMode == 'active'} ? 'All vehicles are back in the fleet.' : (${listMode == 'overdue'} ? 'Every active hire is within its return date.' : 'When customers book a car, entries will appear here.')"></p>
                 <button type="button" class="btn btn-app-primary" data-app-open-modal="#newHireModal"
-                        th:if="${!activeOnly}">
+                        th:if="${listMode == 'all'}">
                     <i class="bi bi-person-plus me-1"></i> New hire
                 </button>
             </div>
@@ -154,8 +210,7 @@
                 <i class="bi bi-search"></i>
                 <p class="fw-semibold mb-1">No matching rentals</p>
                 <p class="small mb-3">Try another vehicle registration or customer name.</p>
-                <a class="btn btn-outline-soft"
-                   th:href="${activeOnly} ? @{/rentals/active} : @{/rentals}">Clear search</a>
+                <a class="btn btn-outline-soft" th:href="${listBaseUrl}">Clear search</a>
             </div>
         </main>
     </div>

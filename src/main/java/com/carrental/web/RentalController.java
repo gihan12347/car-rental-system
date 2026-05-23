@@ -44,6 +44,7 @@ public class RentalController {
     public String list(@RequestParam(value = "q", required = false) String q, Model model) {
         model.addAttribute("rentals", rentalService.searchAll(q));
         model.addAttribute("searchQuery", SearchQuery.normalize(q));
+        model.addAttribute("listMode", "all");
         model.addAttribute("activeOnly", false);
         model.addAttribute("activeNav", "rentals");
         return "rentals/list";
@@ -53,8 +54,21 @@ public class RentalController {
     public String active(@RequestParam(value = "q", required = false) String q, Model model) {
         model.addAttribute("rentals", rentalService.searchActive(q));
         model.addAttribute("searchQuery", SearchQuery.normalize(q));
+        model.addAttribute("listMode", "active");
         model.addAttribute("activeOnly", true);
         model.addAttribute("activeNav", "active");
+        return "rentals/list";
+    }
+
+    @GetMapping("/overdue")
+    public String overdue(@RequestParam(value = "q", required = false) String q, Model model) {
+        LocalDate today = LocalDate.now();
+        model.addAttribute("rentals", rentalService.searchOverdue(q));
+        model.addAttribute("searchQuery", SearchQuery.normalize(q));
+        model.addAttribute("listMode", "overdue");
+        model.addAttribute("activeOnly", false);
+        model.addAttribute("today", today);
+        model.addAttribute("activeNav", "overdue");
         return "rentals/list";
     }
 
@@ -166,6 +180,24 @@ public class RentalController {
             return "rentals/complete";
         }
         return "redirect:/rentals";
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancel(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+        try {
+            Rental rental = rentalService.cancelRental(id);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Rental cancelled. Vehicle "
+                            + rental.getCar().getRegistrationNumber()
+                            + " is available again.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return RedirectUtil.redirectToReferer(request, "/rentals/active");
     }
 
     private void populateCompletePage(Model model, Rental rental, CompleteRentalForm form) {

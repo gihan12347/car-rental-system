@@ -15,12 +15,16 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
 public class RentalService {
 
     private static final List<RentalStatus> BLOCKING_STATUSES =
+            Arrays.asList(RentalStatus.ACTIVE, RentalStatus.PENDING);
+
+    private static final List<RentalStatus> OVERDUE_STATUSES =
             Arrays.asList(RentalStatus.ACTIVE, RentalStatus.PENDING);
 
     private final RentalRepository rentalRepository;
@@ -58,6 +62,30 @@ public class RentalService {
             return listActive();
         }
         return rentalRepository.searchActiveByTerm(q);
+    }
+
+    public List<Rental> listOverdue() {
+        LocalDate today = LocalDate.now();
+        return rentalRepository.findBlockingRentalsWithCar(OVERDUE_STATUSES).stream()
+                .filter(r -> RentalPeriodHelper.isOverdue(r, today))
+                .sorted(Comparator.comparing(RentalPeriodHelper::endDate))
+                .collect(Collectors.toList());
+    }
+
+    public List<Rental> searchOverdue(String query) {
+        String q = SearchQuery.normalize(query);
+        List<Rental> overdue = listOverdue();
+        if (q.isEmpty()) {
+            return overdue;
+        }
+        String lower = q.toLowerCase(Locale.ENGLISH);
+        return overdue.stream()
+                .filter(r -> matchesSearchTerm(r, lower))
+                .collect(Collectors.toList());
+    }
+
+    public long countOverdue() {
+        return listOverdue().size();
     }
 
     public Rental getById(Long id) {
@@ -176,6 +204,19 @@ public class RentalService {
         return rental;
     }
 
+    @Transactional
+    public Rental cancelRental(Long rentalId) {
+        Rental rental = getByIdWithCar(rentalId);
+        RentalStatus status = rental.getRentalStatus();
+        if (status != RentalStatus.ACTIVE && status != RentalStatus.PENDING) {
+            throw new IllegalStateException("Only active or pending rentals can be cancelled.");
+        }
+        rental.setRentalStatus(RentalStatus.CANCELLED);
+        rentalRepository.save(rental);
+        syncCarAvailability(rental.getCar(), LocalDate.now());
+        return rental;
+    }
+
     private void syncCarAvailability(Car car, LocalDate today) {
         boolean onHireToday = rentalRepository.findBlockingRentalsWithCar(BLOCKING_STATUSES).stream()
                 .filter(r -> r.getCar().getId().equals(car.getId()))
@@ -185,6 +226,24 @@ public class RentalService {
                         today));
         car.setStatus(onHireToday ? CarStatus.UNAVAILABLE : CarStatus.AVAILABLE);
         carService.save(car);
+    }
+
+    private static boolean matchesSearchTerm(Rental rental, String lowerQuery) {
+        Car car = rental.getCar();
+        return containsIgnoreCase(car.getRegistrationNumber(), lowerQuery)
+                || containsIgnoreCase(car.getModelName(), lowerQuery)
+                || containsIgnoreCase(rental.getCustomerName(), lowerQuery)
+                || containsIgnoreCase(rental.getCustomerAddress(), lowerQuery)
+                || containsIgnoreCase(rental.getCustomerContact(), lowerQuery)
+                || containsIgnoreCase(rental.getCustomerIdNumber(), lowerQuery)
+                || containsIgnoreCase(rental.getTravelLocation(), lowerQuery)
+                || (rental.getRentalStatus() != null
+                && rental.getRentalStatus().name().toLowerCase(Locale.ENGLISH).contains(lowerQuery))
+                || String.valueOf(rental.getNumberOfDays()).contains(lowerQuery);
+    }
+
+    private static boolean containsIgnoreCase(String value, String lowerQuery) {
+        return value != null && value.toLowerCase(Locale.ENGLISH).contains(lowerQuery);
     }
 
     private static void validatePeriod(LocalDate startDate, LocalDate endDate) {
