@@ -21,6 +21,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             + "LOWER(r.customerName) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(r.customerAddress) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(r.customerContact) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+            + "LOWER(r.customerIdNumber) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+            + "LOWER(r.travelLocation) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(CONCAT('', r.rentalStatus)) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "CONCAT('', r.numberOfDays) LIKE CONCAT('%', :q, '%') "
             + "ORDER BY r.hireDate DESC")
@@ -31,6 +33,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             + "LOWER(r.customerName) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(r.customerAddress) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(r.customerContact) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+            + "LOWER(r.customerIdNumber) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+            + "LOWER(r.travelLocation) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "CONCAT('', r.numberOfDays) LIKE CONCAT('%', :q, '%')) "
             + "ORDER BY r.hireDate DESC")
     List<Rental> searchActiveByTerm(@Param("q") String q);

@@ -147,14 +147,27 @@
                             <div class="invalid-feedback d-block small" th:errors="*{customerName}"></div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="nh-id">Customer ID number</label>
+                            <input class="form-control" id="nh-id" th:field="*{customerIdNumber}"
+                                   placeholder="e.g. NIC or passport number" autocomplete="off" required/>
+                            <div class="invalid-feedback d-block small" th:errors="*{customerIdNumber}"></div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold" for="nh-address">Address</label>
                             <textarea class="form-control" id="nh-address" rows="2" th:field="*{customerAddress}" required></textarea>
                             <div class="invalid-feedback d-block small" th:errors="*{customerAddress}"></div>
                         </div>
-                        <div class="mb-0">
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold" for="nh-contact">Phone</label>
                             <input class="form-control" type="tel" id="nh-contact" th:field="*{customerContact}" autocomplete="tel" required/>
                             <div class="invalid-feedback d-block small" th:errors="*{customerContact}"></div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label small fw-semibold" for="nh-travel">Travel location</label>
+                            <input class="form-control" id="nh-travel" th:field="*{travelLocation}"
+                                   placeholder="e.g. Colombo → Kandy" required/>
+                            <div class="form-text">Where the customer will travel with the vehicle.</div>
+                            <div class="invalid-feedback d-block small" th:errors="*{travelLocation}"></div>
                         </div>
                     </form>
                 </div>
@@ -169,21 +182,20 @@
     </div>
 
     <th:block th:if="${openNewCarModal == true}">
-        <script th:inline="javascript">
+        <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var el = document.getElementById('newCarModal');
-                if (el) { bootstrap.Modal.getOrCreateInstance(el).show(); }
+                if (window.FleetDeskModals) { window.FleetDeskModals.open('#newCarModal'); }
             });
         </script>
     </th:block>
     <th:block th:if="${openNewHireModal == true}">
-        <script th:inline="javascript">
+        <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var el = document.getElementById('newHireModal');
-                if (el) { bootstrap.Modal.getOrCreateInstance(el).show(); }
+                if (window.FleetDeskModals) { window.FleetDeskModals.open('#newHireModal'); }
             });
         </script>
     </th:block>
+    <script th:src="@{/js/app-modals.js}" defer></script>
     <script th:src="@{/js/hire-period.js}" defer></script>
 </th:block>
 </body>

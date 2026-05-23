@@ -96,7 +96,9 @@ public class RentalController {
                     form.getEndDate(),
                     form.getCustomerName(),
                     form.getCustomerAddress(),
-                    form.getCustomerContact());
+                    form.getCustomerContact(),
+                    form.getCustomerIdNumber(),
+                    form.getTravelLocation());
         } catch (IllegalStateException | IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("hireForm", form);
             redirectAttributes.addFlashAttribute("openNewHireModal", Boolean.TRUE);

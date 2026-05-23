@@ -20,7 +20,7 @@
                 <h1 class="h2 mb-1" th:text="${activeOnly} ? 'Active rentals' : 'All rentals'">Rentals</h1>
                 <p class="lead mb-0" th:text="${activeOnly} ? 'Hires in progress — complete when the car is returned.' : 'Full history of rental bookings.'"></p>
                 <button type="button" class="btn btn-app-primary d-lg-none mt-3 w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                        data-bs-toggle="modal" data-bs-target="#newHireModal">
+                        data-app-open-modal="#newHireModal">
                     <i class="bi bi-person-plus"></i> New hire
                 </button>
             </header>
@@ -49,7 +49,9 @@
                             <dt>Customer</dt>
                             <dd>
                                 <span th:text="${r.customerName}"></span>
+                                <span class="d-block small text-muted" th:if="${r.customerIdNumber}" th:text="|ID: ${r.customerIdNumber}|"></span>
                                 <span class="d-block small text-muted" th:if="${r.customerAddress}" th:text="${r.customerAddress}"></span>
+                                <span class="d-block small text-muted" th:if="${r.travelLocation}" th:text="|Travel: ${r.travelLocation}|"></span>
                             </dd>
                         </div>
                         <div class="app-record-card__row">
@@ -104,7 +106,9 @@
                             <td class="fw-semibold" th:text="${r.car.registrationNumber}"></td>
                             <td>
                                 <div th:text="${r.customerName}"></div>
+                                <div class="small text-muted" th:if="${r.customerIdNumber}" th:text="|ID: ${r.customerIdNumber}|"></div>
                                 <div class="small text-muted" th:text="${r.customerAddress}"></div>
+                                <div class="small text-muted" th:if="${r.travelLocation}" th:text="|Travel: ${r.travelLocation}|"></div>
                             </td>
                             <td>
                                 <a class="text-decoration-none" th:href="|tel:${r.customerContact}|">
@@ -140,7 +144,7 @@
                 <i class="bi bi-calendar-x"></i>
                 <p class="fw-semibold mb-1" th:text="${activeOnly} ? 'No active rentals' : 'No rentals to show'">No rentals</p>
                 <p class="small mb-3" th:text="${activeOnly} ? 'All vehicles are back in the fleet.' : 'When customers book a car, entries will appear here.'"></p>
-                <button type="button" class="btn btn-app-primary" data-bs-toggle="modal" data-bs-target="#newHireModal"
+                <button type="button" class="btn btn-app-primary" data-app-open-modal="#newHireModal"
                         th:if="${!activeOnly}">
                     <i class="bi bi-person-plus me-1"></i> New hire
                 </button>

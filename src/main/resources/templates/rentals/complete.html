@@ -27,6 +27,14 @@
                         <dt>Customer</dt>
                         <dd th:text="${rental.customerName}">—</dd>
                     </div>
+                    <div class="app-record-card__row" th:if="${rental.customerIdNumber != null and !rental.customerIdNumber.isEmpty()}">
+                        <dt>ID number</dt>
+                        <dd th:text="${rental.customerIdNumber}">—</dd>
+                    </div>
+                    <div class="app-record-card__row" th:if="${rental.travelLocation != null and !rental.travelLocation.isEmpty()}">
+                        <dt>Travel location</dt>
+                        <dd th:text="${rental.travelLocation}">—</dd>
+                    </div>
                     <div class="app-record-card__row">
                         <dt>Rental start</dt>
                         <dd th:text="${pickupDate}">—</dd>

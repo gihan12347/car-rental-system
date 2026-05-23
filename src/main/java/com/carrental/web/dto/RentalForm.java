@@ -24,6 +24,12 @@ public class RentalForm {
     @NotBlank
     private String customerContact;
 
+    @NotBlank(message = "Customer ID number is required.")
+    private String customerIdNumber;
+
+    @NotBlank(message = "Travel location is required.")
+    private String travelLocation;
+
     public RentalForm() {
         LocalDate today = LocalDate.now();
         this.startDate = today;
@@ -76,6 +82,22 @@ public class RentalForm {
 
     public void setCustomerContact(String customerContact) {
         this.customerContact = customerContact;
+    }
+
+    public String getCustomerIdNumber() {
+        return customerIdNumber;
+    }
+
+    public void setCustomerIdNumber(String customerIdNumber) {
+        this.customerIdNumber = customerIdNumber;
+    }
+
+    public String getTravelLocation() {
+        return travelLocation;
+    }
+
+    public void setTravelLocation(String travelLocation) {
+        this.travelLocation = travelLocation;
     }
 
     public boolean isValidPeriod() {

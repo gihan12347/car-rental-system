@@ -157,6 +157,73 @@ body.app-body {
   background: #fafbfc;
 }
 
+/* Fleet table — desktop action buttons */
+.fleet-table-actions-col {
+  width: 1%;
+  white-space: nowrap;
+  padding-left: 1rem !important;
+}
+
+.fleet-table-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.fleet-table-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.fleet-table-actions__btn i {
+  font-size: 0.95rem;
+}
+
+.fleet-table-actions__btn--view {
+  background: var(--app-accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.35);
+}
+
+.fleet-table-actions__btn--view:hover {
+  background: #4338ca;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+}
+
+.fleet-table-actions__btn--edit {
+  background: #fff;
+  color: var(--app-accent);
+  border-color: rgba(79, 70, 229, 0.28);
+}
+
+.fleet-table-actions__btn--edit:hover {
+  background: var(--app-accent-soft);
+  color: #4338ca;
+  border-color: rgba(79, 70, 229, 0.45);
+}
+
+.fleet-table-actions__btn:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+
 /* Badges */
 .badge-status {
   font-weight: 600;

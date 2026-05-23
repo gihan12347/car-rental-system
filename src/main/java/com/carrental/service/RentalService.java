@@ -96,7 +96,9 @@ public class RentalService {
             LocalDate endDate,
             String customerName,
             String customerAddress,
-            String customerContact) {
+            String customerContact,
+            String customerIdNumber,
+            String travelLocation) {
         validatePeriod(startDate, endDate);
         Car car = carService.getById(carId);
         if (hasOverlappingBooking(carId, startDate, endDate)) {
@@ -112,6 +114,8 @@ public class RentalService {
         rental.setCustomerName(customerName);
         rental.setCustomerAddress(customerAddress);
         rental.setCustomerContact(customerContact);
+        rental.setCustomerIdNumber(customerIdNumber);
+        rental.setTravelLocation(travelLocation);
         rental.setHireDate(today);
         rental.setPickupDate(startDate);
         rental.setReturnDate(endDate);

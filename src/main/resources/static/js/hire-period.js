@@ -54,8 +54,10 @@
             ? form.closest('.modal-content').querySelector('[form="newHireForm"]')
             : null;
         var nameInput = byId('nh-name');
+        var idInput = byId('nh-id');
         var addressInput = byId('nh-address');
         var contactInput = byId('nh-contact');
+        var travelInput = byId('nh-travel');
 
         if (!startInput || !endInput) {
             return;
@@ -63,8 +65,10 @@
 
         function isCustomerComplete() {
             return nameInput && nameInput.value.trim() !== ''
+                && idInput && idInput.value.trim() !== ''
                 && addressInput && addressInput.value.trim() !== ''
-                && contactInput && contactInput.value.trim() !== '';
+                && contactInput && contactInput.value.trim() !== ''
+                && travelInput && travelInput.value.trim() !== '';
         }
 
         function isHireReady() {
@@ -230,15 +234,11 @@
         if (carSelect) {
             carSelect.addEventListener('change', refreshSubmit);
         }
-        if (nameInput) {
-            nameInput.addEventListener('input', refreshSubmit);
-        }
-        if (addressInput) {
-            addressInput.addEventListener('input', refreshSubmit);
-        }
-        if (contactInput) {
-            contactInput.addEventListener('input', refreshSubmit);
-        }
+        [nameInput, idInput, addressInput, contactInput, travelInput].forEach(function (input) {
+            if (input) {
+                input.addEventListener('input', refreshSubmit);
+            }
+        });
 
         var modal = byId('newHireModal');
         if (modal) {

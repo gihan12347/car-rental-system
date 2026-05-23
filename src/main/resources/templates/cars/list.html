@@ -22,7 +22,7 @@
                         <p class="lead mb-0">Manage vehicles, pricing, and availability.</p>
                     </div>
                     <button type="button" class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0"
-                            data-bs-toggle="modal" data-bs-target="#newCarModal">
+                            data-app-open-modal="#newCarModal">
                         <i class="bi bi-plus-lg"></i> Add vehicle
                     </button>
                 </div>
@@ -97,7 +97,7 @@
                             <th>Per day</th>
                             <th>Extra / km</th>
                             <th>Status</th>
-                            <th></th>
+                            <th class="text-end fleet-table-actions-col">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -124,13 +124,21 @@
                                 <span class="badge badge-status" th:classappend="${c.status.name() == 'AVAILABLE'} ? ' text-bg-success' : ' text-bg-secondary'"
                                       th:text="${c.status}"></span>
                             </td>
-                            <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-app-primary me-1" th:href="@{/cars/{id}(id=${c.id})}">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                                <a class="btn btn-sm btn-outline-soft" th:href="@{/cars/{id}/edit(id=${c.id})}">
-                                    <i class="bi bi-pencil me-1"></i>Edit
-                                </a>
+                            <td class="text-end fleet-table-actions-col">
+                                <div class="fleet-table-actions" role="group" aria-label="Vehicle actions">
+                                    <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                                       th:href="@{/cars/{id}(id=${c.id})}"
+                                       title="View profile">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                        <span>View</span>
+                                    </a>
+                                    <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                                       th:href="@{/cars/{id}/edit(id=${c.id})}"
+                                       title="Edit vehicle">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                        <span>Edit</span>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -143,7 +151,7 @@
                 <i class="bi bi-car-front"></i>
                 <p class="fw-semibold mb-1">No vehicles yet</p>
                 <p class="small mb-3">Add your first car to get started.</p>
-                <button type="button" class="btn btn-app-primary" data-bs-toggle="modal" data-bs-target="#newCarModal">
+                <button type="button" class="btn btn-app-primary" data-app-open-modal="#newCarModal">
                     <i class="bi bi-plus-lg me-1"></i> Add vehicle
                 </button>
             </div>

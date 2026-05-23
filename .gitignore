@@ -1,5 +1,6 @@
 /build/
 /.gradle/
+/scripts/node_modules/
 /out/
 .idea/
 *.iml

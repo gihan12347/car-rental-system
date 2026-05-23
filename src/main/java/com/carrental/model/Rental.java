@@ -47,6 +47,14 @@ public class Rental {
     @Column(nullable = false)
     private String customerContact;
 
+    @NotBlank
+    @Column(name = "customer_id_number", nullable = false, length = 64)
+    private String customerIdNumber;
+
+    @NotBlank
+    @Column(name = "travel_location", nullable = false, length = 500)
+    private String travelLocation;
+
     @NotNull
     @Column(nullable = false)
     private LocalDate hireDate = LocalDate.now();
@@ -126,6 +134,22 @@ public class Rental {
 
     public void setCustomerContact(String customerContact) {
         this.customerContact = customerContact;
+    }
+
+    public String getCustomerIdNumber() {
+        return customerIdNumber;
+    }
+
+    public void setCustomerIdNumber(String customerIdNumber) {
+        this.customerIdNumber = customerIdNumber;
+    }
+
+    public String getTravelLocation() {
+        return travelLocation;
+    }
+
+    public void setTravelLocation(String travelLocation) {
+        this.travelLocation = travelLocation;
     }
 
     public LocalDate getHireDate() {
