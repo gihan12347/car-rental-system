@@ -20,10 +20,10 @@
                 <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
                     <div class="d-flex gap-3 min-w-0">
                         <img th:if="${car.imagePath != null and !car.imagePath.isEmpty()}"
-                             class="car-detail-photo rounded-3 border flex-shrink-0"
+                             class="car-avatar car-avatar--lg"
                              th:src="${car.imagePath}" alt=""/>
                         <span th:if="${car.imagePath == null or car.imagePath.isEmpty()}"
-                              class="car-detail-photo car-detail-photo--placeholder rounded-3 border flex-shrink-0 d-flex align-items-center justify-content-center">
+                              class="car-avatar car-avatar--lg car-avatar--placeholder">
                             <i class="bi bi-car-front"></i>
                         </span>
                         <div class="min-w-0">

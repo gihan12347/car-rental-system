@@ -26,7 +26,7 @@
                     <div class="col-12" th:if="${car.imagePath != null and !car.imagePath.isEmpty()}">
                         <label class="form-label">Current photo</label>
                         <div class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
-                            <img class="car-photo-preview rounded-3 border" th:src="${car.imagePath}" alt="Car" style="max-height: 140px; max-width: 240px; object-fit: cover;"/>
+                            <img class="car-avatar car-avatar--xl" th:src="${car.imagePath}" alt="Car"/>
                             <span class="small text-muted">Upload a new file below to replace it.</span>
                         </div>
                     </div>

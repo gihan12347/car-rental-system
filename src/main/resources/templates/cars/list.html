@@ -35,10 +35,10 @@
                 <article class="app-record-card" th:each="c : ${cars}">
                     <div class="app-record-card__header">
                         <img th:if="${c.imagePath != null and !c.imagePath.isEmpty()}"
-                             class="app-record-card__thumb rounded-2 border"
+                             class="car-avatar car-avatar--md"
                              th:src="${c.imagePath}" alt=""/>
                         <span th:if="${c.imagePath == null or c.imagePath.isEmpty()}"
-                              class="app-record-card__thumb app-record-card__thumb--placeholder rounded-2">
+                              class="car-avatar car-avatar--md car-avatar--placeholder">
                             <i class="bi bi-image"></i>
                         </span>
                         <div class="min-w-0 flex-grow-1">
@@ -104,10 +104,10 @@
                         <tr th:each="c : ${cars}">
                             <td>
                                 <img th:if="${c.imagePath != null and !c.imagePath.isEmpty()}"
-                                     class="car-thumb rounded-2 border"
+                                     class="car-avatar car-avatar--sm"
                                      th:src="${c.imagePath}" alt=""/>
                                 <span th:if="${c.imagePath == null or c.imagePath.isEmpty()}"
-                                      class="car-thumb-placeholder rounded-2 d-inline-flex align-items-center justify-content-center border bg-light text-muted">
+                                      class="car-avatar car-avatar--sm car-avatar--placeholder">
                                     <i class="bi bi-image"></i>
                                 </span>
                             </td>

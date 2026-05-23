@@ -319,16 +319,62 @@ body.app-body {
   flex-shrink: 0;
 }
 
-.car-thumb {
+/* Car photos — circular frame, full image centered (no crop) */
+.car-avatar {
+  display: inline-block;
+  flex-shrink: 0;
   width: 48px;
   height: 48px;
-  object-fit: cover;
+  border-radius: 50%;
+  object-fit: contain;
+  object-position: center center;
   vertical-align: middle;
+  background: #f1f5f9;
+  box-shadow: 0 0 0 1px var(--app-border), 0 2px 6px rgba(15, 23, 42, 0.06);
 }
-.car-thumb-placeholder {
+
+.car-avatar--sm {
   width: 48px;
   height: 48px;
+}
+
+.car-avatar--md {
+  width: 56px;
+  height: 56px;
+}
+
+.car-avatar--lg {
+  width: 96px;
+  height: 96px;
+}
+
+.car-avatar--xl {
+  width: 128px;
+  height: 128px;
+}
+
+.car-avatar--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-text-muted);
+  line-height: 1;
+}
+
+.car-avatar--sm.car-avatar--placeholder {
   font-size: 1.1rem;
+}
+
+.car-avatar--md.car-avatar--placeholder {
+  font-size: 1.25rem;
+}
+
+.car-avatar--lg.car-avatar--placeholder {
+  font-size: 1.75rem;
+}
+
+.car-avatar--xl.car-avatar--placeholder {
+  font-size: 2rem;
 }
 
 /* Login page */
@@ -797,22 +843,6 @@ body.login-page {
   align-items: center;
   gap: 0.85rem;
   margin-bottom: 0.85rem;
-}
-
-.app-record-card__thumb {
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.app-record-card__thumb--placeholder {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #f1f5f9;
-  color: var(--app-text-muted);
-  font-size: 1.25rem;
 }
 
 .app-record-card__title {
@@ -1345,19 +1375,6 @@ body.login-page {
 }
 
 /* Vehicle profile */
-.car-detail-photo {
-  width: 88px;
-  height: 88px;
-  object-fit: cover;
-}
-
-.car-detail-photo--placeholder {
-  width: 88px;
-  height: 88px;
-  background: #f1f5f9;
-  color: #94a3b8;
-  font-size: 1.75rem;
-}
 
 .car-cal-legend .car-cal-dot {
   display: inline-block;
