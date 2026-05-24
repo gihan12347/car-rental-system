@@ -42,6 +42,15 @@
             <i class="bi bi-alarm"></i><span>Overdue rentals</span>
         </a>
         <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+           th:classappend="${activeNav == 'service-overdue'} ? ' active' : ''"
+           th:href="@{/cars/service-overdue}">
+            <i class="bi bi-wrench-adjustable"></i>
+            <span class="flex-grow-1">Service overdue</span>
+            <span class="badge rounded-pill text-bg-danger"
+                  th:if="${serviceOverdueCount > 0}"
+                  th:text="${serviceOverdueCount}">0</span>
+        </a>
+        <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
            th:classappend="${activeNav == 'account'} ? ' active' : ''"
            th:href="@{/account}">
             <i class="bi bi-person-gear"></i><span>Account</span>

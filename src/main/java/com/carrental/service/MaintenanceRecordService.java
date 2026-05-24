@@ -2,6 +2,7 @@ package com.carrental.service;
 
 import com.carrental.model.Car;
 import com.carrental.model.MaintenanceRecord;
+import com.carrental.model.MaintenanceType;
 import com.carrental.repository.MaintenanceRecordRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,9 @@ import java.util.List;
 
 @Service
 public class MaintenanceRecordService {
+
+    /** Default km added to odometer at service when next service is not specified. */
+    public static final int DEFAULT_SERVICE_INTERVAL_KM = 5000;
 
     private final MaintenanceRecordRepository maintenanceRecordRepository;
     private final CarService carService;
@@ -38,7 +42,8 @@ public class MaintenanceRecordService {
             LocalDate maintenanceDate,
             String description,
             BigDecimal cost,
-            Integer mileageKm) {
+            MaintenanceType maintenanceType,
+            Integer nextServiceKm) {
         if (maintenanceDate == null) {
             throw new IllegalArgumentException("Maintenance date is required.");
         }
@@ -54,12 +59,27 @@ public class MaintenanceRecordService {
         record.setMaintenanceDate(maintenanceDate);
         record.setDescription(description.trim());
         record.setCost(cost);
-        record.setMileageKm(mileageKm);
+        record.setMaintenanceType(maintenanceType != null ? maintenanceType : MaintenanceType.OTHER);
         MaintenanceRecord saved = maintenanceRecordRepository.save(record);
-        if (mileageKm != null && mileageKm > 0 && (car.getMileageKm() == null || mileageKm > car.getMileageKm())) {
-            car.setMileageKm(mileageKm);
-            carService.save(car);
+
+        if (record.getMaintenanceType() == MaintenanceType.SERVICE) {
+            Integer resolvedNextService = resolveNextServiceKm(car, nextServiceKm);
+            if (resolvedNextService != null) {
+                car.setNextServiceKm(resolvedNextService);
+                carService.save(car);
+            }
         }
         return saved;
+    }
+
+    private static Integer resolveNextServiceKm(Car car, Integer nextServiceKm) {
+        if (nextServiceKm != null && nextServiceKm > 0) {
+            return nextServiceKm;
+        }
+        int baseKm = car.getMileageKm() != null ? car.getMileageKm() : 0;
+        if (baseKm <= 0) {
+            return null;
+        }
+        return baseKm + DEFAULT_SERVICE_INTERVAL_KM;
     }
 }

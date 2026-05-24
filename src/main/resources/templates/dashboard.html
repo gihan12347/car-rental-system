@@ -206,14 +206,24 @@
                                         <li th:each="item : ${d.currentlyRented}" th:text="${item.name}">—</li>
                                     </ul>
                                     <p class="small text-muted mb-0" th:if="${d.currentlyRented.isEmpty()}">No cars on hire.</p>
-                                    <p class="small fw-semibold mb-1 mt-2 dashboard-fleet-subhead">Service due soon</p>
+                                    <p class="small fw-semibold mb-1 mt-2 dashboard-fleet-subhead text-danger">Service overdue</p>
+                                    <ul class="dashboard-mini-list mb-2" th:if="${!d.serviceOverdue.isEmpty()}">
+                                        <li th:each="item : ${d.serviceOverdue}">
+                                            <span th:text="${item.name}">—</span>
+                                            <small class="text-danger" th:text="${item.detail}"></small>
+                                        </li>
+                                    </ul>
+                                    <p class="small text-muted mb-2" th:if="${d.serviceOverdue.isEmpty()}">No overdue service.</p>
+                                    <p class="small fw-semibold mb-1 dashboard-fleet-subhead">Service due soon</p>
                                     <ul class="dashboard-mini-list mb-0" th:if="${!d.nearingService.isEmpty()}">
                                         <li th:each="item : ${d.nearingService}">
                                             <span th:text="${item.name}">—</span>
                                             <small class="text-muted" th:text="${item.detail}"></small>
                                         </li>
                                     </ul>
-                                    <p class="small text-muted mb-0" th:if="${d.nearingService.isEmpty()}">All vehicles within service limits.</p>
+                                    <p class="small text-muted mb-0" th:if="${d.nearingService.isEmpty()}">None due within 500 km.</p>
+                                    <a th:if="${serviceOverdueCount > 0}" th:href="@{/cars/service-overdue}"
+                                       class="small d-inline-block mt-2">View all overdue</a>
                                 </div>
                             </div>
                         </div>
@@ -251,7 +261,11 @@
                             <h3 class="dashboard-chart-title">Top customers</h3>
                             <ul class="dashboard-mini-list mb-0" th:if="${!d.topCustomers.isEmpty()}">
                                 <li th:each="item : ${d.topCustomers}">
-                                    <span th:text="${item.name}">—</span>
+                                    <span>
+                                        <span th:text="${item.name}">—</span>
+                                        <span class="d-block small text-muted" th:if="${item.detail != null and !#strings.isEmpty(item.detail)}"
+                                              th:text="|NIC: ${item.detail}|">NIC</span>
+                                    </span>
                                     <strong th:text="${#numbers.formatDecimal(item.value, 1, 'COMMA', 0, 'POINT')}">0</strong>
                                 </li>
                             </ul>

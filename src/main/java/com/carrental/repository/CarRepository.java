@@ -14,6 +14,10 @@ public interface CarRepository extends JpaRepository<Car, Long> {
 
     List<Car> findAllByOrderByRegistrationNumberAsc();
 
+    @Query("SELECT c FROM Car c WHERE c.nextServiceKm IS NOT NULL AND c.mileageKm >= c.nextServiceKm "
+            + "ORDER BY c.registrationNumber ASC")
+    List<Car> findServiceOverdue();
+
     @Query("SELECT c FROM Car c WHERE "
             + "LOWER(c.registrationNumber) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(CONCAT('', c.status)) LIKE LOWER(CONCAT('%', :q, '%')) OR "

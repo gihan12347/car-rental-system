@@ -1,16 +1,28 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<form th:fragment="cancelRentalForm(rentalId, buttonClass, confirmMessage, compactLabel)"
+<form th:fragment="cancelRentalForm(rentalId, variant)"
       th:action="@{/rentals/{id}/cancel(id=${rentalId})}"
       method="post"
       class="rental-cancel-form"
-      th:attr="onsubmit=|return confirm('${confirmMessage}');|">
+      onsubmit="return confirm('Cancel this rental? The vehicle will be available again.');">
     <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-    <button type="submit" th:class="${buttonClass}">
+    <button th:if="${variant == 'form'}" type="submit"
+            class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2">
         <i class="bi bi-x-circle"></i>
-        <span th:if="${compactLabel}" class="rental-table-actions__text">Cancel</span>
-        <span th:unless="${compactLabel}">Cancel rental</span>
+        <span>Cancel rental</span>
+    </button>
+    <button th:if="${variant == 'card'}" type="submit"
+            class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-x-circle"></i>
+        <span>Cancel rental</span>
+    </button>
+    <button th:if="${variant == 'table'}" type="submit"
+            class="rental-table-actions__btn rental-table-actions__btn--cancel"
+            title="Cancel rental"
+            aria-label="Cancel rental">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span class="rental-table-actions__text">Cancel</span>
     </button>
 </form>
 </body>

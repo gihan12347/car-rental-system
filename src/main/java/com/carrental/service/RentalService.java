@@ -7,6 +7,10 @@ import com.carrental.model.RentalStatus;
 import com.carrental.repository.RentalRepository;
 import com.carrental.web.SearchQuery;
 import com.carrental.web.dto.AvailableCarOption;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +24,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class RentalService {
+
+    public static final int RENTALS_PAGE_SIZE = 5;
+    private static final int RENTALS_MAX_PAGE_SIZE = 50;
 
     private static final List<RentalStatus> BLOCKING_STATUSES =
             Arrays.asList(RentalStatus.ACTIVE, RentalStatus.PENDING);
@@ -44,16 +51,23 @@ public class RentalService {
         return rentalRepository.findByRentalStatusOrderByHireDateDesc(RentalStatus.ACTIVE);
     }
 
-    public List<Rental> listAll() {
-        return rentalRepository.findAllByOrderByHireDateDesc();
+    public Page<Rental> searchAll(String query, int page, int size) {
+        String q = SearchQuery.normalize(query);
+        Pageable pageable = PageRequest.of(
+                Math.max(0, page),
+                normalizePageSize(size),
+                Sort.by(Sort.Direction.DESC, "hireDate"));
+        if (q.isEmpty()) {
+            return rentalRepository.findAllByOrderByHireDateDesc(pageable);
+        }
+        return rentalRepository.searchAllByTerm(q, pageable);
     }
 
-    public List<Rental> searchAll(String query) {
-        String q = SearchQuery.normalize(query);
-        if (q.isEmpty()) {
-            return listAll();
+    private static int normalizePageSize(int size) {
+        if (size < 1) {
+            return RENTALS_PAGE_SIZE;
         }
-        return rentalRepository.searchAllByTerm(q);
+        return Math.min(size, RENTALS_MAX_PAGE_SIZE);
     }
 
     public List<Rental> searchActive(String query) {

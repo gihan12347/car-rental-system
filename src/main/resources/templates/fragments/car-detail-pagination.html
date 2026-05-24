@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="section(pagedResult, carId, month, rentalPageNum, maintenancePageNum, sectionKey)"
+     class="app-pagination app-pagination--compact"
+     th:if="${pagedResult != null and pagedResult.totalElements > 0}">
+    <p class="app-pagination-summary small text-muted mb-2 mb-md-0">
+        Showing
+        <span class="fw-semibold text-body" th:text="${pagedResult.number * pagedResult.size + 1}">1</span>–
+        <span class="fw-semibold text-body"
+              th:text="${pagedResult.number * pagedResult.size + pagedResult.numberOfElements}">8</span>
+        of
+        <span class="fw-semibold text-body" th:text="${pagedResult.totalElements}">0</span>
+    </p>
+    <nav th:if="${pagedResult.totalPages > 1}" aria-label="Section pagination">
+        <ul class="pagination pagination-sm app-pagination__list mb-0">
+            <li class="page-item" th:classappend="${pagedResult.first} ? 'disabled'">
+                <a class="page-link"
+                   th:if="${!pagedResult.first and sectionKey == 'rental'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${pagedResult.number - 1}, maintenancePage=${maintenancePageNum})}"
+                   aria-label="Previous page">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <a class="page-link"
+                   th:if="${!pagedResult.first and sectionKey == 'maintenance'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${rentalPageNum}, maintenancePage=${pagedResult.number - 1})}"
+                   aria-label="Previous page">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <span class="page-link" th:if="${pagedResult.first}" aria-hidden="true">
+                    <i class="bi bi-chevron-left"></i>
+                </span>
+            </li>
+            <li class="page-item"
+                th:each="pageIndex : ${#numbers.sequence(0, pagedResult.totalPages - 1)}"
+                th:classappend="${pageIndex == pagedResult.number} ? 'active'">
+                <a class="page-link"
+                   th:if="${sectionKey == 'rental'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${pageIndex}, maintenancePage=${maintenancePageNum})}"
+                   th:text="${pageIndex + 1}"
+                   th:attr="aria-current=${pageIndex == pagedResult.number} ? 'page' : null">1</a>
+                <a class="page-link"
+                   th:if="${sectionKey == 'maintenance'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${rentalPageNum}, maintenancePage=${pageIndex})}"
+                   th:text="${pageIndex + 1}"
+                   th:attr="aria-current=${pageIndex == pagedResult.number} ? 'page' : null">1</a>
+            </li>
+            <li class="page-item" th:classappend="${pagedResult.last} ? 'disabled'">
+                <a class="page-link"
+                   th:if="${!pagedResult.last and sectionKey == 'rental'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${pagedResult.number + 1}, maintenancePage=${maintenancePageNum})}"
+                   aria-label="Next page">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a class="page-link"
+                   th:if="${!pagedResult.last and sectionKey == 'maintenance'}"
+                   th:href="@{/cars/{id}(id=${carId}, month=${month}, rentalPage=${rentalPageNum}, maintenancePage=${pagedResult.number + 1})}"
+                   aria-label="Next page">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <span class="page-link" th:if="${pagedResult.last}" aria-hidden="true">
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

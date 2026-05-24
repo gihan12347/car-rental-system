@@ -220,13 +220,12 @@
                         <i class="bi bi-check-circle"></i> Complete &amp; release car
                     </button>
                     <a class="btn btn-outline-soft" th:href="@{/rentals/active}">Back</a>
-                    <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(
-                        ${rental.id},
-                        'btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2',
-                        'Cancel this rental? The vehicle will be available again.',
-                        false)}"></th:block>
                 </div>
             </form>
+            <div class="d-grid d-sm-flex flex-wrap gap-2 app-form-actions mt-2"
+                 th:if="${rental.rentalStatus.name() == 'ACTIVE' or rental.rentalStatus.name() == 'PENDING'}">
+                <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(${rental.id}, 'form')}"></th:block>
+            </div>
         </main>
     </div>
 </div>

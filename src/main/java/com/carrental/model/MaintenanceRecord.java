@@ -2,6 +2,8 @@ package com.carrental.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -44,6 +46,11 @@ public class MaintenanceRecord {
     @Min(0)
     @Column(name = "mileage_km")
     private Integer mileageKm;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "maintenance_type", nullable = false, length = 16)
+    private MaintenanceType maintenanceType = MaintenanceType.OTHER;
 
     public Long getId() {
         return id;
@@ -91,5 +98,13 @@ public class MaintenanceRecord {
 
     public void setMileageKm(Integer mileageKm) {
         this.mileageKm = mileageKm;
+    }
+
+    public MaintenanceType getMaintenanceType() {
+        return maintenanceType;
+    }
+
+    public void setMaintenanceType(MaintenanceType maintenanceType) {
+        this.maintenanceType = maintenanceType;
     }
 }

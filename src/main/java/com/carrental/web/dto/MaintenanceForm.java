@@ -3,6 +3,8 @@ package com.carrental.web.dto;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.DecimalMin;
+import com.carrental.model.MaintenanceType;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -22,8 +24,11 @@ public class MaintenanceForm {
     @DecimalMin(value = "0", message = "Cost must be zero or positive.")
     private BigDecimal cost;
 
+    @NotNull
+    private MaintenanceType maintenanceType = MaintenanceType.OTHER;
+
     @Min(0)
-    private Integer mileageKm;
+    private Integer nextServiceKm;
 
     public LocalDate getMaintenanceDate() {
         return maintenanceDate;
@@ -49,11 +54,19 @@ public class MaintenanceForm {
         this.cost = cost;
     }
 
-    public Integer getMileageKm() {
-        return mileageKm;
+    public MaintenanceType getMaintenanceType() {
+        return maintenanceType;
     }
 
-    public void setMileageKm(Integer mileageKm) {
-        this.mileageKm = mileageKm;
+    public void setMaintenanceType(MaintenanceType maintenanceType) {
+        this.maintenanceType = maintenanceType;
+    }
+
+    public Integer getNextServiceKm() {
+        return nextServiceKm;
+    }
+
+    public void setNextServiceKm(Integer nextServiceKm) {
+        this.nextServiceKm = nextServiceKm;
     }
 }

@@ -15,6 +15,18 @@
             <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
                 <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
             </div>
+            <div th:if="${car.nextServiceKm != null and car.mileageKm != null and car.mileageKm >= car.nextServiceKm}"
+                 class="alert app-alert alert-warning d-flex align-items-start gap-2 mb-3"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+                <div>
+                    <strong>Service overdue.</strong>
+                    Odometer <span th:text="${car.mileageKm}">0</span> km has passed the scheduled
+                    next service at <span th:text="${car.nextServiceKm}">0</span> km
+                    (<span th:text="${car.mileageKm - car.nextServiceKm}">0</span> km over).
+                    Log a <strong>Scheduled service</strong> to update the next service km.
+                </div>
+            </div>
 
             <header class="app-page-header car-detail-header mb-3 mb-lg-4">
                 <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3">
@@ -37,7 +49,14 @@
                                       th:classappend="${car.status.name() == 'AVAILABLE'} ? ' text-bg-success' : ' text-bg-secondary'"
                                       th:text="${car.status}"></span>
                                 <span class="badge bg-light text-dark border" th:text="${car.vehicleType}"></span>
-                                <span class="small text-muted"><span th:text="${car.mileageKm}"></span> km</span>
+                                <span class="small text-muted"><span th:text="${car.mileageKm}"></span> km odometer</span>
+                                <span class="small text-muted" th:if="${car.nextServiceKm != null}">
+                                    <i class="bi bi-wrench-adjustable me-1" aria-hidden="true"></i>
+                                    Next service: <strong th:text="${car.nextServiceKm}">—</strong> km
+                                    <span th:if="${car.mileageKm != null and car.nextServiceKm > car.mileageKm}"
+                                          th:text="|(${car.nextServiceKm - car.mileageKm} km left)|"></span>
+                                </span>
+                                <span class="small text-muted" th:if="${car.nextServiceKm == null}">Next service: not set</span>
                             </div>
                         </div>
                     </div>
@@ -86,11 +105,11 @@
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                             <h2 class="dashboard-chart-title mb-0">Availability calendar</h2>
                             <div class="btn-group btn-group-sm">
-                                <a class="btn btn-outline-soft" th:href="@{/cars/{id}(id=${car.id}, month=${detail.prevMonthParam})}">
+                                <a class="btn btn-outline-soft" th:href="@{/cars/{id}(id=${car.id}, month=${detail.prevMonthParam}, rentalPage=0, maintenancePage=0)}">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                                 <span class="btn btn-light disabled border text-nowrap px-2" th:text="${detail.calendarMonthLabel}">Month</span>
-                                <a class="btn btn-outline-soft" th:href="@{/cars/{id}(id=${car.id}, month=${detail.nextMonthParam})}">
+                                <a class="btn btn-outline-soft" th:href="@{/cars/{id}(id=${car.id}, month=${detail.nextMonthParam}, rentalPage=0, maintenancePage=0)}">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </div>
@@ -147,7 +166,7 @@
                 <div class="col-12 col-xl-7">
                     <div class="dashboard-chart-card">
                         <h2 class="dashboard-chart-title">Rental history</h2>
-                        <div class="table-responsive" th:if="${!detail.rentals.isEmpty()}">
+                        <div class="table-responsive" th:if="${rentalHistoryPage != null and rentalHistoryPage.totalElements > 0}">
                             <table class="table app-table mb-0 car-detail-table">
                                 <thead>
                                 <tr>
@@ -159,7 +178,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="r : ${detail.rentals}">
+                                <tr th:each="r : ${rentalHistoryPage.content}">
                                     <td class="text-nowrap">
                                         <span th:text="${r.pickupDate != null ? r.pickupDate : r.hireDate}"></span>
                                         <span class="text-muted"> – </span>
@@ -181,35 +200,108 @@
                                 </tbody>
                             </table>
                         </div>
-                        <p class="small text-muted mb-0" th:if="${detail.rentals.isEmpty()}">No rentals recorded for this vehicle yet.</p>
+                        <nav th:if="${rentalHistoryPage != null and rentalHistoryPage.totalElements > 0}"
+                             class="app-pagination-wrap app-pagination-wrap--compact mt-3"
+                             aria-label="Rental history pagination">
+                            <p class="app-pagination-summary small text-muted mb-2">
+                                Showing
+                                <span th:text="${rentalHistoryPage.number * rentalHistoryPage.size + 1}">1</span>–
+                                <span th:text="${rentalHistoryPage.number * rentalHistoryPage.size + rentalHistoryPage.numberOfElements}">8</span>
+                                of <span th:text="${rentalHistoryPage.totalElements}">0</span>
+                            </p>
+                            <ul class="pagination pagination-sm app-pagination__list mb-0"
+                                th:if="${rentalHistoryPage.totalPages > 1}">
+                                <li class="page-item" th:classappend="${rentalHistoryPage.first} ? 'disabled'">
+                                    <a class="page-link" th:if="${!rentalHistoryPage.first}"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rentalHistoryPage.number - 1}, maintenancePage=${maintenanceHistoryPage.number})}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="rp : ${#numbers.sequence(0, rentalHistoryPage.totalPages - 1)}"
+                                    th:classappend="${rp == rentalHistoryPage.number} ? 'active'">
+                                    <a class="page-link"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rp}, maintenancePage=${maintenanceHistoryPage.number})}"
+                                       th:text="${rp + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${rentalHistoryPage.last} ? 'disabled'">
+                                    <a class="page-link" th:if="${!rentalHistoryPage.last}"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rentalHistoryPage.number + 1}, maintenancePage=${maintenanceHistoryPage.number})}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <p class="small text-muted mb-0"
+                           th:if="${rentalHistoryPage == null or rentalHistoryPage.totalElements == 0}">No rentals recorded for this vehicle yet.</p>
                     </div>
                 </div>
                 <div class="col-12 col-xl-5">
                     <div class="dashboard-chart-card">
-                        <h2 class="dashboard-chart-title">Maintenance records</h2>
-                        <div class="table-responsive" th:if="${!detail.maintenanceRecords.isEmpty()}">
+                        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                            <h2 class="dashboard-chart-title mb-0">Maintenance records</h2>
+                            <p class="small mb-0 text-muted">
+                                <span>Next service at</span>
+                                <strong th:if="${car.nextServiceKm != null}" th:text="|${car.nextServiceKm} km|">—</strong>
+                                <span th:if="${car.nextServiceKm == null}">not set</span>
+                            </p>
+                        </div>
+                        <div class="table-responsive" th:if="${maintenanceHistoryPage != null and maintenanceHistoryPage.totalElements > 0}">
                             <table class="table app-table mb-0 car-detail-table">
                                 <thead>
                                 <tr>
                                     <th>Date</th>
+                                    <th>Type</th>
                                     <th>Description</th>
                                     <th class="text-end">Cost</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="m : ${detail.maintenanceRecords}">
+                                <tr th:each="m : ${maintenanceHistoryPage.content}">
                                     <td class="text-nowrap" th:text="${m.maintenanceDate}"></td>
-                                    <td>
-                                        <span th:text="${m.description}"></span>
-                                        <span class="d-block small text-muted" th:if="${m.mileageKm != null}"
-                                              th:text="|${m.mileageKm} km|"></span>
+                                    <td class="text-nowrap">
+                                        <span class="badge rounded-pill"
+                                              th:classappend="${m.maintenanceType.name() == 'SERVICE'} ? ' text-bg-primary' : ' text-bg-secondary'"
+                                              th:text="${m.maintenanceType.name() == 'SERVICE'} ? 'Service' : 'Other'">Other</span>
                                     </td>
+                                    <td th:text="${m.description}"></td>
                                     <td class="text-end text-nowrap" th:text="${#numbers.formatDecimal(m.cost, 1, 'COMMA', 2, 'POINT')}"></td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <p class="small text-muted mb-0" th:if="${detail.maintenanceRecords.isEmpty()}">
+                        <nav th:if="${maintenanceHistoryPage != null and maintenanceHistoryPage.totalElements > 0}"
+                             class="app-pagination-wrap app-pagination-wrap--compact mt-3"
+                             aria-label="Maintenance pagination">
+                            <p class="app-pagination-summary small text-muted mb-2">
+                                Showing
+                                <span th:text="${maintenanceHistoryPage.number * maintenanceHistoryPage.size + 1}">1</span>–
+                                <span th:text="${maintenanceHistoryPage.number * maintenanceHistoryPage.size + maintenanceHistoryPage.numberOfElements}">8</span>
+                                of <span th:text="${maintenanceHistoryPage.totalElements}">0</span>
+                            </p>
+                            <ul class="pagination pagination-sm app-pagination__list mb-0"
+                                th:if="${maintenanceHistoryPage.totalPages > 1}">
+                                <li class="page-item" th:classappend="${maintenanceHistoryPage.first} ? 'disabled'">
+                                    <a class="page-link" th:if="${!maintenanceHistoryPage.first}"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rentalHistoryPage.number}, maintenancePage=${maintenanceHistoryPage.number - 1})}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="mp : ${#numbers.sequence(0, maintenanceHistoryPage.totalPages - 1)}"
+                                    th:classappend="${mp == maintenanceHistoryPage.number} ? 'active'">
+                                    <a class="page-link"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rentalHistoryPage.number}, maintenancePage=${mp})}"
+                                       th:text="${mp + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${maintenanceHistoryPage.last} ? 'disabled'">
+                                    <a class="page-link" th:if="${!maintenanceHistoryPage.last}"
+                                       th:href="@{/cars/{id}(id=${car.id}, month=${detail.calendarMonthParam}, rentalPage=${rentalHistoryPage.number}, maintenancePage=${maintenanceHistoryPage.number + 1})}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <p class="small text-muted mb-0"
+                           th:if="${maintenanceHistoryPage == null or maintenanceHistoryPage.totalElements == 0}">
                             No maintenance logged yet. Use <strong>Add maintenance</strong> to record service and costs.
                         </p>
                     </div>
@@ -254,21 +346,37 @@
                                th:value="${maintenanceForm.maintenanceDate}"/>
                     </div>
                     <div class="mb-3">
+                        <span class="form-label small fw-semibold d-block">Type</span>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check" th:each="t : ${maintenanceTypes}">
+                                <input class="form-check-input" type="radio" name="maintenanceType" th:id="${'m-type-' + t.name()}"
+                                       th:value="${t.name()}"
+                                       th:checked="${maintenanceForm.maintenanceType == t}"/>
+                                <label class="form-check-label" th:for="${'m-type-' + t.name()}"
+                                       th:text="${t.name() == 'SERVICE'} ? 'Scheduled service' : 'Repair / other'">Type</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label small fw-semibold" for="m-desc">Description</label>
                         <textarea class="form-control" id="m-desc" name="description" rows="2" required
                                   placeholder="e.g. Oil change, brake pads"
                                   th:text="${maintenanceForm.description}"></textarea>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold" for="m-cost">Cost</label>
-                            <input class="form-control" type="number" step="0.01" min="0" id="m-cost" name="cost" required
-                                   th:value="${maintenanceForm.cost}"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold" for="m-km">Mileage (optional)</label>
-                            <input class="form-control" type="number" min="0" step="1" id="m-km" name="mileageKm"
-                                   th:value="${maintenanceForm.mileageKm != null ? maintenanceForm.mileageKm : ''}"/>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="m-cost">Cost</label>
+                        <input class="form-control" type="number" step="0.01" min="0" id="m-cost" name="cost" required
+                               th:value="${maintenanceForm.cost}"/>
+                    </div>
+                    <div class="mb-0 d-none" id="m-service-fields"
+                         th:attr="data-default-interval=${serviceIntervalKm}, data-current-odometer=${car.mileageKm}">
+                        <label class="form-label small fw-semibold" for="m-next-service">Next service at (km)</label>
+                        <input class="form-control" type="number" min="1" step="1" id="m-next-service" name="nextServiceKm"
+                               th:value="${maintenanceForm.nextServiceKm != null ? maintenanceForm.nextServiceKm : ''}"/>
+                        <div class="form-text">
+                            Updates the vehicle after a scheduled service. Leave empty to use current odometer
+                            (<span th:text="${car.mileageKm}">0</span> km) +
+                            <span th:text="${serviceIntervalKm}">5000</span> km.
                         </div>
                     </div>
                 </div>

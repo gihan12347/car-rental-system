@@ -906,6 +906,90 @@ body.login-page {
   }
 }
 
+/* List pagination */
+.app-pagination-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+
+@media (min-width: 768px) {
+  .app-pagination-wrap {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.app-pagination {
+  display: contents;
+}
+
+.app-pagination-summary {
+  margin: 0;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-pagination-summary {
+    text-align: left;
+  }
+}
+
+.app-pagination__list {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.app-pagination__list .page-link {
+  border-radius: var(--app-radius);
+  color: var(--app-text);
+  border-color: var(--app-border);
+  min-width: 2.1rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.app-pagination__list .page-item.active .page-link {
+  background: var(--app-accent);
+  border-color: var(--app-accent);
+  color: #fff;
+}
+
+.app-pagination__list .page-item.disabled .page-link {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.app-pagination__list .page-link:hover:not(.disabled) {
+  background: var(--app-accent-soft);
+  border-color: rgba(79, 70, 229, 0.25);
+  color: var(--app-accent);
+}
+
+.app-pagination-wrap--compact {
+  padding: 0.65rem 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.app-pagination--compact .app-pagination-summary {
+  font-size: 0.75rem;
+}
+
+.app-pagination--compact .app-pagination__list .page-link {
+  min-width: 1.85rem;
+  padding: 0.3rem 0.45rem;
+  font-size: 0.75rem;
+}
+
 /* Mobile topbar quick nav */
 .app-topbar-nav {
   display: flex;
@@ -1820,6 +1904,25 @@ body.login-page {
 .car-detail-table td {
   padding: 0.4rem 0.5rem;
   font-size: 0.8125rem;
+}
+
+.app-service-notify__badge {
+  font-size: 0.65rem;
+  min-width: 1.1rem;
+  padding: 0.2em 0.45em;
+}
+
+.app-service-notify__menu {
+  min-width: 18rem;
+  max-width: min(22rem, 92vw);
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.app-service-notify__item {
+  white-space: normal;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 /* Complete rental — mileage & price breakdown */

@@ -39,6 +39,7 @@ public class DashboardData {
     private List<NamedValueRow> lowPerformingVehicles = new ArrayList<NamedValueRow>();
     private List<NamedValueRow> currentlyRented = new ArrayList<NamedValueRow>();
     private List<NamedValueRow> nearingService = new ArrayList<NamedValueRow>();
+    private List<NamedValueRow> serviceOverdue = new ArrayList<NamedValueRow>();
     private List<NamedValueRow> topCustomers = new ArrayList<NamedValueRow>();
 
     public String getPeriodLabel() {
@@ -255,6 +256,14 @@ public class DashboardData {
 
     public void setNearingService(List<NamedValueRow> nearingService) {
         this.nearingService = nearingService;
+    }
+
+    public List<NamedValueRow> getServiceOverdue() {
+        return serviceOverdue;
+    }
+
+    public void setServiceOverdue(List<NamedValueRow> serviceOverdue) {
+        this.serviceOverdue = serviceOverdue;
     }
 
     public List<NamedValueRow> getTopCustomers() {

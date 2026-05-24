@@ -3,13 +3,18 @@ package com.carrental.web;
 import com.carrental.car.CarDetailData;
 import com.carrental.model.Car;
 import com.carrental.model.CarStatus;
+import com.carrental.model.MaintenanceRecord;
+import com.carrental.model.MaintenanceType;
+import com.carrental.model.Rental;
 import com.carrental.service.CarDetailService;
 import com.carrental.service.CarService;
+import com.carrental.service.FleetServiceAlertService;
 import com.carrental.service.MaintenanceRecordService;
 import com.carrental.storage.CarImageStorageService;
 import com.carrental.web.dto.MaintenanceForm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -39,6 +44,7 @@ public class CarController {
     private final CarImageStorageService carImageStorageService;
     private final CarDetailService carDetailService;
     private final MaintenanceRecordService maintenanceRecordService;
+    private final FleetServiceAlertService fleetServiceAlertService;
     private final ObjectMapper objectMapper;
 
     public CarController(
@@ -46,11 +52,13 @@ public class CarController {
             CarImageStorageService carImageStorageService,
             CarDetailService carDetailService,
             MaintenanceRecordService maintenanceRecordService,
+            FleetServiceAlertService fleetServiceAlertService,
             ObjectMapper objectMapper) {
         this.carService = carService;
         this.carImageStorageService = carImageStorageService;
         this.carDetailService = carDetailService;
         this.maintenanceRecordService = maintenanceRecordService;
+        this.fleetServiceAlertService = fleetServiceAlertService;
         this.objectMapper = objectMapper;
     }
 
@@ -60,6 +68,13 @@ public class CarController {
         model.addAttribute("searchQuery", SearchQuery.normalize(q));
         model.addAttribute("activeNav", "cars");
         return "cars/list";
+    }
+
+    @GetMapping("/service-overdue")
+    public String serviceOverdue(Model model) {
+        model.addAttribute("alerts", fleetServiceAlertService.findServiceOverdue());
+        model.addAttribute("activeNav", "service-overdue");
+        return "cars/service-overdue";
     }
 
     @GetMapping("/new")
@@ -110,10 +125,27 @@ public class CarController {
     public String detail(
             @PathVariable Long id,
             @RequestParam(value = "month", required = false) String month,
+            @RequestParam(value = "rentalPage", defaultValue = "0") int rentalPage,
+            @RequestParam(value = "maintenancePage", defaultValue = "0") int maintenancePage,
             Model model) throws JsonProcessingException {
+        String monthParam = CarDetailService.parseMonth(month).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        Page<Rental> rentalHistoryPage = carDetailService.getRentalHistory(id, rentalPage);
+        Page<MaintenanceRecord> maintenanceHistoryPage =
+                carDetailService.getMaintenanceHistory(id, maintenancePage);
+
+        String redirect = carDetailPaginationRedirect(
+                id, monthParam, rentalPage, maintenancePage, rentalHistoryPage, maintenanceHistoryPage);
+        if (redirect != null) {
+            return redirect;
+        }
+
         CarDetailData detail = carDetailService.build(id, month);
         model.addAttribute("detail", detail);
         model.addAttribute("car", detail.getCar());
+        model.addAttribute("serviceIntervalKm", MaintenanceRecordService.DEFAULT_SERVICE_INTERVAL_KM);
+        model.addAttribute("maintenanceTypes", MaintenanceType.values());
+        model.addAttribute("rentalHistoryPage", rentalHistoryPage);
+        model.addAttribute("maintenanceHistoryPage", maintenanceHistoryPage);
         model.addAttribute("activeNav", "cars");
         Map<String, Object> chartPayload = new HashMap<String, Object>();
         chartPayload.put("incomeChart", detail.getIncomeChart());
@@ -138,7 +170,8 @@ public class CarController {
             @RequestParam("maintenanceDate") String maintenanceDateRaw,
             @RequestParam("description") String description,
             @RequestParam("cost") String costRaw,
-            @RequestParam(value = "mileageKm", required = false) String mileageKmRaw,
+            @RequestParam(value = "maintenanceType", defaultValue = "OTHER") String maintenanceTypeRaw,
+            @RequestParam(value = "nextServiceKm", required = false) String nextServiceKmRaw,
             RedirectAttributes redirectAttributes) {
         String monthParam = CarDetailService.parseMonth(month).format(DateTimeFormatter.ofPattern("yyyy-MM"));
         String redirectUrl = "redirect:/cars/" + id + "?month=" + monthParam;
@@ -152,10 +185,15 @@ public class CarController {
         java.math.BigDecimal cost = parseCost(costRaw);
         form.setCost(cost);
 
-        Integer mileageKm = parseMileage(mileageKmRaw);
-        form.setMileageKm(mileageKm);
+        MaintenanceType maintenanceType = parseMaintenanceType(maintenanceTypeRaw);
+        form.setMaintenanceType(maintenanceType);
 
-        String validationError = validateMaintenanceInput(maintenanceDate, description, cost, mileageKmRaw, mileageKm);
+        Integer nextServiceKm = parseMileage(nextServiceKmRaw);
+        form.setNextServiceKm(nextServiceKm);
+
+        Car car = carService.getById(id);
+        String validationError = validateMaintenanceInput(
+                maintenanceDate, description, cost, maintenanceType, car, nextServiceKmRaw, nextServiceKm);
         if (validationError != null) {
             redirectAttributes.addFlashAttribute("maintenanceForm", form);
             redirectAttributes.addFlashAttribute("openMaintenanceModal", Boolean.TRUE);
@@ -163,7 +201,7 @@ public class CarController {
             return redirectUrl;
         }
         try {
-            maintenanceRecordService.create(id, maintenanceDate, description, cost, mileageKm);
+            maintenanceRecordService.create(id, maintenanceDate, description, cost, maintenanceType, nextServiceKm);
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("maintenanceForm", form);
             redirectAttributes.addFlashAttribute("openMaintenanceModal", Boolean.TRUE);
@@ -176,7 +214,12 @@ public class CarController {
                     "Could not save maintenance record. Ensure the maintenance_records table exists (see db/maintenance_records.sql).");
             return redirectUrl;
         }
-        redirectAttributes.addFlashAttribute("successMessage", "Maintenance record saved.");
+        if (maintenanceType == MaintenanceType.SERVICE) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Service record saved. Next service km updated on the vehicle.");
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage", "Maintenance record saved.");
+        }
         return redirectUrl;
     }
 
@@ -202,6 +245,17 @@ public class CarController {
         }
     }
 
+    private static MaintenanceType parseMaintenanceType(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return MaintenanceType.OTHER;
+        }
+        try {
+            return MaintenanceType.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return MaintenanceType.OTHER;
+        }
+    }
+
     private static Integer parseMileage(String raw) {
         if (raw == null || raw.trim().isEmpty()) {
             return null;
@@ -217,8 +271,10 @@ public class CarController {
             LocalDate maintenanceDate,
             String description,
             java.math.BigDecimal cost,
-            String mileageKmRaw,
-            Integer mileageKm) {
+            MaintenanceType maintenanceType,
+            Car car,
+            String nextServiceKmRaw,
+            Integer nextServiceKm) {
         if (maintenanceDate == null) {
             return "Select a valid maintenance date.";
         }
@@ -231,11 +287,18 @@ public class CarController {
         if (cost.compareTo(java.math.BigDecimal.ZERO) < 0) {
             return "Cost must be zero or positive.";
         }
-        if (mileageKmRaw != null && !mileageKmRaw.trim().isEmpty() && mileageKm == null) {
-            return "Mileage must be a whole number, or leave it empty.";
+        if (maintenanceType != MaintenanceType.SERVICE) {
+            return null;
         }
-        if (mileageKm != null && mileageKm < 0) {
-            return "Mileage must be zero or positive.";
+        if (nextServiceKmRaw != null && !nextServiceKmRaw.trim().isEmpty() && nextServiceKm == null) {
+            return "Next service km must be a whole number, or leave it empty to use current odometer + "
+                    + MaintenanceRecordService.DEFAULT_SERVICE_INTERVAL_KM + " km.";
+        }
+        if (nextServiceKm != null && nextServiceKm <= 0) {
+            return "Next service km must be greater than zero.";
+        }
+        if (nextServiceKm != null && car.getMileageKm() != null && nextServiceKm < car.getMileageKm()) {
+            return "Next service km must be at or above the vehicle odometer (" + car.getMileageKm() + " km).";
         }
         return null;
     }
@@ -283,6 +346,31 @@ public class CarController {
         }
         redirectAttributes.addFlashAttribute("successMessage", "Car updated.");
         return "redirect:/cars/" + id;
+    }
+
+    private static String carDetailPaginationRedirect(
+            Long carId,
+            String monthParam,
+            int rentalPage,
+            int maintenancePage,
+            Page<Rental> rentalHistoryPage,
+            Page<MaintenanceRecord> maintenanceHistoryPage) {
+        int rentalTarget = rentalPage;
+        int maintenanceTarget = maintenancePage;
+        if (rentalHistoryPage.getTotalPages() > 0 && rentalPage >= rentalHistoryPage.getTotalPages()) {
+            rentalTarget = rentalHistoryPage.getTotalPages() - 1;
+        }
+        if (maintenanceHistoryPage.getTotalPages() > 0
+                && maintenancePage >= maintenanceHistoryPage.getTotalPages()) {
+            maintenanceTarget = maintenanceHistoryPage.getTotalPages() - 1;
+        }
+        if (rentalTarget != rentalPage || maintenanceTarget != maintenancePage) {
+            return "redirect:/cars/" + carId
+                    + "?month=" + monthParam
+                    + "&rentalPage=" + rentalTarget
+                    + "&maintenancePage=" + maintenanceTarget;
+        }
+        return null;
     }
 
 }

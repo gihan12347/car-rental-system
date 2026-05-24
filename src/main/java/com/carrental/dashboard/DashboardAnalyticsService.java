@@ -9,6 +9,7 @@ import com.carrental.model.VehicleType;
 import com.carrental.repository.BlacklistedCustomerRepository;
 import com.carrental.repository.CarRepository;
 import com.carrental.repository.RentalRepository;
+import com.carrental.service.FleetServiceAlertService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,7 +35,7 @@ public class DashboardAnalyticsService {
 
     private static final DateTimeFormatter DAY_FMT = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
     private static final DateTimeFormatter MONTH_FMT = DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH);
-    private static final int SERVICE_WARNING_KM = 5000;
+    private static final int TOP_CUSTOMERS_LIMIT = 3;
 
     private final CarRepository carRepository;
     private final RentalRepository rentalRepository;
@@ -157,7 +158,8 @@ public class DashboardAnalyticsService {
         List<DashboardData.NamedValueRow> frequent = new ArrayList<DashboardData.NamedValueRow>();
         List<DashboardData.NamedValueRow> low = new ArrayList<DashboardData.NamedValueRow>();
         List<DashboardData.NamedValueRow> rentedNow = new ArrayList<DashboardData.NamedValueRow>();
-        List<DashboardData.NamedValueRow> serviceDue = new ArrayList<DashboardData.NamedValueRow>();
+        List<DashboardData.NamedValueRow> serviceDueSoon = new ArrayList<DashboardData.NamedValueRow>();
+        List<DashboardData.NamedValueRow> serviceOverdue = new ArrayList<DashboardData.NamedValueRow>();
 
         for (Car car : cars) {
             int rentedDays = rentedDaysForCar(car, rentals, range);
@@ -178,14 +180,19 @@ public class DashboardAnalyticsService {
             if (bookingCount >= 2) {
                 frequent.add(new DashboardData.NamedValueRow(label, bookingCount + " hires", BigDecimal.valueOf(bookingCount)));
             }
-            if (utilization < 35 && bookingCount > 0) {
+            if (utilization < 35) {
                 low.add(new DashboardData.NamedValueRow(label, utilization + "% utilization", BigDecimal.valueOf(utilization)));
             }
             if (car.getStatus() == CarStatus.UNAVAILABLE) {
                 rentedNow.add(new DashboardData.NamedValueRow(label, car.getRegistrationNumber(), BigDecimal.ZERO));
             }
-            if (isNearingService(car)) {
-                serviceDue.add(new DashboardData.NamedValueRow(
+            if (FleetServiceAlertService.isServiceOverdue(car)) {
+                serviceOverdue.add(new DashboardData.NamedValueRow(
+                        label,
+                        car.getMileageKm() + " / " + car.getNextServiceKm() + " km (overdue)",
+                        BigDecimal.valueOf(car.getMileageKm() - car.getNextServiceKm())));
+            } else if (FleetServiceAlertService.isServiceDueSoon(car)) {
+                serviceDueSoon.add(new DashboardData.NamedValueRow(
                         label,
                         car.getMileageKm() + " / " + car.getNextServiceKm() + " km",
                         BigDecimal.ZERO));
@@ -202,7 +209,9 @@ public class DashboardAnalyticsService {
         data.setFrequentlyRented(limit(frequent, 5));
         data.setLowPerformingVehicles(limit(low, 5));
         data.setCurrentlyRented(rentedNow);
-        data.setNearingService(serviceDue);
+        sortByValueDesc(serviceOverdue);
+        data.setNearingService(limit(serviceDueSoon, 5));
+        data.setServiceOverdue(limit(serviceOverdue, 5));
     }
 
     private long countBookingsInPeriod(List<Rental> rentals, DateRange range) {
@@ -218,8 +227,8 @@ public class DashboardAnalyticsService {
     private void populateCustomers(DashboardData data, List<Rental> rentals, DateRange range) {
         Map<String, List<Rental>> byContact = new HashMap<String, List<Rental>>();
         Map<String, LocalDate> firstSeen = new HashMap<String, LocalDate>();
-        Map<String, BigDecimal> revenueByContact = new HashMap<String, BigDecimal>();
-        Map<String, String> nameByContact = new HashMap<String, String>();
+        Map<String, BigDecimal> revenueByNic = new HashMap<String, BigDecimal>();
+        Map<String, String> nameByNic = new HashMap<String, String>();
 
         long complaints = 0;
         int durationTotal = 0;
@@ -234,7 +243,6 @@ public class DashboardAnalyticsService {
                 byContact.put(contact, new ArrayList<Rental>());
             }
             byContact.get(contact).add(rental);
-            nameByContact.put(contact, rental.getCustomerName());
 
             LocalDate hire = rental.getHireDate();
             if (!firstSeen.containsKey(contact) || hire.isBefore(firstSeen.get(contact))) {
@@ -242,7 +250,11 @@ public class DashboardAnalyticsService {
             }
 
             if (rental.getRentalStatus() == RentalStatus.COMPLETED && range.contains(revenueDate(rental))) {
-                revenueByContact.put(contact, sum(revenueByContact.get(contact), revenueAmount(rental)));
+                String nic = normalizeNic(rental.getCustomerIdNumber());
+                if (!nic.isEmpty()) {
+                    revenueByNic.put(nic, sum(revenueByNic.get(nic), revenueAmount(rental)));
+                    nameByNic.put(nic, rental.getCustomerName());
+                }
             }
 
             if (Boolean.TRUE.equals(rental.getCustomerComplaint()) && range.contains(rental.getHireDate())) {
@@ -279,21 +291,21 @@ public class DashboardAnalyticsService {
         data.setAverageRentalDuration(durationCount == 0
                 ? BigDecimal.ZERO
                 : BigDecimal.valueOf(durationTotal * 1.0 / durationCount).setScale(1, RoundingMode.HALF_UP));
-        data.setTopCustomers(topCustomers(nameByContact, revenueByContact));
+        data.setTopCustomers(topCustomersByNic(nameByNic, revenueByNic));
     }
 
-    private List<DashboardData.NamedValueRow> topCustomers(
-            Map<String, String> names,
-            Map<String, BigDecimal> revenueByContact) {
+    private List<DashboardData.NamedValueRow> topCustomersByNic(
+            Map<String, String> namesByNic,
+            Map<String, BigDecimal> revenueByNic) {
         List<DashboardData.NamedValueRow> rows = new ArrayList<DashboardData.NamedValueRow>();
-        for (Map.Entry<String, BigDecimal> entry : revenueByContact.entrySet()) {
+        for (Map.Entry<String, BigDecimal> entry : revenueByNic.entrySet()) {
             rows.add(new DashboardData.NamedValueRow(
-                    names.get(entry.getKey()),
+                    namesByNic.get(entry.getKey()),
                     entry.getKey(),
                     entry.getValue()));
         }
         sortByValueDesc(rows);
-        return limit(rows, 5);
+        return limit(rows, TOP_CUSTOMERS_LIMIT);
     }
 
     private int rentedDaysForCar(Car car, List<Rental> rentals, DateRange range) {
@@ -321,13 +333,6 @@ public class DashboardAnalyticsService {
             }
         }
         return count;
-    }
-
-    private boolean isNearingService(Car car) {
-        if (car.getNextServiceKm() == null) {
-            return false;
-        }
-        return car.getMileageKm() >= car.getNextServiceKm() - SERVICE_WARNING_KM;
     }
 
     private LocalDate revenueDate(Rental rental) {
@@ -472,6 +477,13 @@ public class DashboardAnalyticsService {
 
     private String normalizeContact(String contact) {
         return contact == null ? "" : contact.replaceAll("\\s+", "").toLowerCase(Locale.ENGLISH);
+    }
+
+    private String normalizeNic(String nic) {
+        if (nic == null) {
+            return "";
+        }
+        return nic.replaceAll("\\s+", "").toUpperCase(Locale.ENGLISH);
     }
 
     private String formatEnum(Enum<?> value) {

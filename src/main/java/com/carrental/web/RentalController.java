@@ -9,6 +9,7 @@ import com.carrental.service.RentalService;
 import com.carrental.web.dto.AvailableCarOption;
 import com.carrental.web.dto.CompleteRentalForm;
 import com.carrental.web.dto.RentalForm;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,9 +42,23 @@ public class RentalController {
     }
 
     @GetMapping
-    public String list(@RequestParam(value = "q", required = false) String q, Model model) {
-        model.addAttribute("rentals", rentalService.searchAll(q));
-        model.addAttribute("searchQuery", SearchQuery.normalize(q));
+    public String list(
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "p", defaultValue = "0") int p,
+            @RequestParam(value = "size", defaultValue = "5") int size,
+            Model model) {
+        String normalizedQuery = SearchQuery.normalize(q);
+        Page<Rental> rentalsPage = rentalService.searchAll(q, p, size);
+        if (rentalsPage.getTotalPages() > 0 && p >= rentalsPage.getTotalPages()) {
+            String redirect = "/rentals?p=" + (rentalsPage.getTotalPages() - 1) + "&size=" + rentalsPage.getSize();
+            if (!normalizedQuery.isEmpty()) {
+                redirect += "&q=" + normalizedQuery;
+            }
+            return "redirect:" + redirect;
+        }
+        model.addAttribute("rentalsPage", rentalsPage);
+        model.addAttribute("rentals", rentalsPage.getContent());
+        model.addAttribute("searchQuery", normalizedQuery);
         model.addAttribute("listMode", "all");
         model.addAttribute("activeOnly", false);
         model.addAttribute("activeNav", "rentals");
@@ -197,7 +212,7 @@ public class RentalController {
         } catch (IllegalStateException | IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return RedirectUtil.redirectToReferer(request, "/rentals/active");
+        return RedirectUtil.redirectToReferer(request, "/rentals");
     }
 
     private void populateCompletePage(Model model, Rental rental, CompleteRentalForm form) {

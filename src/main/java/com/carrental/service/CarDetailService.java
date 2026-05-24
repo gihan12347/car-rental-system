@@ -12,6 +12,8 @@ import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
 import com.carrental.repository.MaintenanceRecordRepository;
 import com.carrental.repository.RentalRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,6 +36,7 @@ public class CarDetailService {
     private static final DateTimeFormatter DAY_LABEL = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter SHORT_DAY = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
     private static final int CHART_MONTHS = 6;
+    public static final int CAR_DETAIL_PAGE_SIZE = 8;
 
     private final CarService carService;
     private final RentalRepository rentalRepository;
@@ -46,6 +49,16 @@ public class CarDetailService {
         this.carService = carService;
         this.rentalRepository = rentalRepository;
         this.maintenanceRecordRepository = maintenanceRecordRepository;
+    }
+
+    public Page<Rental> getRentalHistory(Long carId, int page) {
+        return rentalRepository.findByCarIdOrderByPickupDateDesc(
+                carId, PageRequest.of(Math.max(0, page), CAR_DETAIL_PAGE_SIZE));
+    }
+
+    public Page<MaintenanceRecord> getMaintenanceHistory(Long carId, int page) {
+        return maintenanceRecordRepository.findByCarIdOrderByMaintenanceDateDesc(
+                carId, PageRequest.of(Math.max(0, page), CAR_DETAIL_PAGE_SIZE));
     }
 
     public CarDetailData build(Long carId, String monthParam) {
