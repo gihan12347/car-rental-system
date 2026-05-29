@@ -120,7 +120,7 @@ public class RentalController {
             return RedirectUtil.redirectToReferer(request, "/rentals");
         }
         try {
-            rentalService.createRental(
+            Rental created = rentalService.createRental(
                     form.getCarId(),
                     form.getStartDate(),
                     form.getEndDate(),
@@ -129,6 +129,12 @@ public class RentalController {
                     form.getCustomerContact(),
                     form.getCustomerIdNumber(),
                     form.getTravelLocation());
+            if (Boolean.TRUE.equals(created.getEmployeeHire())) {
+                redirectAttributes.addFlashAttribute(
+                        "successMessage",
+                        "Rental booked for the selected dates. Employee hire — no charge will apply.");
+                return "redirect:/rentals/active";
+            }
         } catch (IllegalStateException | IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("hireForm", form);
             redirectAttributes.addFlashAttribute("openNewHireModal", Boolean.TRUE);
@@ -184,8 +190,11 @@ public class RentalController {
                     Boolean.TRUE.equals(form.getDocumentReturned()),
                     blacklist,
                     form.getBlacklistReason());
-            String success = "Rental completed. Total charged: " + completed.getTotalPrice()
-                    + ". Vehicle odometer updated to " + form.getReturnMileageKm() + " km.";
+            String chargeNote = Boolean.TRUE.equals(completed.getEmployeeHire())
+                    ? "Total charged: 0.00 (employee hire)."
+                    : "Total charged: " + completed.getTotalPrice() + ".";
+            String success = "Rental completed. " + chargeNote
+                    + " Vehicle odometer updated to " + form.getReturnMileageKm() + " km.";
             if (blacklist) {
                 success += " Customer was added to the blacklist.";
             }
@@ -222,7 +231,8 @@ public class RentalController {
         model.addAttribute("dailyRate", rental.getCar().getRentalPricePerDay());
         model.addAttribute("kmRate", rental.getCar().getExtraPricePerKm());
         model.addAttribute("freeKmPerDay", rental.getCar().getFreeKmPerDay() != null ? rental.getCar().getFreeKmPerDay() : 0);
-        model.addAttribute("customerBlacklisted", blacklistedCustomerService.isBlacklisted(rental.getCustomerContact()));
+        model.addAttribute("customerBlacklisted", blacklistedCustomerService.isBlacklisted(rental.getCustomerIdNumber()));
+        model.addAttribute("employeeHire", Boolean.TRUE.equals(rental.getEmployeeHire()));
         model.addAttribute("activeNav", "rentals");
         if (form != null) {
             model.addAttribute("completeForm", form);
@@ -234,11 +244,18 @@ public class RentalController {
             return;
         }
         try {
-            RentalPricingHelper.PriceBreakdown breakdown = RentalPricingHelper.calculate(
-                    rental.getCar(),
-                    RentalPeriodHelper.startDate(rental),
-                    form.getReturnDate(),
-                    form.getReturnMileageKm());
+            boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
+            RentalPricingHelper.PriceBreakdown breakdown = employeeHire
+                    ? RentalPricingHelper.calculateWaived(
+                            rental.getCar(),
+                            RentalPeriodHelper.startDate(rental),
+                            form.getReturnDate(),
+                            form.getReturnMileageKm())
+                    : RentalPricingHelper.calculate(
+                            rental.getCar(),
+                            RentalPeriodHelper.startDate(rental),
+                            form.getReturnDate(),
+                            form.getReturnMileageKm());
             model.addAttribute("priceBreakdown", breakdown);
         } catch (IllegalArgumentException ignored) {
             // Preview hidden until inputs are valid

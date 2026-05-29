@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Employees'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body employees-page">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main">
+            <div th:if="${successMessage}" class="alert app-alert alert-success d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header app-page-header--toolbar mb-3">
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div class="min-w-0">
+                        <h1 class="h2 mb-1">Employees</h1>
+                        <p class="lead mb-0 text-muted">Staff records, payments, and vehicle hire activity.</p>
+                    </div>
+                    <div class="app-page-header__actions" th:if="${tab == 'employees'}">
+                        <a class="btn btn-app-primary d-inline-flex align-items-center gap-2"
+                           th:href="@{/employees/new}">
+                            <i class="bi bi-person-plus" aria-hidden="true"></i>
+                            <span>Add employee</span>
+                        </a>
+                    </div>
+                    <div class="app-page-header__actions" th:if="${tab == 'payments'}">
+                        <div class="app-toolbar-card">
+                            <div class="app-toolbar-card__period">
+                                <div th:replace="~{fragments/period-filter :: simple(
+                                    @{/employees},
+                                    ${paymentPeriods},
+                                    ${paymentPeriod},
+                                    'payments',
+                                    ${searchQuery},
+                                    'paymentPage',
+                                    'employeesPaymentPeriod'
+                                )}"></div>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-app-primary d-inline-flex align-items-center gap-2 flex-shrink-0"
+                                    data-bs-toggle="modal" data-bs-target="#paymentModal"
+                                    onclick="prepareNewPayment()"
+                                    th:disabled="${employeesForSelect.isEmpty()}">
+                                <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                                <span>Record payment</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="app-page-header__actions" th:if="${tab == 'rentals'}">
+                        <div class="app-toolbar-card app-toolbar-card--period-only">
+                            <div class="app-toolbar-card__period">
+                                <div th:replace="~{fragments/period-filter :: simple(
+                                    @{/employees},
+                                    ${paymentPeriods},
+                                    ${paymentPeriod},
+                                    'rentals',
+                                    ${searchQuery},
+                                    'rentalPage',
+                                    'employeesActivityPeriod'
+                                )}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <ul class="nav nav-pills app-module-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link"
+                       th:classappend="${tab == 'employees'} ? ' active' : ''"
+                       th:href="@{/employees(tab='employees', q=${searchQuery})}">
+                        <i class="bi bi-people me-1"></i> Employees
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link"
+                       th:classappend="${tab == 'payments'} ? ' active' : ''"
+                       th:href="@{/employees(tab='payments', q=${searchQuery}, period=${paymentPeriod})}">
+                        <i class="bi bi-wallet2 me-1"></i> Employee payments
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link"
+                       th:classappend="${tab == 'rentals'} ? ' active' : ''"
+                       th:href="@{/employees(tab='rentals', q=${searchQuery}, period=${paymentPeriod})}">
+                        <i class="bi bi-car-front me-1"></i> Activity
+                    </a>
+                </li>
+            </ul>
+
+            <div th:if="${tab == 'employees'}" class="employee-tab-toolbar employee-tab-toolbar--search-only mb-3">
+                <div th:replace="~{fragments/page-search :: pageSearchWithTab('Name, NIC, status…', 'employees')}"></div>
+            </div>
+
+            <!-- Employees tab -->
+            <div th:if="${tab == 'employees'}">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 employees-section-toolbar">
+                    <h2 class="h6 mb-0 fw-semibold text-muted">Employee list</h2>
+                </div>
+                <div th:replace="~{fragments/record-lists :: employeeRecordList(${employees})}"></div>
+                <div class="app-card-table d-none d-xl-block" th:if="${!employees.isEmpty()}">
+                    <div class="table-responsive">
+                        <table class="table app-table mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>NIC</th>
+                                <th>Job start</th>
+                                <th>Status</th>
+                                <th class="text-end fleet-table-actions-col">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="e : ${employees}" class="employees-table-row">
+                                <td class="text-muted" th:text="${e.id}"></td>
+                                <td class="fw-semibold">
+                                    <a class="text-decoration-none employees-table-row__link"
+                                       th:href="@{/employees/{id}(id=${e.id})}"
+                                       th:text="${e.name}"></a>
+                                </td>
+                                <td th:text="${e.nic}"></td>
+                                <td class="text-nowrap" th:text="${e.jobStartDate}"></td>
+                                <td>
+                                    <span class="badge badge-status"
+                                          th:classappend="${e.status.name() == 'PERMANENT'} ? ' text-bg-success' : (${e.status.name() == 'CONTRACT'} ? ' text-bg-info' : ' text-bg-secondary')"
+                                          th:text="${e.status}"></span>
+                                </td>
+                                <td class="text-end fleet-table-actions-col">
+                                    <div class="fleet-table-actions">
+                                        <a class="fleet-table-actions__btn fleet-table-actions__btn--complete"
+                                           th:href="@{/employees/{id}(id=${e.id})}"
+                                           title="Payments">
+                                            <i class="bi bi-wallet2"></i>
+                                            <span>Payments</span>
+                                        </a>
+                                        <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                                           th:href="@{/employees/{id}/rentals(id=${e.id})}"
+                                           title="Employee vehicle hire activity">
+                                            <i class="bi bi-car-front"></i>
+                                            <span>Activity</span>
+                                        </a>
+                                        <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                                           th:href="@{/employees/{id}/edit(id=${e.id})}">Edit</a>
+                                        <form class="d-inline" th:action="@{/employees/{id}/delete(id=${e.id})}" method="post"
+                                              onsubmit="return confirm('Remove this employee and all their payments?');">
+                                            <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                                            <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="app-card-table empty-state" th:if="${employees.isEmpty()}">
+                    <i class="bi bi-people"></i>
+                    <p class="fw-semibold mb-1">No employees yet</p>
+                    <p class="small mb-3">Add your first team member to get started.</p>
+                    <a class="btn btn-app-primary" th:href="@{/employees/new}">
+                        <i class="bi bi-person-plus me-1"></i> Add employee
+                    </a>
+                </div>
+            </div>
+
+            <!-- Vehicle hires tab -->
+            <div th:if="${tab == 'rentals'}">
+                <div class="employee-tab-toolbar mb-3">
+                    <div class="employee-tab-summary d-flex flex-wrap gap-2">
+                        <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon indigo employee-subtoolbar__metric-icon" aria-hidden="true">
+                                    <i class="bi bi-car-front"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-label mb-0">Rentals in period</div>
+                                    <div class="stat-value stat-value--module mb-0"
+                                         th:text="${rentalsPage != null ? rentalsPage.totalElements : 0}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon emerald employee-subtoolbar__metric-icon" aria-hidden="true">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-label mb-0">All staff hires</div>
+                                    <div class="stat-value stat-value--module mb-0" th:text="${allStaffHiresCount}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form th:action="@{/employees}" method="get" class="employee-tab-toolbar__search" role="search">
+                        <input type="hidden" name="tab" value="rentals"/>
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="rentalPage" value="0"/>
+                        <label class="visually-hidden" for="activitySearchInput">Search by vehicle number</label>
+                        <div class="app-page-search-bar app-page-search-bar--embedded app-page-search-bar--compact">
+                            <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+                            <input type="search" id="activitySearchInput" name="q" class="app-page-search-input"
+                                   th:value="${searchQuery}" placeholder="Search vehicle number…"
+                                   autocomplete="off" enterkeyhint="search"/>
+                            <button type="submit" class="app-page-search-submit" aria-label="Search">
+                                <span class="app-page-search-submit-text">Search</span>
+                                <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+                            </button>
+                            <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                               th:href="@{/employees(tab='rentals', period=${paymentPeriod})}"
+                               class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <section class="app-list-panel mb-0" aria-label="Employee vehicle hire activity">
+                    <div class="app-list-panel__toolbar app-list-panel__toolbar--single">
+                        <span class="app-period-chip" th:if="${paymentPeriodLabel != null}">
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            <span th:text="${paymentPeriodLabel}">Period</span>
+                        </span>
+                    </div>
+
+                    <div th:replace="~{fragments/employee-rentals-table :: rentalsTable(${rentals}, ${rentalsPage}, true, null, 'rentals', ${searchQuery}, ${paymentPeriod}, true)}"></div>
+
+                    <div class="app-list-panel__footer"
+                         th:if="${rentalsPage != null and rentalsPage.totalElements > 0}">
+                        <div th:replace="~{fragments/employee-rentals-table :: rentalsPagination(${rentalsPage}, null, 'rentals', ${searchQuery}, ${paymentPeriod}, true)}"></div>
+                    </div>
+
+                    <div th:replace="~{fragments/employee-rentals-table :: rentalsEmpty(true)}"></div>
+                </section>
+            </div>
+
+            <!-- Payments tab -->
+            <div th:if="${tab == 'payments'}">
+                <div class="employee-tab-toolbar mb-3">
+                    <div class="employee-tab-summary d-flex flex-wrap gap-2">
+                        <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon indigo employee-subtoolbar__metric-icon" aria-hidden="true">
+                                    <i class="bi bi-wallet2"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-label mb-0">Total paid</div>
+                                    <div class="stat-value stat-value--module mb-0"
+                                         th:text="${#numbers.formatDecimal(totalPaid, 1, 'COMMA', 2, 'POINT')}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="stat-icon emerald employee-subtoolbar__metric-icon" aria-hidden="true">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-label mb-0">Payments in period</div>
+                                    <div class="stat-value stat-value--module mb-0"
+                                         th:text="${paymentsPage != null ? paymentsPage.totalElements : 0}">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form th:action="@{/employees}" method="get" class="employee-tab-toolbar__search" role="search">
+                        <input type="hidden" name="tab" value="payments"/>
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="paymentPage" value="0"/>
+                        <label class="visually-hidden" for="paymentsSearchInput">Search payments</label>
+                        <div class="app-page-search-bar app-page-search-bar--embedded app-page-search-bar--compact">
+                            <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+                            <input type="search" id="paymentsSearchInput" name="q" class="app-page-search-input"
+                                   th:value="${searchQuery}" placeholder="Search employee, NIC, payment type…"
+                                   autocomplete="off" enterkeyhint="search"/>
+                            <button type="submit" class="app-page-search-submit" aria-label="Search">
+                                <span class="app-page-search-submit-text">Search</span>
+                                <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+                            </button>
+                            <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                               th:href="@{/employees(tab='payments', period=${paymentPeriod})}"
+                               class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <section class="app-list-panel mb-0" aria-label="Employee payments">
+                    <div class="app-list-panel__toolbar app-list-panel__toolbar--single">
+                        <span class="app-period-chip" th:if="${paymentPeriodLabel != null}">
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            <span th:text="${paymentPeriodLabel}">Period</span>
+                        </span>
+                    </div>
+
+                    <div th:replace="~{fragments/record-lists :: employeePaymentRecordList(${payments}, ${paymentPeriod}, ${paymentsPage}, ${searchQuery})}"></div>
+
+                    <div class="app-card-table app-card-table--flush border-0 shadow-none rounded-0 mb-0 d-none d-xl-block"
+                         th:if="${paymentsPage != null and paymentsPage.totalElements > 0}">
+                        <div class="table-responsive">
+                            <table class="table app-table mb-0 align-middle">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Employee</th>
+                                    <th class="d-none d-md-table-cell">NIC</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-end fleet-table-actions-col">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="p : ${payments}">
+                                    <td class="text-muted" th:text="${p.id}"></td>
+                                    <td class="text-nowrap" th:text="${p.paymentDate}"></td>
+                                    <td class="fw-semibold">
+                                        <a class="text-decoration-none"
+                                           th:href="@{/employees/{id}(id=${p.employee.id})}"
+                                           th:text="${p.employee.name}"></a>
+                                    </td>
+                                    <td class="d-none d-md-table-cell" th:text="${p.employee.nic}"></td>
+                                    <td><span class="badge bg-light text-dark border" th:text="${p.paymentType}"></span></td>
+                                    <td class="text-end fw-semibold"
+                                        th:text="${#numbers.formatDecimal(p.paymentValue, 1, 'COMMA', 2, 'POINT')}"></td>
+                                    <td class="text-end fleet-table-actions-col">
+                                        <div class="fleet-table-actions">
+                                            <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                                               th:href="@{/employees/payments/{id}/edit(id=${p.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, q=${searchQuery})}">Edit</a>
+                                            <form class="d-inline" th:action="@{/employees/payments/{id}/delete(id=${p.id})}" method="post"
+                                                  onsubmit="return confirm('Delete this payment record?');">
+                                                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                                                <input type="hidden" name="q" th:value="${searchQuery}"/>
+                                                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                                                <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                                                <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="app-list-panel__footer"
+                         th:if="${paymentsPage != null and paymentsPage.totalElements > 0}">
+                        <div th:replace="~{fragments/employee-payment-toolbar :: pagination(${paymentsPage}, null, ${paymentPeriod}, ${paymentFrom}, ${paymentTo}, ${searchQuery}, 'payments')}"></div>
+                    </div>
+
+                    <div class="app-list-panel__empty empty-state"
+                         th:if="${paymentsPage == null or paymentsPage.totalElements == 0}">
+                        <i class="bi bi-wallet2" aria-hidden="true"></i>
+                        <p class="fw-semibold mb-1">No payments recorded</p>
+                        <p class="small text-muted mb-3" th:if="${employeesForSelect.isEmpty()}">Add an employee first, then record payments.</p>
+                        <p class="small text-muted mb-3" th:if="${!employeesForSelect.isEmpty()}">Record salary, bonus, or other payments here.</p>
+                        <button type="button" class="btn btn-app-primary" th:if="${!employeesForSelect.isEmpty()}"
+                                data-bs-toggle="modal" data-bs-target="#paymentModal" onclick="prepareNewPayment()">
+                            Record payment
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Employee modal -->
+<div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content app-modal">
+            <div class="modal-header app-modal-header">
+                <h5 class="modal-title" id="employeeModalLabel"
+                    th:text="${employeeForm.id != null} ? 'Edit employee' : 'Add employee'">Add employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="employeeFormEl" method="post" novalidate
+                  th:action="${employeeForm.id != null} ? @{/employees/{id}(id=${employeeForm.id})} : @{/employees}"
+                  th:object="${employeeForm}">
+                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                <input type="hidden" name="tab" value="employees"/>
+                <input type="hidden" name="q" th:value="${searchQuery}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="emp-name">Name</label>
+                        <input class="form-control" id="emp-name" type="text" required th:field="*{name}"/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="emp-nic">NIC</label>
+                        <input class="form-control" id="emp-nic" type="text" required th:field="*{nic}" placeholder="e.g. 942940823V"/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('nic')}" th:errors="*{nic}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="emp-start">Job start date</label>
+                        <input class="form-control" id="emp-start" type="date" required th:field="*{jobStartDate}"/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('jobStartDate')}" th:errors="*{jobStartDate}"></div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-semibold" for="emp-status">Status</label>
+                        <select class="form-select" id="emp-status" required th:field="*{status}">
+                            <option th:each="s : ${employeeStatuses}" th:value="${s.name()}" th:text="${s.name()}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-app-primary">Save employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content app-modal">
+            <div class="modal-header app-modal-header">
+                <h5 class="modal-title" id="paymentModalLabel"
+                    th:text="${paymentForm.id != null} ? 'Edit payment' : 'Record payment'">Record payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="paymentFormEl" method="post" novalidate
+                  th:action="${paymentForm.id != null} ? @{/employees/payments/{id}(id=${paymentForm.id})} : @{/employees/payments}"
+                  th:object="${paymentForm}">
+                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                <input type="hidden" name="tab" value="payments"/>
+                <input type="hidden" name="q" th:value="${searchQuery}"/>
+                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                <input type="hidden" name="paymentPage" th:value="${paymentsPage != null ? paymentsPage.number : 0}"/>
+                <input type="hidden" name="from" th:if="${paymentFrom != null}" th:value="${paymentFrom}"/>
+                <input type="hidden" name="to" th:if="${paymentTo != null}" th:value="${paymentTo}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="pay-employee">Employee</label>
+                        <select class="form-select" id="pay-employee" required th:field="*{employeeId}">
+                            <option value="" disabled th:selected="${paymentForm.employeeId == null}">Select employee</option>
+                            <option th:each="e : ${employeesForSelect}" th:value="${e.id}"
+                                    th:text="|${e.name} (${e.nic})|"></option>
+                        </select>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('employeeId')}" th:errors="*{employeeId}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" for="pay-type">Payment type</label>
+                        <select class="form-select" id="pay-type" required th:field="*{paymentType}">
+                            <option th:each="t : ${paymentTypes}" th:value="${t.name()}" th:text="${t.name()}"></option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold" for="pay-value">Amount</label>
+                            <input class="form-control" id="pay-value" type="number" step="0.01" min="0" required th:field="*{paymentValue}"/>
+                            <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('paymentValue')}" th:errors="*{paymentValue}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold" for="pay-date">Payment date</label>
+                            <input class="form-control" id="pay-date" type="date" required th:field="*{paymentDate}"/>
+                            <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('paymentDate')}" th:errors="*{paymentDate}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-app-primary">Save payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:if="${openEmployeeModal == true}">
+    <script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('employeeModal');if(el)bootstrap.Modal.getOrCreateInstance(el).show();});</script>
+</th:block>
+<th:block th:if="${openPaymentModal == true}">
+    <script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('paymentModal');if(el)bootstrap.Modal.getOrCreateInstance(el).show();});</script>
+</th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/employees.js}" defer></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

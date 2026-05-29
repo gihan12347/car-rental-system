@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Office expenses'">
+
+<head th:replace="~{fragments/head :: commonHead}"></head>
+
+<body class="app-body office-expenses-page">
+
+<div class="d-flex min-vh-100 app-shell">
+
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main">
+
+            <div th:if="${successMessage}" class="alert app-alert alert-success d-flex align-items-center gap-2">
+
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+
+            </div>
+
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+
+            </div>
+
+
+
+            <header class="app-page-header app-page-header--toolbar mb-3">
+
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+
+                    <div class="min-w-0">
+
+                        <h1 class="h2 mb-1">Office expenses</h1>
+
+                        <p class="lead mb-0 text-muted">Track rent, utilities, supplies, and other office costs.</p>
+
+                    </div>
+
+                    <div class="app-page-header__actions">
+
+                        <div class="app-toolbar-card">
+
+                            <div class="app-toolbar-card__period">
+
+                                <div th:replace="~{fragments/period-filter :: simple(
+
+                                    @{/office-expenses},
+
+                                    ${paymentPeriods},
+
+                                    ${paymentPeriod},
+
+                                    null,
+
+                                    ${searchQuery},
+
+                                    'page',
+
+                                    'officeExpensePeriod'
+
+                                )}"></div>
+
+                            </div>
+
+                            <a class="btn btn-app-primary d-inline-flex align-items-center gap-2 flex-shrink-0"
+
+                               th:href="@{/office-expenses/new}">
+
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+
+                                <span>Add expense</span>
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+
+            <div class="row g-2 g-md-3 mb-3 office-expenses-metrics">
+
+                <div class="col-sm-6">
+
+                    <div class="stat-card p-3 h-100 office-expenses-metric">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="stat-icon indigo" aria-hidden="true">
+
+                                <i class="bi bi-cash-stack"></i>
+
+                            </div>
+
+                            <div class="min-w-0">
+
+                                <div class="stat-label mb-1">Total expenses</div>
+
+                                <div class="stat-value stat-value--module mb-0"
+
+                                     th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0</div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-sm-6">
+
+                    <div class="stat-card p-3 h-100 office-expenses-metric">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="stat-icon emerald" aria-hidden="true">
+
+                                <i class="bi bi-receipt"></i>
+
+                            </div>
+
+                            <div class="min-w-0">
+
+                                <div class="stat-label mb-1">Records in period</div>
+
+                                <div class="stat-value stat-value--module mb-0"
+
+                                     th:text="${expensesPage != null ? expensesPage.totalElements : 0}">0</div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <section class="app-list-panel" aria-label="Office expense records">
+
+                <div class="app-list-panel__toolbar">
+
+                    <span class="app-period-chip" th:if="${paymentPeriodLabel != null}">
+
+                        <i class="bi bi-calendar3" aria-hidden="true"></i>
+
+                        <span th:text="${paymentPeriodLabel}">Period</span>
+
+                    </span>
+
+                    <form th:action="@{/office-expenses}" method="get" class="app-list-panel__search" role="search">
+
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+
+                        <input type="hidden" name="page" value="0"/>
+
+                        <label class="visually-hidden" for="officeExpenseSearchInput">Search office expenses</label>
+
+                        <div class="app-page-search-bar app-page-search-bar--embedded">
+
+                            <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+
+                            <input type="search" id="officeExpenseSearchInput" name="q" class="app-page-search-input"
+
+                                   th:value="${searchQuery}" placeholder="Search category, reference, notes…"
+
+                                   autocomplete="off" enterkeyhint="search"/>
+
+                            <button type="submit" class="app-page-search-submit" aria-label="Search">
+
+                                <span class="app-page-search-submit-text">Search</span>
+
+                                <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+
+                            </button>
+
+                            <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+
+                               th:href="@{/office-expenses(period=${paymentPeriod})}"
+
+                               class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+
+                <div th:replace="~{fragments/record-lists :: officeExpenseRecordList(${expenses}, ${paymentPeriod}, ${expensesPage}, ${searchQuery})}"></div>
+
+
+
+                <div class="app-card-table app-card-table--flush border-0 shadow-none rounded-0 mb-0 d-none d-xl-block"
+
+                     th:if="${expensesPage != null and expensesPage.totalElements > 0}">
+
+                    <div class="table-responsive">
+
+                        <table class="table app-table mb-0 align-middle office-expenses-table">
+
+                            <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <th>Category</th>
+
+                                <th>Reference</th>
+
+                                <th class="d-none d-md-table-cell">Notes</th>
+
+                                <th class="text-end">Amount</th>
+
+                                <th class="text-end fleet-table-actions-col">Actions</th>
+
+                            </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                            <tr th:each="e : ${expenses}">
+
+                                <td class="text-nowrap office-expenses-table__date" th:text="${e.expenseDate}"></td>
+
+                                <td>
+
+                                    <span class="office-expense-category"
+
+                                          th:attr="data-category=${e.category.name()}"
+
+                                          th:text="${e.category.label}">Category</span>
+
+                                </td>
+
+                                <td class="text-muted small"
+
+                                    th:text="${e.referenceNumber != null and !#strings.isEmpty(e.referenceNumber)} ? ${e.referenceNumber} : '—'">—</td>
+
+                                <td class="d-none d-md-table-cell small text-muted office-expenses-table__notes"
+
+                                    th:text="${e.notes != null and !#strings.isEmpty(e.notes)} ? ${e.notes} : '—'">—</td>
+
+                                <td class="text-end fw-semibold office-expenses-table__amount"
+
+                                    th:text="${#numbers.formatDecimal(e.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+
+                                <td class="text-end fleet-table-actions-col">
+
+                                    <div class="fleet-table-actions">
+
+                                        <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+
+                                           th:href="@{/office-expenses/{id}/edit(id=${e.id}, period=${paymentPeriod}, page=${expensesPage.number}, q=${searchQuery})}">Edit</a>
+
+                                        <form class="d-inline" th:action="@{/office-expenses/{id}/delete(id=${e.id})}" method="post"
+
+                                              onsubmit="return confirm('Delete this expense record?');">
+
+                                            <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+
+                                            <input type="hidden" name="q" th:value="${searchQuery}"/>
+
+                                            <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+
+                                            <input type="hidden" name="page" th:value="${expensesPage.number}"/>
+
+                                            <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="app-list-panel__footer"
+
+                     th:if="${expensesPage != null and expensesPage.totalElements > 0}">
+
+                    <div th:replace="~{fragments/office-expense-toolbar :: pagination(${expensesPage}, ${paymentPeriod}, ${paymentFrom}, ${paymentTo}, ${searchQuery})}"></div>
+
+                </div>
+
+
+
+                <div class="app-list-panel__empty empty-state"
+
+                     th:if="${expensesPage == null or expensesPage.totalElements == 0}">
+
+                    <i class="bi bi-building" aria-hidden="true"></i>
+
+                    <p class="fw-semibold mb-1">No office expenses in this period</p>
+
+                    <p class="small text-muted mb-3">Add rent, utilities, supplies, or other office costs.</p>
+
+                    <a class="btn btn-app-primary" th:href="@{/office-expenses/new}">
+
+                        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Add expense
+
+                    </a>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+
+        <div class="modal-content app-modal">
+
+            <div class="modal-header app-modal-header">
+
+                <h5 class="modal-title" id="expenseModalLabel"
+
+                    th:text="${expenseForm.id != null} ? 'Edit expense' : 'Add office expense'">Add office expense</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            </div>
+
+            <form id="expenseFormEl" method="post" novalidate
+
+                  th:action="${expenseForm.id != null} ? @{/office-expenses/{id}(id=${expenseForm.id})} : @{/office-expenses}"
+
+                  th:object="${expenseForm}">
+
+                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+
+                <input type="hidden" name="q" th:value="${searchQuery}"/>
+
+                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+
+                <input type="hidden" name="page" th:value="${expensesPage != null ? expensesPage.number : 0}"/>
+
+                <div class="modal-body">
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label small fw-semibold" for="exp-category">Category</label>
+
+                            <select class="form-select" id="exp-category" required th:field="*{category}">
+
+                                <option th:each="c : ${expenseCategories}" th:value="${c.name()}" th:text="${c.label}"></option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label class="form-label small fw-semibold" for="exp-date">Expense date</label>
+
+                            <input class="form-control" id="exp-date" type="date" required th:field="*{expenseDate}"/>
+
+                            <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('expenseDate')}" th:errors="*{expenseDate}"></div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label small fw-semibold" for="exp-amount">Amount</label>
+
+                        <input class="form-control" id="exp-amount" type="number" step="0.01" min="0" required th:field="*{amount}"/>
+
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label small fw-semibold" for="exp-ref">Reference / invoice #</label>
+
+                        <input class="form-control" id="exp-ref" type="text" th:field="*{referenceNumber}" placeholder="Optional"/>
+
+                    </div>
+
+                    <div class="mb-0">
+
+                        <label class="form-label small fw-semibold" for="exp-notes">Notes</label>
+
+                        <textarea class="form-control" id="exp-notes" rows="2" th:field="*{notes}" placeholder="Optional details"></textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal">Cancel</button>
+
+                    <button type="submit" class="btn btn-app-primary">Save expense</button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<th:block th:if="${openExpenseModal == true}">
+
+    <script>document.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('expenseModal');if(el)bootstrap.Modal.getOrCreateInstance(el).show();});</script>
+
+</th:block>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/office-expenses.js}" defer></script>
+
+<div th:replace="~{fragments/modals :: appModals}"></div>
+
+</body>
+
+</html>
+

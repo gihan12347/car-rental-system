@@ -60,6 +60,28 @@ public final class RentalPricingHelper {
                 total);
     }
 
+    /** Employee vehicle hire — records trip details but charges nothing. */
+    public static PriceBreakdown calculateWaived(
+            Car car,
+            LocalDate pickupDate,
+            LocalDate returnDate,
+            int returnMileageKm) {
+        PriceBreakdown breakdown = calculate(car, pickupDate, returnDate, returnMileageKm);
+        return new PriceBreakdown(
+                breakdown.getStartMileageKm(),
+                breakdown.getReturnMileageKm(),
+                breakdown.getTripKm(),
+                breakdown.getDays(),
+                breakdown.getFreeKmPerDay(),
+                breakdown.getIncludedKm(),
+                breakdown.getBillableExtraKm(),
+                breakdown.getDailyRate(),
+                breakdown.getKmRate(),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO);
+    }
+
     public static class PriceBreakdown {
         private final int startMileageKm;
         private final int returnMileageKm;

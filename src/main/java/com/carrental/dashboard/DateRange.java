@@ -1,8 +1,13 @@
 package com.carrental.dashboard;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class DateRange {
+
+    private static final DateTimeFormatter LABEL_FMT =
+            DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
 
     private final LocalDate start;
     private final LocalDate end;
@@ -26,5 +31,9 @@ public class DateRange {
 
     public long dayCount() {
         return java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
+    }
+
+    public String formatLabel() {
+        return getStart().format(LABEL_FMT) + " – " + getEnd().format(LABEL_FMT);
     }
 }

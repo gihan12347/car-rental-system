@@ -7,7 +7,5 @@ import java.util.Optional;
 
 public interface BlacklistedCustomerRepository extends JpaRepository<BlacklistedCustomer, Long> {
 
-    Optional<BlacklistedCustomer> findByCustomerContactIgnoreCase(String customerContact);
-
-    long count();
+    Optional<BlacklistedCustomer> findByCustomerIdNumber(String customerIdNumber);
 }

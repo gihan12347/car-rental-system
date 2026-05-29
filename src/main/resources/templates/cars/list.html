@@ -30,60 +30,8 @@
 
             <div th:replace="~{fragments/page-search :: pageSearch(@{/cars}, 'Registration, status, mileage…')}"></div>
 
-            <!-- Mobile & tablet: card list -->
-            <div class="app-record-list d-xl-none" th:if="${!cars.isEmpty()}">
-                <article class="app-record-card" th:each="c : ${cars}">
-                    <div class="app-record-card__header">
-                        <img th:if="${c.imagePath != null and !c.imagePath.isEmpty()}"
-                             class="car-avatar car-avatar--md"
-                             th:src="${c.imagePath}" alt=""/>
-                        <span th:if="${c.imagePath == null or c.imagePath.isEmpty()}"
-                              class="car-avatar car-avatar--md car-avatar--placeholder">
-                            <i class="bi bi-image"></i>
-                        </span>
-                        <div class="min-w-0 flex-grow-1">
-                            <h3 class="app-record-card__title mb-1" th:text="${c.registrationNumber}">—</h3>
-                            <span class="badge badge-status"
-                                  th:classappend="${c.status.name() == 'AVAILABLE'} ? ' text-bg-success' : ' text-bg-secondary'"
-                                  th:text="${c.status}"></span>
-                        </div>
-                    </div>
-                    <dl class="app-record-card__meta">
-                        <div class="app-record-card__row">
-                            <dt>Mileage</dt>
-                            <dd><span th:text="${c.mileageKm}"></span> km</dd>
-                        </div>
-                        <div class="app-record-card__row">
-                            <dt>Passengers</dt>
-                            <dd th:text="${c.passengerCount}"></dd>
-                        </div>
-                        <div class="app-record-card__row">
-                            <dt>Driver</dt>
-                            <dd th:text="${c.withDriver} ? 'Yes' : 'No'"></dd>
-                        </div>
-                        <div class="app-record-card__row">
-                            <dt>Per day</dt>
-                            <dd th:text="${c.rentalPricePerDay}"></dd>
-                        </div>
-                        <div class="app-record-card__row">
-                            <dt>Extra / km</dt>
-                            <dd th:text="${c.extraPricePerKm}"></dd>
-                        </div>
-                    </dl>
-                    <div class="d-grid gap-2">
-                        <a class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2"
-                           th:href="@{/cars/{id}(id=${c.id})}">
-                            <i class="bi bi-eye"></i> View profile
-                        </a>
-                        <a class="btn btn-outline-soft d-inline-flex align-items-center justify-content-center gap-2"
-                           th:href="@{/cars/{id}/edit(id=${c.id})}">
-                            <i class="bi bi-pencil"></i> Edit vehicle
-                        </a>
-                    </div>
-                </article>
-            </div>
+            <div th:replace="~{fragments/record-lists :: carRecordList(${cars})}"></div>
 
-            <!-- Desktop: table -->
             <div class="app-card-table d-none d-xl-block" th:if="${!cars.isEmpty()}">
                 <div class="table-responsive">
                     <table class="table app-table mb-0">

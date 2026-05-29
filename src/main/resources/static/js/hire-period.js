@@ -240,11 +240,63 @@
             }
         });
 
+        function initEmployeeNicLookup() {
+            if (!idInput) {
+                return;
+            }
+            var lookupUrl = idInput.getAttribute('data-lookup-nic-url');
+            var hint = byId('nh-employee-hire-hint');
+            var hintText = byId('nh-employee-hire-hint-text');
+            if (!lookupUrl || !hint || !hintText) {
+                return;
+            }
+
+            var lookupTimer = null;
+
+            function hideHint() {
+                hint.classList.add('d-none');
+                hintText.textContent = '';
+            }
+
+            function checkNic() {
+                var nic = idInput.value.trim();
+                if (!nic) {
+                    hideHint();
+                    return;
+                }
+                fetch(lookupUrl + '?nic=' + encodeURIComponent(nic), {
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(function (res) {
+                        return res.ok ? res.json() : { matched: false };
+                    })
+                    .then(function (data) {
+                        if (data && data.matched) {
+                            hintText.textContent = 'Employee match: ' + data.name
+                                + ' — this hire will be zero charge.';
+                            hint.classList.remove('d-none');
+                        } else {
+                            hideHint();
+                        }
+                    })
+                    .catch(function () {
+                        hideHint();
+                    });
+            }
+
+            idInput.addEventListener('input', function () {
+                clearTimeout(lookupTimer);
+                lookupTimer = setTimeout(checkNic, 350);
+            });
+            idInput.addEventListener('blur', checkNic);
+        }
+
         var modal = byId('newHireModal');
         if (modal) {
             modal.addEventListener('shown.bs.modal', loadCars);
         }
 
+        initEmployeeNicLookup();
         showPickDates();
         loadCars();
         refreshSubmit();

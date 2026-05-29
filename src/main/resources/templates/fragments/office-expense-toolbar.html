@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<nav th:fragment="pagination(expensesPage, period, from, to, q)"
+
+     class="app-pagination-wrap mt-3"
+
+     th:if="${expensesPage != null and expensesPage.totalElements > 0}"
+
+     aria-label="Office expenses pagination">
+
+    <p class="app-pagination-summary small text-muted mb-2 mb-md-0">
+
+        Showing
+
+        <span class="fw-semibold text-body" th:text="${expensesPage.number * expensesPage.size + 1}">1</span>–
+
+        <span class="fw-semibold text-body"
+
+              th:text="${expensesPage.number * expensesPage.size + expensesPage.numberOfElements}">10</span>
+
+        of
+
+        <span class="fw-semibold text-body" th:text="${expensesPage.totalElements}">0</span>
+
+    </p>
+
+    <ul class="pagination pagination-sm app-pagination__list mb-0"
+
+        th:if="${expensesPage.totalPages > 1}">
+
+        <li class="page-item" th:classappend="${expensesPage.first} ? 'disabled'">
+
+            <a class="page-link" th:if="${!expensesPage.first}"
+
+               th:href="@{/office-expenses(page=${expensesPage.number - 1}, period=${period}, from=${from}, to=${to}, q=${q})}"
+
+               aria-label="Previous page">
+
+                <i class="bi bi-chevron-left"></i>
+
+            </a>
+
+        </li>
+
+        <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, expensesPage.totalPages - 1)}"
+
+            th:classappend="${pageNum == expensesPage.number} ? 'active'">
+
+            <a class="page-link"
+
+               th:href="@{/office-expenses(page=${pageNum}, period=${period}, from=${from}, to=${to}, q=${q})}"
+
+               th:text="${pageNum + 1}"
+
+               th:attr="aria-current=${pageNum == expensesPage.number} ? 'page' : null"></a>
+
+        </li>
+
+        <li class="page-item" th:classappend="${expensesPage.last} ? 'disabled'">
+
+            <a class="page-link" th:if="${!expensesPage.last}"
+
+               th:href="@{/office-expenses(page=${expensesPage.number + 1}, period=${period}, from=${from}, to=${to}, q=${q})}"
+
+               aria-label="Next page">
+
+                <i class="bi bi-chevron-right"></i>
+
+            </a>
+
+        </li>
+
+    </ul>
+
+</nav>
+
+</body>
+
+</html>
+

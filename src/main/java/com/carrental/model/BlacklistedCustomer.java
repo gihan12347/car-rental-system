@@ -17,8 +17,8 @@ public class BlacklistedCustomer {
     private Long id;
 
     @NotBlank
-    @Column(nullable = false, unique = true, length = 64)
-    private String customerContact;
+    @Column(name = "customer_id_number", nullable = false, unique = true, length = 64)
+    private String customerIdNumber;
 
     @NotBlank
     @Column(nullable = false)
@@ -35,12 +35,12 @@ public class BlacklistedCustomer {
         this.id = id;
     }
 
-    public String getCustomerContact() {
-        return customerContact;
+    public String getCustomerIdNumber() {
+        return customerIdNumber;
     }
 
-    public void setCustomerContact(String customerContact) {
-        this.customerContact = customerContact;
+    public void setCustomerIdNumber(String customerIdNumber) {
+        this.customerIdNumber = customerIdNumber;
     }
 
     public String getCustomerName() {

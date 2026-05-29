@@ -4,6 +4,7 @@ import com.carrental.model.Car;
 import com.carrental.model.CarStatus;
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
+import com.carrental.util.NicNormalizer;
 import com.carrental.repository.RentalRepository;
 import com.carrental.web.SearchQuery;
 import com.carrental.web.dto.AvailableCarOption;
@@ -37,14 +38,17 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final CarService carService;
     private final BlacklistedCustomerService blacklistedCustomerService;
+    private final EmployeeService employeeService;
 
     public RentalService(
             RentalRepository rentalRepository,
             CarService carService,
-            BlacklistedCustomerService blacklistedCustomerService) {
+            BlacklistedCustomerService blacklistedCustomerService,
+            EmployeeService employeeService) {
         this.rentalRepository = rentalRepository;
         this.carService = carService;
         this.blacklistedCustomerService = blacklistedCustomerService;
+        this.employeeService = employeeService;
     }
 
     public List<Rental> listActive() {
@@ -147,7 +151,7 @@ public class RentalService {
             String customerIdNumber,
             String travelLocation) {
         validatePeriod(startDate, endDate);
-        blacklistedCustomerService.ensureNotBlacklisted(customerContact);
+        blacklistedCustomerService.ensureNotBlacklisted(customerIdNumber);
         Car car = carService.getById(carId);
         if (hasOverlappingBooking(carId, startDate, endDate)) {
             throw new IllegalStateException(
@@ -162,12 +166,13 @@ public class RentalService {
         rental.setCustomerName(customerName);
         rental.setCustomerAddress(customerAddress);
         rental.setCustomerContact(customerContact);
-        rental.setCustomerIdNumber(customerIdNumber);
+        rental.setCustomerIdNumber(customerIdNumber.trim());
         rental.setTravelLocation(travelLocation);
         rental.setHireDate(today);
         rental.setPickupDate(startDate);
         rental.setReturnDate(endDate);
         rental.setRentalStatus(RentalStatus.ACTIVE);
+        applyEmployeeHireIfMatched(rental, customerIdNumber);
         rentalRepository.save(rental);
 
         syncCarAvailability(car, today);
@@ -195,8 +200,12 @@ public class RentalService {
 
         Car car = rental.getCar();
         LocalDate pickupDate = RentalPeriodHelper.startDate(rental);
-        RentalPricingHelper.PriceBreakdown pricing =
-                RentalPricingHelper.calculate(car, pickupDate, returnDate, returnMileageKm);
+        applyEmployeeHireIfMatched(rental, rental.getCustomerIdNumber());
+        boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
+
+        RentalPricingHelper.PriceBreakdown pricing = employeeHire
+                ? RentalPricingHelper.calculateWaived(car, pickupDate, returnDate, returnMileageKm)
+                : RentalPricingHelper.calculate(car, pickupDate, returnDate, returnMileageKm);
 
         rental.setReturnDate(returnDate);
         rental.setNumberOfDays(pricing.getDays());
@@ -212,7 +221,7 @@ public class RentalService {
 
         syncCarAvailability(car, LocalDate.now());
 
-        if (blacklistCustomer) {
+        if (blacklistCustomer && !employeeHire) {
             blacklistedCustomerService.blacklistFromRental(rental, blacklistReason);
         }
         return rental;
@@ -258,6 +267,14 @@ public class RentalService {
 
     private static boolean containsIgnoreCase(String value, String lowerQuery) {
         return value != null && value.toLowerCase(Locale.ENGLISH).contains(lowerQuery);
+    }
+
+    private void applyEmployeeHireIfMatched(Rental rental, String customerIdNumber) {
+        employeeService.findByNic(customerIdNumber).ifPresent(employee -> {
+            rental.setEmployeeHire(Boolean.TRUE);
+            rental.setEmployee(employee);
+            rental.setCustomerIdNumber(NicNormalizer.normalize(customerIdNumber));
+        });
     }
 
     private static void validatePeriod(LocalDate startDate, LocalDate endDate) {

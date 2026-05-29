@@ -3,6 +3,7 @@ package com.carrental.service;
 import com.carrental.model.BlacklistedCustomer;
 import com.carrental.model.Rental;
 import com.carrental.repository.BlacklistedCustomerRepository;
+import com.carrental.util.NicNormalizer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -16,16 +17,16 @@ public class BlacklistedCustomerService {
         this.blacklistedCustomerRepository = blacklistedCustomerRepository;
     }
 
-    public boolean isBlacklisted(String customerContact) {
-        String normalized = normalizeContact(customerContact);
+    public boolean isBlacklisted(String customerIdNumber) {
+        String normalized = normalizeNic(customerIdNumber);
         if (!StringUtils.hasText(normalized)) {
             return false;
         }
-        return blacklistedCustomerRepository.findByCustomerContactIgnoreCase(normalized).isPresent();
+        return blacklistedCustomerRepository.findByCustomerIdNumber(normalized).isPresent();
     }
 
-    public void ensureNotBlacklisted(String customerContact) {
-        if (isBlacklisted(customerContact)) {
+    public void ensureNotBlacklisted(String customerIdNumber) {
+        if (isBlacklisted(customerIdNumber)) {
             throw new IllegalStateException(
                     "This customer is blacklisted and cannot be booked. Contact an administrator to review the blacklist.");
         }
@@ -36,16 +37,16 @@ public class BlacklistedCustomerService {
         if (rental == null) {
             return;
         }
-        String contact = normalizeContact(rental.getCustomerContact());
-        if (!StringUtils.hasText(contact)) {
-            throw new IllegalArgumentException("Customer phone is required to add a blacklist entry.");
+        String nic = normalizeNic(rental.getCustomerIdNumber());
+        if (!StringUtils.hasText(nic)) {
+            throw new IllegalArgumentException("Customer NIC is required to add a blacklist entry.");
         }
-        if (blacklistedCustomerRepository.findByCustomerContactIgnoreCase(contact).isPresent()) {
+        if (blacklistedCustomerRepository.findByCustomerIdNumber(nic).isPresent()) {
             return;
         }
         BlacklistedCustomer entry = new BlacklistedCustomer();
-        entry.setCustomerContact(contact);
-        entry.setCustomerName(rental.getCustomerName() != null ? rental.getCustomerName().trim() : contact);
+        entry.setCustomerIdNumber(nic);
+        entry.setCustomerName(rental.getCustomerName() != null ? rental.getCustomerName().trim() : nic);
         entry.setReason(buildReason(reason, rental));
         blacklistedCustomerRepository.save(entry);
     }
@@ -57,10 +58,7 @@ public class BlacklistedCustomerService {
         return "Blacklisted when completing rental #" + rental.getId();
     }
 
-    private static String normalizeContact(String contact) {
-        if (contact == null) {
-            return "";
-        }
-        return contact.trim();
+    private static String normalizeNic(String nic) {
+        return NicNormalizer.normalize(nic);
     }
 }

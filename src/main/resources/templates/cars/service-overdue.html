@@ -13,7 +13,9 @@
                 <p class="lead mb-0">Vehicles past their scheduled next service km.</p>
             </header>
 
-            <div class="app-card-table" th:if="${!alerts.isEmpty()}">
+            <div th:replace="~{fragments/record-lists :: serviceOverdueRecordList(${alerts})}"></div>
+
+            <div class="app-card-table d-none d-xl-block" th:if="${!alerts.isEmpty()}">
                 <div class="table-responsive">
                     <table class="table app-table mb-0 align-middle">
                         <thead>

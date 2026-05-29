@@ -67,6 +67,7 @@
         var dailyRate = parseNum(form.getAttribute('data-daily-rate'), 0);
         var kmRate = parseNum(form.getAttribute('data-km-rate'), 0);
         var freeKmPerDay = parseNum(form.getAttribute('data-free-km-per-day'), 0);
+        var employeeHire = form.getAttribute('data-employee-hire') === 'true';
 
         var returnDateInput = document.getElementById('returnDate');
         var returnMileageInput = document.getElementById('returnMileageKm');
@@ -158,9 +159,9 @@
             var freePerDay = Math.max(0, Math.floor(freeKmPerDay));
             var includedKm = freePerDay * days;
             var billableExtraKm = Math.max(0, tripKm - includedKm);
-            var dailyCharge = dailyRate * days;
-            var kmCharge = kmRate * billableExtraKm;
-            var total = dailyCharge + kmCharge;
+            var dailyCharge = employeeHire ? 0 : dailyRate * days;
+            var kmCharge = employeeHire ? 0 : kmRate * billableExtraKm;
+            var total = employeeHire ? 0 : dailyCharge + kmCharge;
             var dayLabel = days === 1 ? 'day' : 'days';
 
             setText('previewPeriod', formatDateLabel(pickupDate) + ' → ' + formatDateLabel(returnDate) + ' (' + days + ' ' + dayLabel + ')');
@@ -169,11 +170,16 @@
             setText('previewTripKmInlineValue', tripKm + ' km');
             setText('previewIncludedKm', includedKm + ' km (' + freePerDay + ' × ' + days + ' ' + dayLabel + ')');
             setText('previewBillableExtraKm', billableExtraKm + ' km');
-            setText('previewDailyFormula', formatMoney(dailyRate) + ' × ' + days + ' ' + dayLabel);
-            if (billableExtraKm > 0) {
-                setText('previewKmFormula', formatMoney(kmRate) + ' × ' + billableExtraKm + ' km');
+            if (employeeHire) {
+                setText('previewDailyFormula', 'Employee hire — waived');
+                setText('previewKmFormula', 'Employee hire — waived');
             } else {
-                setText('previewKmFormula', 'Within free allowance — no extra km charge');
+                setText('previewDailyFormula', formatMoney(dailyRate) + ' × ' + days + ' ' + dayLabel);
+                if (billableExtraKm > 0) {
+                    setText('previewKmFormula', formatMoney(kmRate) + ' × ' + billableExtraKm + ' km');
+                } else {
+                    setText('previewKmFormula', 'Within free allowance — no extra km charge');
+                }
             }
             setText('previewDailyCharge', formatMoney(dailyCharge));
             setText('previewKmCharge', formatMoney(kmCharge));
@@ -183,7 +189,9 @@
             if (badge) {
                 badge.textContent = 'Total: ' + formatMoney(total);
             }
-            setText('previewHint', 'This total will be saved when you complete the rental.');
+            setText('previewHint', employeeHire
+                ? 'Employee vehicle hire — total charge will be 0.00.'
+                : 'This total will be saved when you complete the rental.');
             updateSubmitState();
         }
 

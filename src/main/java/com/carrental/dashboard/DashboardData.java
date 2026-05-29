@@ -22,6 +22,13 @@ public class DashboardData {
 
     private long totalBookings;
 
+    private BigDecimal totalEmployeePayments = BigDecimal.ZERO;
+    private long employeePaymentCount;
+    private BigDecimal totalOfficeExpenses = BigDecimal.ZERO;
+    private long officeExpenseRecordCount;
+    private String periodFromIso;
+    private String periodToIso;
+
     private long repeatCustomers;
     private long newCustomers;
     private long blacklistedCustomers;
@@ -136,6 +143,54 @@ public class DashboardData {
 
     public void setTotalBookings(long totalBookings) {
         this.totalBookings = totalBookings;
+    }
+
+    public BigDecimal getTotalEmployeePayments() {
+        return totalEmployeePayments;
+    }
+
+    public void setTotalEmployeePayments(BigDecimal totalEmployeePayments) {
+        this.totalEmployeePayments = totalEmployeePayments;
+    }
+
+    public long getEmployeePaymentCount() {
+        return employeePaymentCount;
+    }
+
+    public void setEmployeePaymentCount(long employeePaymentCount) {
+        this.employeePaymentCount = employeePaymentCount;
+    }
+
+    public BigDecimal getTotalOfficeExpenses() {
+        return totalOfficeExpenses;
+    }
+
+    public void setTotalOfficeExpenses(BigDecimal totalOfficeExpenses) {
+        this.totalOfficeExpenses = totalOfficeExpenses;
+    }
+
+    public long getOfficeExpenseRecordCount() {
+        return officeExpenseRecordCount;
+    }
+
+    public void setOfficeExpenseRecordCount(long officeExpenseRecordCount) {
+        this.officeExpenseRecordCount = officeExpenseRecordCount;
+    }
+
+    public String getPeriodFromIso() {
+        return periodFromIso;
+    }
+
+    public void setPeriodFromIso(String periodFromIso) {
+        this.periodFromIso = periodFromIso;
+    }
+
+    public String getPeriodToIso() {
+        return periodToIso;
+    }
+
+    public void setPeriodToIso(String periodToIso) {
+        this.periodToIso = periodToIso;
     }
 
     public long getRepeatCustomers() {

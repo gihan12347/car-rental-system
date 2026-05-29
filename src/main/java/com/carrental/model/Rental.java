@@ -88,6 +88,13 @@ public class Rental {
     @Column(nullable = false)
     private Boolean documentReturned = Boolean.FALSE;
 
+    @Column(name = "employee_hire", nullable = false)
+    private Boolean employeeHire = Boolean.FALSE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
+
     public Long getId() {
         return id;
     }
@@ -222,5 +229,21 @@ public class Rental {
 
     public void setDocumentReturned(Boolean documentReturned) {
         this.documentReturned = documentReturned;
+    }
+
+    public Boolean getEmployeeHire() {
+        return employeeHire;
+    }
+
+    public void setEmployeeHire(Boolean employeeHire) {
+        this.employeeHire = employeeHire;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 }

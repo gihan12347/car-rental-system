@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:with="pageTitle=${employee.name + ' · Employee rental'}">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body employees-page">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main">
+            <div th:if="${successMessage}" class="alert app-alert alert-success d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header app-page-header--toolbar mb-2">
+                <a class="small text-decoration-none text-muted d-inline-flex align-items-center gap-1 mb-2"
+                   th:href="@{/employees/{id}(id=${employee.id})}">
+                    <i class="bi bi-arrow-left"></i> Back to employee
+                </a>
+                <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-2 gap-lg-3">
+                    <div class="min-w-0">
+                        <h1 class="h2 mb-1">Employee rental</h1>
+                        <p class="lead mb-0">
+                            <span th:text="${employee.name}">Employee</span>
+                            <span class="text-muted"> · NIC </span>
+                            <span class="fw-semibold" th:text="${employee.nic}"></span>
+                        </p>
+                        <p class="small text-muted mb-0">Zero-charge when this NIC is used at hire.</p>
+                    </div>
+                    <div class="app-page-header__actions">
+                        <div class="app-toolbar-card app-toolbar-card--period-only">
+                            <div class="app-toolbar-card__period">
+                                <div th:replace="~{fragments/period-filter :: simple(
+                                    @{'/employees/' + ${employee.id} + '/rentals'},
+                                    ${paymentPeriods},
+                                    ${paymentPeriod},
+                                    null,
+                                    ${searchQuery},
+                                    'rentalPage',
+                                    'employeeRentalPeriod'
+                                )}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="employee-subtoolbar d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 mb-3">
+                <div class="employees-activity-bar employees-activity-bar--compact flex-grow-1 mb-0" role="navigation" aria-label="Employee actions">
+                    <a class="employees-activity-bar__btn" th:href="@{/employees/{id}(id=${employee.id})}">
+                        <i class="bi bi-wallet2" aria-hidden="true"></i>
+                        <span>Payments</span>
+                    </a>
+                    <a class="employees-activity-bar__btn employees-activity-bar__btn--active"
+                       th:href="@{/employees/{id}/rentals(id=${employee.id}, period=${paymentPeriod})}">
+                        <i class="bi bi-car-front" aria-hidden="true"></i>
+                        <span>Activity</span>
+                        <span class="employees-activity-bar__count" th:if="${hireCount > 0}" th:text="${hireCount}">0</span>
+                    </a>
+                    <a class="employees-activity-bar__btn" th:href="@{/employees/{id}/edit(id=${employee.id})}">
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                        <span>Edit</span>
+                    </a>
+                </div>
+                <div class="stat-card p-2 px-3 employee-subtoolbar__metric flex-shrink-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon indigo employee-subtoolbar__metric-icon" aria-hidden="true">
+                            <i class="bi bi-car-front"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label mb-0">Rentals in period</div>
+                            <div class="stat-value stat-value--module mb-0" th:text="${hireCountInPeriod}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="app-list-panel mb-0" aria-label="Employee rental history">
+                <div class="app-list-panel__toolbar">
+                    <span class="app-period-chip" th:if="${paymentPeriodLabel != null}">
+                        <i class="bi bi-calendar3" aria-hidden="true"></i>
+                        <span th:text="${paymentPeriodLabel}">Period</span>
+                    </span>
+                    <form th:action="@{/employees/{id}/rentals(id=${employee.id})}" method="get" class="app-list-panel__search" role="search">
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="rentalPage" value="0"/>
+                        <label class="visually-hidden" for="employeeRentalSearchInput">Search by vehicle number</label>
+                        <div class="app-page-search-bar app-page-search-bar--embedded">
+                            <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+                            <input type="search" id="employeeRentalSearchInput" name="q" class="app-page-search-input"
+                                   th:value="${searchQuery}" placeholder="Search vehicle number…"
+                                   autocomplete="off" enterkeyhint="search"/>
+                            <button type="submit" class="app-page-search-submit" aria-label="Search">
+                                <span class="app-page-search-submit-text">Search</span>
+                                <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+                            </button>
+                            <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                               th:href="@{/employees/{id}/rentals(id=${employee.id}, period=${paymentPeriod})}"
+                               class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <div th:replace="~{fragments/employee-rentals-table :: rentalsTable(${rentals}, ${rentalsPage}, false, ${employee.id}, null, ${searchQuery}, ${paymentPeriod}, true)}"></div>
+
+                <div class="app-list-panel__footer"
+                     th:if="${rentalsPage != null and rentalsPage.totalElements > 0}">
+                    <div th:replace="~{fragments/employee-rentals-table :: rentalsPagination(${rentalsPage}, ${employee.id}, null, ${searchQuery}, ${paymentPeriod}, true)}"></div>
+                </div>
+
+                <div th:replace="~{fragments/employee-rentals-table :: rentalsEmpty(true)}"></div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/modals :: appModals}"></div>
+</body>
+</html>

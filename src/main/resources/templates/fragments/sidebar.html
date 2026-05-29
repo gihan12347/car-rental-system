@@ -3,8 +3,8 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <aside th:fragment="sidebar"
-       class="app-sidebar d-none d-lg-flex flex-column flex-shrink-0 text-white">
-    <div class="px-3 py-4 border-bottom border-secondary border-opacity-25">
+       class="app-sidebar d-none d-lg-flex flex-shrink-0 text-white">
+    <div class="app-sidebar-brand px-3 py-4 border-bottom border-secondary border-opacity-25">
         <a th:href="@{/dashboard}" class="d-flex align-items-center gap-2 text-white text-decoration-none">
             <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-25 text-white" style="width: 40px; height: 40px;">
                 <i class="bi bi-speedometer2 fs-5"></i>
@@ -15,6 +15,7 @@
             </span>
         </a>
     </div>
+    <div class="app-sidebar-nav-scroll" role="region" aria-label="Main navigation">
     <nav class="nav flex-column px-2 py-3 gap-1">
         <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
            th:classappend="${activeNav == 'home'} ? ' active' : ''"
@@ -25,6 +26,16 @@
            th:classappend="${activeNav == 'cars'} ? ' active' : ''"
            th:href="@{/cars}">
             <i class="bi bi-car-front"></i><span>Fleet</span>
+        </a>
+        <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+           th:classappend="${activeNav == 'employees'} ? ' active' : ''"
+           th:href="@{/employees}">
+            <i class="bi bi-people"></i><span>Employees</span>
+        </a>
+        <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+           th:classappend="${activeNav == 'office-expenses'} ? ' active' : ''"
+           th:href="@{/office-expenses}">
+            <i class="bi bi-building"></i><span>Office expenses</span>
         </a>
         <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
            th:classappend="${activeNav == 'rentals'} ? ' active' : ''"
@@ -56,8 +67,9 @@
             <i class="bi bi-person-gear"></i><span>Account</span>
         </a>
     </nav>
+    </div>
     <div th:replace="~{fragments/sidebar-quick-actions :: quickActions}"></div>
-    <div class="app-sidebar-footer px-3 pb-4 pt-3 mt-auto border-top border-secondary border-opacity-25">
+    <div class="app-sidebar-footer px-3 pb-4 pt-3 border-top border-secondary border-opacity-25">
         <p class="small text-white-50 mb-0 text-truncate" sec:authorize="isAuthenticated()">
             Signed in as <span class="text-white" sec:authentication="name">user</span>
         </p>

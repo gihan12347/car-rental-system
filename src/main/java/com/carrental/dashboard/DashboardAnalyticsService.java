@@ -9,7 +9,10 @@ import com.carrental.model.VehicleType;
 import com.carrental.repository.BlacklistedCustomerRepository;
 import com.carrental.repository.CarRepository;
 import com.carrental.repository.RentalRepository;
+import com.carrental.service.EmployeePaymentPeriodFilter;
+import com.carrental.service.EmployeePaymentService;
 import com.carrental.service.FleetServiceAlertService;
+import com.carrental.service.OfficeExpenseService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -40,25 +43,30 @@ public class DashboardAnalyticsService {
     private final CarRepository carRepository;
     private final RentalRepository rentalRepository;
     private final BlacklistedCustomerRepository blacklistedCustomerRepository;
+    private final EmployeePaymentService employeePaymentService;
+    private final OfficeExpenseService officeExpenseService;
 
     public DashboardAnalyticsService(
             CarRepository carRepository,
             RentalRepository rentalRepository,
-            BlacklistedCustomerRepository blacklistedCustomerRepository) {
+            BlacklistedCustomerRepository blacklistedCustomerRepository,
+            EmployeePaymentService employeePaymentService,
+            OfficeExpenseService officeExpenseService) {
         this.carRepository = carRepository;
         this.rentalRepository = rentalRepository;
         this.blacklistedCustomerRepository = blacklistedCustomerRepository;
+        this.employeePaymentService = employeePaymentService;
+        this.officeExpenseService = officeExpenseService;
     }
 
-    public DashboardData build(DashboardPeriod period) {
+    public DashboardData build(DateRange range, DashboardPeriod period) {
         LocalDate today = LocalDate.now();
-        DateRange range = period.toDateRange(today);
         List<Car> cars = carRepository.findAllByOrderByRegistrationNumberAsc();
         List<Rental> rentals = rentalRepository.findAllWithCar();
 
         DashboardData data = new DashboardData();
         data.setPeriodLabel(period.getLabel());
-        data.setRangeLabel(range.getStart().format(DAY_FMT) + " – " + range.getEnd().format(DAY_FMT));
+        data.setRangeLabel(range.formatLabel());
         data.setTotalFleet(cars.size());
         data.setAvailableCars(cars.stream().filter(c -> c.getStatus() == CarStatus.AVAILABLE).count());
         data.setActiveRentals(rentals.stream().filter(r -> r.getRentalStatus() == RentalStatus.ACTIVE).count());
@@ -67,8 +75,21 @@ public class DashboardAnalyticsService {
         populateFleetUtilization(data, cars, rentals, range, today);
         data.setTotalBookings(countBookingsInPeriod(rentals, range));
         populateCustomers(data, rentals, range);
+        populateOperatingCosts(data, range);
 
         return data;
+    }
+
+    private void populateOperatingCosts(DashboardData data, DateRange range) {
+        EmployeePaymentPeriodFilter filter = EmployeePaymentPeriodFilter.fromDateRange(
+                range,
+                data.getRangeLabel());
+        data.setPeriodFromIso(range.getStart().toString());
+        data.setPeriodToIso(range.getEnd().toString());
+        data.setTotalEmployeePayments(employeePaymentService.totalInPeriod(null, filter));
+        data.setEmployeePaymentCount(employeePaymentService.countInPeriod(filter));
+        data.setTotalOfficeExpenses(officeExpenseService.totalInPeriod(null, filter));
+        data.setOfficeExpenseRecordCount(officeExpenseService.countInPeriod(filter));
     }
 
     private void populateRevenue(DashboardData data, List<Rental> rentals, DateRange range, DashboardPeriod period) {

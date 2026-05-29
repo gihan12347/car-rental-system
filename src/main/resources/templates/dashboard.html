@@ -15,15 +15,15 @@
                         <p class="lead mb-0 dashboard-header-lead">Revenue, fleet utilization, and customer insights.</p>
                         <p class="small text-muted mb-0 dashboard-header-range" th:text="${d.rangeLabel}">—</p>
                     </div>
-                    <form method="get" th:action="@{/dashboard}" class="dashboard-period-form flex-shrink-0">
-                        <label class="form-label small fw-semibold mb-1" for="dashboardPeriod">Period</label>
-                        <select id="dashboardPeriod" name="period" class="form-select dashboard-period-select" onchange="this.form.submit()">
-                            <option th:each="p : ${dashboardPeriods}"
-                                    th:value="${p.name()}"
-                                    th:text="${p.label}"
-                                    th:selected="${p == selectedPeriod}"></option>
-                        </select>
-                    </form>
+                    <div th:replace="~{fragments/period-filter :: simple(
+                        @{/dashboard},
+                        ${dashboardPeriods},
+                        ${selectedPeriod.name()},
+                        null,
+                        null,
+                        null,
+                        'dashboardPeriod'
+                    )}"></div>
                 </div>
             </header>
 
@@ -232,44 +232,94 @@
             </section>
 
             <!-- 3. Customer Insights -->
-            <section class="dashboard-section mb-4">
-                <div class="dashboard-section-head">
-                    <h2 class="h5 mb-1"><i class="bi bi-people me-2 text-primary"></i>Customer insights</h2>
-                    <p class="small text-muted mb-0">Loyalty programs and risk management.</p>
+            <section class="dashboard-section dashboard-section--customers mb-4">
+                <div class="dashboard-section-head dashboard-section-head--compact">
+                    <h2 class="h5 mb-0"><i class="bi bi-people me-2 text-primary"></i>Customer insights</h2>
+                    <p class="small text-muted mb-0 dashboard-section-subtitle">Loyalty programs and risk management.</p>
                 </div>
-                <div class="row g-3 g-lg-4">
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">Repeat customers</span><strong th:text="${d.repeatCustomers}">0</strong></div>
+                <div class="dashboard-customer-layout">
+                    <div class="dashboard-customer-metrics">
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">Repeat customers</span>
+                            <strong th:text="${d.repeatCustomers}">0</strong>
+                        </div>
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">New customers</span>
+                            <strong th:text="${d.newCustomers}">0</strong>
+                        </div>
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">Blacklisted</span>
+                            <strong th:text="${d.blacklistedCustomers}">0</strong>
+                        </div>
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">Complaints</span>
+                            <strong th:text="${d.customerComplaints}">0</strong>
+                        </div>
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">Retention rate</span>
+                            <strong th:text="${d.customerRetentionRate + '%'}">0%</strong>
+                        </div>
+                        <div class="dashboard-metric dashboard-metric--compact">
+                            <span class="dashboard-metric-label">Avg rental duration</span>
+                            <strong th:text="${d.averageRentalDuration + ' days'}">0</strong>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">New customers</span><strong th:text="${d.newCustomers}">0</strong></div>
-                    </div>
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">Blacklisted</span><strong th:text="${d.blacklistedCustomers}">0</strong></div>
-                    </div>
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">Complaints</span><strong th:text="${d.customerComplaints}">0</strong></div>
-                    </div>
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">Retention rate</span><strong th:text="${d.customerRetentionRate + '%'}">0%</strong></div>
-                    </div>
-                    <div class="col-6 col-md-4 col-xl-2">
-                        <div class="dashboard-metric"><span class="dashboard-metric-label">Avg rental duration</span><strong th:text="${d.averageRentalDuration + ' days'}">0</strong></div>
-                    </div>
-                    <div class="col-12 col-lg-5">
-                        <div class="dashboard-list-card h-100">
-                            <h3 class="dashboard-chart-title">Top customers</h3>
+                    <div class="dashboard-customer-top">
+                        <div class="dashboard-list-card dashboard-list-card--compact h-100 mb-0">
+                            <h3 class="dashboard-chart-title mb-2">Top customers</h3>
                             <ul class="dashboard-mini-list mb-0" th:if="${!d.topCustomers.isEmpty()}">
                                 <li th:each="item : ${d.topCustomers}">
-                                    <span>
+                                    <span class="dashboard-customer-top__name">
                                         <span th:text="${item.name}">—</span>
-                                        <span class="d-block small text-muted" th:if="${item.detail != null and !#strings.isEmpty(item.detail)}"
-                                              th:text="|NIC: ${item.detail}|">NIC</span>
+                                        <small class="text-muted" th:if="${item.detail != null and !#strings.isEmpty(item.detail)}"
+                                               th:text="|NIC: ${item.detail}|">NIC</small>
                                     </span>
                                     <strong th:text="${#numbers.formatDecimal(item.value, 1, 'COMMA', 0, 'POINT')}">0</strong>
                                 </li>
                             </ul>
                             <p class="small text-muted mb-0" th:if="${d.topCustomers.isEmpty()}">No customer revenue in this period.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Operating costs -->
+            <section class="dashboard-section dashboard-section--costs mb-0">
+                <div class="dashboard-section-head dashboard-section-head--compact">
+                    <h2 class="h5 mb-0"><i class="bi bi-wallet2 me-2 text-primary"></i>Operating costs</h2>
+                    <p class="small text-muted mb-0 dashboard-section-subtitle">Employee payments and office expenses for <span th:text="${selectedPeriod.label}">the selected period</span>.</p>
+                </div>
+                <div class="row g-2 g-md-3 mb-0">
+                    <div class="col-6 col-lg-3">
+                        <div class="dashboard-metric h-100 dashboard-metric--highlight">
+                            <span class="dashboard-metric-label">Employee payments paid</span>
+                            <strong th:text="${#numbers.formatDecimal(d.totalEmployeePayments, 1, 'COMMA', 2, 'POINT')}">0</strong>
+                            <a class="small d-inline-flex align-items-center gap-1 mt-2 text-decoration-none"
+                               th:href="@{/employees(tab='payments', from=${d.periodFromIso}, to=${d.periodToIso})}">
+                                View payments <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="dashboard-metric h-100">
+                            <span class="dashboard-metric-label">Payment records</span>
+                            <strong th:text="${d.employeePaymentCount}">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="dashboard-metric h-100 dashboard-metric--highlight">
+                            <span class="dashboard-metric-label">Office expenses</span>
+                            <strong th:text="${#numbers.formatDecimal(d.totalOfficeExpenses, 1, 'COMMA', 2, 'POINT')}">0</strong>
+                            <a class="small d-inline-flex align-items-center gap-1 mt-2 text-decoration-none"
+                               th:href="@{/office-expenses(from=${d.periodFromIso}, to=${d.periodToIso})}">
+                                View expenses <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="dashboard-metric h-100">
+                            <span class="dashboard-metric-label">Expense records</span>
+                            <strong th:text="${d.officeExpenseRecordCount}">0</strong>
                         </div>
                     </div>
                 </div>

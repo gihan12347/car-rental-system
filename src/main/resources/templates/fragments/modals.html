@@ -149,7 +149,13 @@
                         <div class="mb-3">
                             <label class="form-label small fw-semibold" for="nh-id">Customer ID number</label>
                             <input class="form-control" id="nh-id" th:field="*{customerIdNumber}"
-                                   placeholder="e.g. NIC or passport number" autocomplete="off" required/>
+                                   placeholder="e.g. employee NIC for zero-charge staff hire"
+                                   autocomplete="off" required
+                                   th:attr="data-lookup-nic-url=@{/employees/lookup-nic}"/>
+                            <div id="nh-employee-hire-hint" class="form-text text-success d-none" role="status">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span id="nh-employee-hire-hint-text"></span>
+                            </div>
                             <div class="invalid-feedback d-block small" th:errors="*{customerIdNumber}"></div>
                         </div>
                         <div class="mb-3">

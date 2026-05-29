@@ -166,7 +166,9 @@
                 <div class="col-12 col-xl-7">
                     <div class="dashboard-chart-card">
                         <h2 class="dashboard-chart-title">Rental history</h2>
-                        <div class="table-responsive" th:if="${rentalHistoryPage != null and rentalHistoryPage.totalElements > 0}">
+                        <div th:if="${rentalHistoryPage != null and rentalHistoryPage.totalElements > 0}">
+                            <div th:replace="~{fragments/record-lists :: carDetailRentalHistory(${rentalHistoryPage.content})}"></div>
+                            <div class="table-responsive d-none d-xl-block">
                             <table class="table app-table mb-0 car-detail-table">
                                 <thead>
                                 <tr>
@@ -199,6 +201,7 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                         <nav th:if="${rentalHistoryPage != null and rentalHistoryPage.totalElements > 0}"
                              class="app-pagination-wrap app-pagination-wrap--compact mt-3"
@@ -245,7 +248,9 @@
                                 <span th:if="${car.nextServiceKm == null}">not set</span>
                             </p>
                         </div>
-                        <div class="table-responsive" th:if="${maintenanceHistoryPage != null and maintenanceHistoryPage.totalElements > 0}">
+                        <div th:if="${maintenanceHistoryPage != null and maintenanceHistoryPage.totalElements > 0}">
+                            <div th:replace="~{fragments/record-lists :: carDetailMaintenanceHistory(${maintenanceHistoryPage.content})}"></div>
+                            <div class="table-responsive d-none d-xl-block">
                             <table class="table app-table mb-0 car-detail-table">
                                 <thead>
                                 <tr>
@@ -268,6 +273,7 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                         <nav th:if="${maintenanceHistoryPage != null and maintenanceHistoryPage.totalElements > 0}"
                              class="app-pagination-wrap app-pagination-wrap--compact mt-3"

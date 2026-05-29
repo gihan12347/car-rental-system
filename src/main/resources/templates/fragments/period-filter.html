@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Dashboard-style period dropdown (auto-submit on change).
+
+  Parameters:
+    formAction       — form GET target (required)
+    periods          — enum list with name() and label (required)
+    selectedPeriod   — current period enum name as string (required)
+    tab              — hidden tab param (optional)
+    q                — hidden search query (optional)
+    pageResetParam   — 'page' | 'paymentPage' | 'rentalPage' to reset pagination (optional)
+    selectId         — unique id for the select element (required)
+-->
+<form th:fragment="simple(formAction, periods, selectedPeriod, tab, q, pageResetParam, selectId)"
+      method="get"
+      th:action="${formAction}"
+      class="app-period-form dashboard-period-form flex-shrink-0">
+    <input type="hidden" name="tab" th:if="${tab != null and !#strings.isEmpty(tab)}" th:value="${tab}"/>
+    <input type="hidden" name="q" th:if="${q != null and !#strings.isEmpty(q)}" th:value="${q}"/>
+    <input type="hidden" th:if="${pageResetParam != null and pageResetParam == 'page'}" name="page" value="0"/>
+    <input type="hidden" th:if="${pageResetParam != null and pageResetParam == 'paymentPage'}" name="paymentPage" value="0"/>
+    <input type="hidden" th:if="${pageResetParam != null and pageResetParam == 'rentalPage'}" name="rentalPage" value="0"/>
+    <label class="form-label small fw-semibold mb-1" th:for="${selectId}">Period</label>
+    <select th:id="${selectId}"
+            name="period"
+            class="form-select dashboard-period-select"
+            onchange="this.form.submit()">
+        <option th:each="p : ${periods}"
+                th:value="${p.name()}"
+                th:text="${p.label}"
+                th:selected="${selectedPeriod == p.name()}"></option>
+    </select>
+</form>
+
+<!--
+  Advanced period filter (Period / From / To + Apply / Reset).
+
+  Parameters:
+    formAction      — form GET target (required)
+    periods         — enum list with name() and label (required)
+    selectedPeriod  — current period enum name as string (required)
+    from, to        — custom date range (optional)
+    periodLabel     — active range label for chip (optional)
+    resetUrl        — reset link URL (required)
+    filterId        — unique id prefix for inputs (required)
+    ariaLabel       — section aria-label (required)
+    tab             — hidden tab param (optional)
+    q               — hidden search query (optional)
+    pageResetParam  — hidden field name to reset pagination: 'page' | 'paymentPage' (optional)
+    compact         — true for tighter spacing in page headers (optional)
+-->
+<section th:fragment="filter(formAction, periods, selectedPeriod, from, to, periodLabel, resetUrl, filterId, ariaLabel, tab, q, pageResetParam, compact)"
+         class="app-period-filter"
+         th:classappend="${compact} ? ' app-period-filter--compact' : ''"
+         th:attr="aria-label=${ariaLabel}">
+    <form th:action="${formAction}" method="get" class="app-period-filter__form">
+        <input type="hidden" name="tab" th:if="${tab != null and !#strings.isEmpty(tab)}" th:value="${tab}"/>
+        <input type="hidden" name="q" th:if="${q != null and !#strings.isEmpty(q)}" th:value="${q}"/>
+        <input type="hidden" th:if="${pageResetParam != null and pageResetParam == 'page'}" name="page" value="0"/>
+        <input type="hidden" th:if="${pageResetParam != null and pageResetParam == 'paymentPage'}" name="paymentPage" value="0"/>
+        <div class="app-period-filter__bar">
+            <div class="app-period-filter__fields">
+                <div class="app-period-filter__field app-period-filter__field--period">
+                    <label class="app-period-filter__label" th:for="${filterId + 'Period'}">
+                        <i class="bi bi-calendar-range" aria-hidden="true"></i>
+                        <span>Period</span>
+                    </label>
+                    <select class="form-select app-period-filter__control"
+                            th:id="${filterId + 'Period'}"
+                            name="period"
+                            onchange="this.form.querySelector('[name=from]').value='';this.form.querySelector('[name=to]').value='';">
+                        <option th:each="p : ${periods}"
+                                th:value="${p.name()}"
+                                th:text="${p.label}"
+                                th:selected="${selectedPeriod == p.name()}"></option>
+                    </select>
+                </div>
+                <div class="app-period-filter__field">
+                    <label class="app-period-filter__label" th:for="${filterId + 'From'}">
+                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        <span>From</span>
+                    </label>
+                    <input class="form-control app-period-filter__control"
+                           type="date"
+                           th:id="${filterId + 'From'}"
+                           name="from"
+                           th:value="${from}"/>
+                </div>
+                <div class="app-period-filter__field">
+                    <label class="app-period-filter__label" th:for="${filterId + 'To'}">
+                        <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                        <span>To</span>
+                    </label>
+                    <input class="form-control app-period-filter__control"
+                           type="date"
+                           th:id="${filterId + 'To'}"
+                           name="to"
+                           th:value="${to}"/>
+                </div>
+            </div>
+            <div class="app-period-filter__actions" role="group" aria-label="Filter actions">
+                <button type="submit" class="app-period-filter__btn app-period-filter__btn--apply">
+                    <i class="bi bi-funnel-fill" aria-hidden="true"></i>
+                    <span class="app-period-filter__btn-text">Apply filter</span>
+                </button>
+                <a class="app-period-filter__btn app-period-filter__btn--reset"
+                   th:href="${resetUrl}"
+                   title="Clear period and custom dates"
+                   aria-label="Reset period filter">
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                    <span class="app-period-filter__btn-text">Reset</span>
+                </a>
+            </div>
+        </div>
+        <div class="app-period-filter__meta" th:if="${periodLabel != null and !#strings.isEmpty(periodLabel)}">
+            <span class="app-period-filter__chip">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                <span>Showing <strong th:text="${periodLabel}">—</strong></span>
+                <span class="app-period-filter__chip-note"
+                      th:if="${from != null and to != null}">· custom range</span>
+            </span>
+        </div>
+    </form>
+</section>
+</body>
+</html>

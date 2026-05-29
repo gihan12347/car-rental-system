@@ -2,6 +2,7 @@ package com.carrental.web;
 
 import com.carrental.dashboard.DashboardAnalyticsService;
 import com.carrental.dashboard.DashboardData;
+import com.carrental.dashboard.DateRange;
 import com.carrental.model.DashboardPeriod;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
 
 @Controller
 public class DashboardController {
@@ -28,7 +31,8 @@ public class DashboardController {
             @RequestParam(value = "period", required = false) String periodParam,
             Model model) throws JsonProcessingException {
         DashboardPeriod period = DashboardPeriod.fromParam(periodParam);
-        DashboardData dashboard = dashboardAnalyticsService.build(period);
+        DateRange range = period.toDateRange(LocalDate.now());
+        DashboardData dashboard = dashboardAnalyticsService.build(range, period);
 
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("selectedPeriod", period);

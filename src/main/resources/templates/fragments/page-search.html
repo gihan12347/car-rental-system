@@ -38,5 +38,35 @@
         <a th:href="${searchAction}" class="app-page-search-meta-clear">Clear filter</a>
     </div>
 </section>
+
+<th:block th:fragment="pageSearchWithTab(placeholder, tabValue)">
+    <section class="app-page-search" aria-label="Search">
+        <form th:action="@{/employees(tab=${tabValue})}" method="get" class="app-page-search-form" role="search">
+            <input type="hidden" name="tab" th:value="${tabValue}"/>
+            <label class="visually-hidden" for="appPageSearchInputEmployees" th:text="${placeholder}">Search</label>
+            <div class="app-page-search-bar">
+                <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+                <input type="search" id="appPageSearchInputEmployees" name="q" class="app-page-search-input"
+                       th:value="${searchQuery}" th:placeholder="${placeholder}" autocomplete="off" enterkeyhint="search"/>
+                <button type="submit" class="app-page-search-submit">
+                    <span class="app-page-search-submit-text">Search</span>
+                    <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+                </button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/employees(tab=${tabValue})}"
+                   class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </a>
+            </div>
+        </form>
+        <div th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}" class="app-page-search-meta">
+            <span class="app-page-search-chip">
+                <i class="bi bi-funnel" aria-hidden="true"></i>
+                <span th:text="${searchQuery}">query</span>
+            </span>
+            <a th:href="@{/employees(tab=${tabValue})}" class="app-page-search-meta-clear">Clear filter</a>
+        </div>
+    </section>
+</th:block>
 </body>
 </html>
