@@ -37,7 +37,7 @@
                         </div>
                     </div>
                     <div class="app-page-header__actions">
-                        <div class="app-toolbar-card">
+                        <div class="app-toolbar-card employee-mobile-toolbar">
                             <div class="app-toolbar-card__period">
                                 <div th:replace="~{fragments/period-filter :: simple(
                                     @{'/employees/' + ${employee.id}},
@@ -62,7 +62,7 @@
             </header>
 
             <div class="employee-subtoolbar d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 mb-3">
-                <div class="employees-activity-bar employees-activity-bar--compact flex-grow-1 mb-0" role="navigation" aria-label="Employee actions">
+                <div class="employees-activity-bar employees-activity-bar--compact employee-mobile-btn-set employee-mobile-btn-set--nav flex-grow-1 mb-0" role="navigation" aria-label="Employee actions">
                     <a class="employees-activity-bar__btn employees-activity-bar__btn--active"
                        th:href="@{/employees/{id}(id=${employee.id}, period=${paymentPeriod})}">
                         <i class="bi bi-wallet2" aria-hidden="true"></i>
@@ -80,6 +80,7 @@
                         <span>Edit</span>
                     </a>
                 </div>
+                <div class="employee-subtoolbar__metrics d-flex flex-wrap gap-2">
                 <div class="stat-card p-2 px-3 employee-subtoolbar__metric flex-shrink-0">
                     <div class="d-flex align-items-center gap-2">
                         <div class="stat-icon indigo employee-subtoolbar__metric-icon" aria-hidden="true">
@@ -103,6 +104,7 @@
                                  th:text="${paymentsPage != null ? paymentsPage.totalElements : 0}">0</div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 

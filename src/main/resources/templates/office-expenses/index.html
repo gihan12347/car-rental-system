@@ -90,120 +90,61 @@
 
 
 
-            <div class="row g-2 g-md-3 mb-3 office-expenses-metrics">
-
-                <div class="col-sm-6">
-
-                    <div class="stat-card p-3 h-100 office-expenses-metric">
-
-                        <div class="d-flex align-items-center gap-3">
-
-                            <div class="stat-icon indigo" aria-hidden="true">
-
+            <div class="employee-tab-toolbar mb-3">
+                <div class="employee-tab-summary d-flex flex-wrap gap-2">
+                    <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="stat-icon indigo employee-subtoolbar__metric-icon" aria-hidden="true">
                                 <i class="bi bi-cash-stack"></i>
-
                             </div>
-
-                            <div class="min-w-0">
-
-                                <div class="stat-label mb-1">Total expenses</div>
-
+                            <div>
+                                <div class="stat-label mb-0">Total expenses</div>
                                 <div class="stat-value stat-value--module mb-0"
-
                                      th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0</div>
-
                             </div>
-
                         </div>
-
                     </div>
-
-                </div>
-
-                <div class="col-sm-6">
-
-                    <div class="stat-card p-3 h-100 office-expenses-metric">
-
-                        <div class="d-flex align-items-center gap-3">
-
-                            <div class="stat-icon emerald" aria-hidden="true">
-
+                    <div class="stat-card p-2 px-3 employee-subtoolbar__metric">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="stat-icon emerald employee-subtoolbar__metric-icon" aria-hidden="true">
                                 <i class="bi bi-receipt"></i>
-
                             </div>
-
-                            <div class="min-w-0">
-
-                                <div class="stat-label mb-1">Records in period</div>
-
+                            <div>
+                                <div class="stat-label mb-0">Records in period</div>
                                 <div class="stat-value stat-value--module mb-0"
-
                                      th:text="${expensesPage != null ? expensesPage.totalElements : 0}">0</div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
+                <form th:action="@{/office-expenses}" method="get" class="employee-tab-toolbar__search" role="search">
+                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                    <input type="hidden" name="page" value="0"/>
+                    <label class="visually-hidden" for="officeExpenseSearchInput">Search office expenses</label>
+                    <div class="app-page-search-bar app-page-search-bar--embedded app-page-search-bar--compact">
+                        <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
+                        <input type="search" id="officeExpenseSearchInput" name="q" class="app-page-search-input"
+                               th:value="${searchQuery}" placeholder="Search category, reference…"
+                               autocomplete="off" enterkeyhint="search"/>
+                        <button type="submit" class="app-page-search-submit" aria-label="Search">
+                            <span class="app-page-search-submit-text">Search</span>
+                            <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
+                        </button>
+                        <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                           th:href="@{/office-expenses(period=${paymentPeriod})}"
+                           class="app-page-search-clear" title="Clear search" aria-label="Clear search">
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </form>
             </div>
 
-
-
-            <section class="app-list-panel" aria-label="Office expense records">
-
-                <div class="app-list-panel__toolbar">
-
+            <section class="app-list-panel mb-0" aria-label="Office expense records">
+                <div class="app-list-panel__toolbar app-list-panel__toolbar--single">
                     <span class="app-period-chip" th:if="${paymentPeriodLabel != null}">
-
                         <i class="bi bi-calendar3" aria-hidden="true"></i>
-
                         <span th:text="${paymentPeriodLabel}">Period</span>
-
                     </span>
-
-                    <form th:action="@{/office-expenses}" method="get" class="app-list-panel__search" role="search">
-
-                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-
-                        <input type="hidden" name="page" value="0"/>
-
-                        <label class="visually-hidden" for="officeExpenseSearchInput">Search office expenses</label>
-
-                        <div class="app-page-search-bar app-page-search-bar--embedded">
-
-                            <span class="app-page-search-leading" aria-hidden="true"><i class="bi bi-search"></i></span>
-
-                            <input type="search" id="officeExpenseSearchInput" name="q" class="app-page-search-input"
-
-                                   th:value="${searchQuery}" placeholder="Search category, reference, notes…"
-
-                                   autocomplete="off" enterkeyhint="search"/>
-
-                            <button type="submit" class="app-page-search-submit" aria-label="Search">
-
-                                <span class="app-page-search-submit-text">Search</span>
-
-                                <i class="bi bi-arrow-right app-page-search-submit-icon" aria-hidden="true"></i>
-
-                            </button>
-
-                            <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
-
-                               th:href="@{/office-expenses(period=${paymentPeriod})}"
-
-                               class="app-page-search-clear" title="Clear search" aria-label="Clear search">
-
-                                <i class="bi bi-x-lg" aria-hidden="true"></i>
-
-                            </a>
-
-                        </div>
-
-                    </form>
-
                 </div>
 
 

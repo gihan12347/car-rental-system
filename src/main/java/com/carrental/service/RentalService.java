@@ -8,6 +8,7 @@ import com.carrental.util.NicNormalizer;
 import com.carrental.repository.RentalRepository;
 import com.carrental.web.SearchQuery;
 import com.carrental.web.dto.AvailableCarOption;
+import com.carrental.web.dto.RentalOverdueAlert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -104,6 +105,22 @@ public class RentalService {
 
     public long countOverdue() {
         return listOverdue().size();
+    }
+
+    public List<RentalOverdueAlert> findOverdueAlerts() {
+        LocalDate today = LocalDate.now();
+        return listOverdue().stream()
+                .map(rental -> toOverdueAlert(rental, today))
+                .collect(Collectors.toList());
+    }
+
+    private static RentalOverdueAlert toOverdueAlert(Rental rental, LocalDate today) {
+        return new RentalOverdueAlert(
+                rental.getId(),
+                rental.getCar().getRegistrationNumber(),
+                rental.getCustomerName(),
+                RentalPeriodHelper.endDate(rental),
+                RentalPeriodHelper.daysOverdue(rental, today));
     }
 
     public Rental getById(Long id) {

@@ -31,6 +31,7 @@ public class SecurityConfig {
                                 "/uploads/cars/**",
                                 "/sw.js",
                                 "/site.webmanifest",
+                                "/favicon.ico",
                                 "/icons/**",
                                 "/error"
                         ).permitAll()

@@ -14,6 +14,7 @@ const root = path.join(__dirname, '..');
 const SOURCE = path.join(__dirname, 'logo-source.png');
 
 const OUT = path.join(root, 'src', 'main', 'resources', 'static', 'icons');
+const ROOT_FAVICON = path.join(root, 'src', 'main', 'resources', 'static', 'favicon.ico');
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
 async function renderSquareIcon(input, size, paddingRatio = 0.12) {
@@ -63,7 +64,8 @@ async function main() {
 
     const ico = await pngToIco([pngBuffers[16], pngBuffers[32], pngBuffers[48]]);
     await fs.promises.writeFile(path.join(OUT, 'favicon.ico'), ico);
-    console.log('Wrote favicon.ico');
+    await fs.promises.writeFile(ROOT_FAVICON, ico);
+    console.log('Wrote favicon.ico (icons/ + site root)');
 }
 
 main().catch((err) => {

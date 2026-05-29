@@ -50,7 +50,11 @@
         <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
            th:classappend="${activeNav == 'overdue'} ? ' active' : ''"
            th:href="@{/rentals/overdue}">
-            <i class="bi bi-alarm"></i><span>Overdue rentals</span>
+            <i class="bi bi-alarm"></i>
+            <span class="flex-grow-1">Overdue rentals</span>
+            <span class="badge rounded-pill text-bg-danger"
+                  th:if="${rentalOverdueCount > 0}"
+                  th:text="${rentalOverdueCount}">0</span>
         </a>
         <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
            th:classappend="${activeNav == 'service-overdue'} ? ' active' : ''"

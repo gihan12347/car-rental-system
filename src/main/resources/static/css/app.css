@@ -1697,6 +1697,121 @@ body.login-page {
   color: #3730a3;
 }
 
+/* Employees — single-row mobile button sets (cards, nav, toolbars) */
+@media (max-width: 767.98px) {
+  .employees-page .employee-mobile-btn-set {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.35rem;
+    padding: 0.35rem;
+    background: #f8fafc;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-lg);
+    box-shadow: var(--app-shadow);
+  }
+
+  .employees-page .employee-mobile-btn-set__cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    margin: 0;
+  }
+
+  .employees-page .employee-mobile-btn-set__btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.45rem 0.2rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+    border-radius: var(--app-radius);
+  }
+
+  .employees-page .employee-mobile-btn-set__btn i {
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+
+  .employees-page .employee-mobile-btn-set__btn.btn-app-primary {
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
+  }
+
+  .employees-page .employee-mobile-btn-set--nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    padding: 0.35rem;
+  }
+
+  .employees-page .employee-mobile-btn-set--nav .employees-activity-bar__btn {
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.55rem 0.35rem;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    text-align: center;
+    min-height: 3.25rem;
+  }
+
+  .employees-page .employee-mobile-toolbar {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.35rem;
+    padding: 0.35rem;
+  }
+
+  .employees-page .employee-mobile-toolbar__period,
+  .employees-page .employee-mobile-toolbar .app-toolbar-card__period {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  .employees-page .employee-mobile-toolbar .app-toolbar-card__period .app-period-form {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .employees-page .employee-mobile-toolbar .app-toolbar-card__period .dashboard-period-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8125rem;
+  }
+
+  .employees-page .employee-mobile-toolbar .btn {
+    width: auto;
+    flex: 0 0 auto;
+    min-height: 2.75rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .employees-page .employee-mobile-toolbar--single .btn,
+  .employees-page .employee-mobile-toolbar.app-toolbar-card--period-only .app-toolbar-card__period {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .employees-page .employee-mobile-toolbar--single .btn {
+    width: 100%;
+  }
+}
+
 .dashboard-chart-card,
 .dashboard-list-card {
   border: 1px solid var(--app-border);
@@ -2967,4 +3082,268 @@ body.login-page {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Employees & office expenses — mobile readability */
+@media (max-width: 767.98px) {
+  .employees-page .app-main,
+  .office-expenses-page .app-main {
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+  }
+
+  .employees-page .app-page-header--toolbar,
+  .office-expenses-page .app-page-header--toolbar {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .employees-page .app-page-header--toolbar h1,
+  .office-expenses-page .app-page-header--toolbar h1 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+
+  .employees-page .app-page-header--toolbar .lead,
+  .office-expenses-page .app-page-header--toolbar .lead {
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .employees-page .app-page-header__actions,
+  .office-expenses-page .app-page-header__actions {
+    width: 100%;
+  }
+
+  .office-expenses-page .app-toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding: 0.75rem;
+    gap: 0.65rem;
+  }
+
+  .office-expenses-page .app-toolbar-card .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 2.75rem;
+  }
+
+  .office-expenses-page .app-toolbar-card__period {
+    width: 100%;
+  }
+
+  .office-expenses-page .app-toolbar-card__period .app-period-form {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .office-expenses-page .app-toolbar-card__period .dashboard-period-select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .employees-page .app-module-tabs,
+  .office-expenses-page .app-module-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem !important;
+    padding-bottom: 0.15rem;
+  }
+
+  .employees-page .app-module-tabs::-webkit-scrollbar,
+  .office-expenses-page .app-module-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .employees-page .app-module-tabs .nav-item,
+  .office-expenses-page .app-module-tabs .nav-item {
+    flex-shrink: 0;
+  }
+
+  .employees-page .app-module-tabs .nav-link,
+  .office-expenses-page .app-module-tabs .nav-link {
+    font-size: 0.8125rem;
+    padding: 0.45rem 0.8rem;
+    white-space: nowrap;
+  }
+
+  .employee-tab-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .employee-tab-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .employee-tab-summary .employee-subtoolbar__metric {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .employee-tab-summary .employee-subtoolbar__metric:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .employee-tab-toolbar__search,
+  .employee-tab-toolbar--search-only .app-page-search {
+    flex: 1 1 100%;
+    max-width: none;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .employee-subtoolbar {
+    gap: 0.65rem;
+  }
+
+  .employee-subtoolbar__metrics {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .employee-subtoolbar__metrics .employee-subtoolbar__metric {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .employees-page .stat-value--module,
+  .office-expenses-page .stat-value--module {
+    font-size: 1.2rem;
+  }
+
+  .employees-page .stat-label,
+  .office-expenses-page .stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+  }
+
+  .employees-page .app-list-panel,
+  .office-expenses-page .app-list-panel {
+    border-radius: var(--app-radius);
+  }
+
+  .employees-page .app-list-panel__toolbar,
+  .office-expenses-page .app-list-panel__toolbar {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .employees-page .app-period-chip,
+  .office-expenses-page .app-period-chip {
+    max-width: 100%;
+    font-size: 0.75rem;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .employees-page .app-record-list,
+  .office-expenses-page .app-record-list {
+    gap: 0.65rem;
+    padding: 0.65rem 0.75rem 0.15rem;
+  }
+
+  .employees-page .app-record-list--panel,
+  .office-expenses-page .app-record-list--panel {
+    padding: 0.65rem 0.75rem 0.15rem;
+  }
+
+  .employees-page .app-record-card,
+  .office-expenses-page .app-record-card {
+    padding: 0.9rem 0.95rem;
+    border-radius: var(--app-radius);
+  }
+
+  .employees-page .app-record-card__title,
+  .office-expenses-page .app-record-card__title {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .employees-page .app-record-card__row,
+  .office-expenses-page .app-record-card__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.45rem 0;
+  }
+
+  .employees-page .app-record-card__row dt,
+  .office-expenses-page .app-record-card__row dt {
+    font-size: 0.68rem;
+  }
+
+  .employees-page .app-record-card__row dd,
+  .office-expenses-page .app-record-card__row dd {
+    text-align: left;
+    width: 100%;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .office-expenses-page .app-record-card__actions {
+    gap: 0.45rem;
+  }
+
+  .office-expenses-page .app-record-card__actions .btn {
+    min-height: 2.75rem;
+    font-size: 0.875rem;
+  }
+
+  .employees-page .app-list-panel__footer,
+  .office-expenses-page .app-list-panel__footer {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .employees-page .app-pagination-wrap,
+  .office-expenses-page .app-pagination-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .employees-page .app-pagination-summary,
+  .office-expenses-page .app-pagination-summary {
+    text-align: center;
+  }
+
+  .employees-page .app-pagination__list,
+  .office-expenses-page .app-pagination__list {
+    justify-content: center;
+  }
+
+  .office-expenses-page .office-expense-category {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 399.98px) {
+  .employees-page .app-module-tabs .nav-link span,
+  .employees-page .employees-activity-bar__btn span:not(.employees-activity-bar__count),
+  .employees-page .employee-mobile-btn-set__btn span {
+    font-size: 0.65rem;
+  }
+
+  .employees-page .employee-mobile-btn-set__btn {
+    min-height: 2.85rem;
+    padding: 0.4rem 0.15rem;
+  }
+
+  .employee-tab-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-subtoolbar__metrics {
+    grid-template-columns: 1fr !important;
+  }
 }

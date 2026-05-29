@@ -39,6 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
                         || uri.startsWith("/js/")
                         || uri.startsWith("/uploads/cars/")
                         || uri.startsWith("/icons/")
+                        || "/favicon.ico".equals(uri)
                         || "/sw.js".equals(uri)
                         || "/site.webmanifest".equals(uri)) {
                     return false;

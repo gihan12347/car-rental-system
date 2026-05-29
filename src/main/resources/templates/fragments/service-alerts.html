@@ -3,34 +3,53 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <div th:fragment="topbarNotifications" sec:authorize="isAuthenticated()">
-    <div class="dropdown app-service-notify" th:if="${serviceOverdueCount > 0}">
+    <div class="dropdown app-service-notify"
+         th:if="${fleetNotificationCount != null and fleetNotificationCount > 0}">
         <button type="button"
                 class="btn btn-outline-soft btn-sm d-inline-flex align-items-center gap-1 app-service-notify__btn"
-                id="serviceOverdueDropdown"
+                id="fleetNotificationsDropdown"
                 data-bs-toggle="dropdown"
                 data-bs-auto-close="outside"
                 aria-expanded="false"
-                aria-label="Service overdue notifications">
+                aria-label="Fleet notifications">
             <i class="bi bi-bell-fill text-warning" aria-hidden="true"></i>
             <span class="badge rounded-pill text-bg-danger app-service-notify__badge"
-                  th:text="${serviceOverdueCount}">0</span>
+                  th:text="${fleetNotificationCount}">0</span>
         </button>
         <div class="dropdown-menu dropdown-menu-end app-service-notify__menu shadow"
-             aria-labelledby="serviceOverdueDropdown">
-            <h6 class="dropdown-header">Service overdue</h6>
-            <div class="app-service-notify__list">
-                <a class="dropdown-item app-service-notify__item"
-                   th:each="alert : ${serviceOverdueAlerts}"
-                   th:href="@{/cars/{id}(id=${alert.carId})}">
-                    <span class="fw-semibold" th:text="${alert.registrationNumber}">—</span>
-                    <span class="d-block small text-muted" th:text="${alert.displayName}"></span>
-                    <span class="d-block small text-danger mt-1"
-                          th:text="|${alert.kmOverdue} km over · odometer ${alert.mileageKm} / due ${alert.nextServiceKm}|"></span>
-                </a>
-            </div>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item small fw-semibold text-center"
-               th:href="@{/cars/service-overdue}">View all</a>
+             aria-labelledby="fleetNotificationsDropdown">
+            <th:block th:if="${rentalOverdueCount > 0}">
+                <h6 class="dropdown-header">Rental overdue</h6>
+                <div class="app-service-notify__list">
+                    <a class="dropdown-item app-service-notify__item"
+                       th:each="alert : ${rentalOverdueAlerts}"
+                       th:href="@{/rentals/{id}/complete(id=${alert.rentalId})}">
+                        <span class="fw-semibold" th:text="${alert.registrationNumber}">—</span>
+                        <span class="d-block small text-muted" th:text="${alert.customerName}"></span>
+                        <span class="d-block small text-danger mt-1"
+                              th:text="|${alert.daysOverdueLabel} · due ${alert.expectedReturnDate}|"></span>
+                    </a>
+                </div>
+                <a class="dropdown-item small fw-semibold text-center"
+                   th:href="@{/rentals/overdue}">View all overdue rentals</a>
+            </th:block>
+            <div class="dropdown-divider"
+                 th:if="${rentalOverdueCount > 0 and serviceOverdueCount > 0}"></div>
+            <th:block th:if="${serviceOverdueCount > 0}">
+                <h6 class="dropdown-header">Service overdue</h6>
+                <div class="app-service-notify__list">
+                    <a class="dropdown-item app-service-notify__item"
+                       th:each="alert : ${serviceOverdueAlerts}"
+                       th:href="@{/cars/{id}(id=${alert.carId})}">
+                        <span class="fw-semibold" th:text="${alert.registrationNumber}">—</span>
+                        <span class="d-block small text-muted" th:text="${alert.displayName}"></span>
+                        <span class="d-block small text-danger mt-1"
+                              th:text="|${alert.kmOverdue} km over · odometer ${alert.mileageKm} / due ${alert.nextServiceKm}|"></span>
+                    </a>
+                </div>
+                <a class="dropdown-item small fw-semibold text-center"
+                   th:href="@{/cars/service-overdue}">View all service overdue</a>
+            </th:block>
         </div>
     </div>
 </div>

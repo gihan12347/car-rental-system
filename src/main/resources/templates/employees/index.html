@@ -22,14 +22,16 @@
                         <p class="lead mb-0 text-muted">Staff records, payments, and vehicle hire activity.</p>
                     </div>
                     <div class="app-page-header__actions" th:if="${tab == 'employees'}">
-                        <a class="btn btn-app-primary d-inline-flex align-items-center gap-2"
-                           th:href="@{/employees/new}">
-                            <i class="bi bi-person-plus" aria-hidden="true"></i>
-                            <span>Add employee</span>
-                        </a>
+                        <div class="app-toolbar-card employee-mobile-toolbar employee-mobile-toolbar--single">
+                            <a class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2"
+                               th:href="@{/employees/new}">
+                                <i class="bi bi-person-plus" aria-hidden="true"></i>
+                                <span>Add employee</span>
+                            </a>
+                        </div>
                     </div>
                     <div class="app-page-header__actions" th:if="${tab == 'payments'}">
-                        <div class="app-toolbar-card">
+                        <div class="app-toolbar-card employee-mobile-toolbar">
                             <div class="app-toolbar-card__period">
                                 <div th:replace="~{fragments/period-filter :: simple(
                                     @{/employees},
@@ -52,7 +54,7 @@
                         </div>
                     </div>
                     <div class="app-page-header__actions" th:if="${tab == 'rentals'}">
-                        <div class="app-toolbar-card app-toolbar-card--period-only">
+                        <div class="app-toolbar-card app-toolbar-card--period-only employee-mobile-toolbar">
                             <div class="app-toolbar-card__period">
                                 <div th:replace="~{fragments/period-filter :: simple(
                                     @{/employees},
