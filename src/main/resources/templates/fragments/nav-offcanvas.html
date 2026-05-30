@@ -22,24 +22,9 @@
                 <i class="bi bi-car-front"></i><span>Fleet</span>
             </a>
             <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
-               th:classappend="${activeNav == 'employees'} ? ' active' : ''"
-               th:href="@{/employees}">
-                <i class="bi bi-people"></i><span>Employees</span>
-            </a>
-            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
-               th:classappend="${activeNav == 'office-expenses'} ? ' active' : ''"
-               th:href="@{/office-expenses}">
-                <i class="bi bi-building"></i><span>Office expenses</span>
-            </a>
-            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
                th:classappend="${activeNav == 'rentals'} ? ' active' : ''"
                th:href="@{/rentals}">
                 <i class="bi bi-calendar3"></i><span>All rentals</span>
-            </a>
-            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
-               th:classappend="${activeNav == 'active'} ? ' active' : ''"
-               th:href="@{/rentals/active}">
-                <i class="bi bi-lightning-charge"></i><span>Active rentals</span>
             </a>
             <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
                th:classappend="${activeNav == 'overdue'} ? ' active' : ''"
@@ -58,6 +43,21 @@
                 <span class="badge rounded-pill text-bg-danger"
                       th:if="${serviceOverdueCount > 0}"
                       th:text="${serviceOverdueCount}">0</span>
+            </a>
+            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+               th:classappend="${activeNav == 'active'} ? ' active' : ''"
+               th:href="@{/rentals/active}">
+                <i class="bi bi-lightning-charge"></i><span>Active rentals</span>
+            </a>
+            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+               th:classappend="${activeNav == 'employees'} ? ' active' : ''"
+               th:href="@{/employees}">
+                <i class="bi bi-people"></i><span>Employees</span>
+            </a>
+            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+               th:classappend="${activeNav == 'office-expenses'} ? ' active' : ''"
+               th:href="@{/office-expenses}">
+                <i class="bi bi-building"></i><span>Office expenses</span>
             </a>
             <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
                th:classappend="${activeNav == 'account'} ? ' active' : ''"

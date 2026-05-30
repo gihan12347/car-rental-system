@@ -37,15 +37,6 @@
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'cars'} ? ' active' : ''" th:href="@{/cars}">
                 <i class="bi bi-car-front" aria-hidden="true"></i><span>Fleet</span>
             </a>
-            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'employees'} ? ' active' : ''" th:href="@{/employees}">
-                <i class="bi bi-people" aria-hidden="true"></i><span>Staff</span>
-            </a>
-            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'office-expenses'} ? ' active' : ''" th:href="@{/office-expenses}">
-                <i class="bi bi-building" aria-hidden="true"></i><span>Expenses</span>
-            </a>
-            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'rentals'} ? ' active' : ''" th:href="@{/rentals}">
-                <i class="bi bi-calendar3" aria-hidden="true"></i><span>Rentals</span>
-            </a>
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'active'} ? ' active' : ''" th:href="@{/rentals/active}">
                 <i class="bi bi-lightning-charge" aria-hidden="true"></i><span>Active</span>
             </a>
@@ -60,6 +51,15 @@
                 <span class="badge rounded-pill text-bg-danger ms-1"
                       th:if="${serviceOverdueCount > 0}"
                       th:text="${serviceOverdueCount}">0</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'rentals'} ? ' active' : ''" th:href="@{/rentals}">
+                <i class="bi bi-calendar3" aria-hidden="true"></i><span>Rentals</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'employees'} ? ' active' : ''" th:href="@{/employees}">
+                <i class="bi bi-people" aria-hidden="true"></i><span>Staff</span>
+            </a>
+            <a class="app-topbar-nav-link" th:classappend="${activeNav == 'office-expenses'} ? ' active' : ''" th:href="@{/office-expenses}">
+                <i class="bi bi-building" aria-hidden="true"></i><span>Expenses</span>
             </a>
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'account'} ? ' active' : ''" th:href="@{/account}">
                 <i class="bi bi-person-gear" aria-hidden="true"></i><span>Account</span>
