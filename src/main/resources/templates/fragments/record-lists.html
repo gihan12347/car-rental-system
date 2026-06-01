@@ -3,7 +3,7 @@
 <body>
 
 <!-- Fleet vehicles -->
-<div th:fragment="carRecordList(cars)"
+<div th:fragment="carRecordList(cars, searchQuery, carDeleteSummaries)"
      class="app-record-list d-xl-none"
      th:if="${cars != null and !cars.isEmpty()}">
     <article class="app-record-card" th:each="c : ${cars}">
@@ -44,15 +44,32 @@
                 <dd th:text="${c.extraPricePerKm}"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions">
-            <a class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2"
+        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Vehicle actions">
+            <a class="btn btn-app-primary employee-mobile-btn-set__btn"
                th:href="@{/cars/{id}(id=${c.id})}">
-                <i class="bi bi-eye"></i> View profile
+                <i class="bi bi-eye" aria-hidden="true"></i><span>View</span>
             </a>
-            <a class="btn btn-outline-soft d-inline-flex align-items-center justify-content-center gap-2"
+            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
                th:href="@{/cars/{id}/edit(id=${c.id})}">
-                <i class="bi bi-pencil"></i> Edit vehicle
+                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
             </a>
+            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
+                <button type="button"
+                        class="btn btn-outline-danger employee-mobile-btn-set__btn w-100"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Delete vehicle"
+                        data-app-confirm-summary="vehicle"
+                        th:attr="data-app-confirm-subject=${c.registrationNumber},
+                                 data-app-confirm-count-rentals=${carDeleteSummaries[c.id].rentalCount},
+                                 data-app-confirm-count-maintenance=${carDeleteSummaries[c.id].maintenanceCount},
+                                 data-app-confirm-action=@{/cars/{id}/delete(id=${c.id})},
+                                 data-app-confirm-param-q=${searchQuery},
+                                 data-app-confirm-loading='Removing vehicle and linked records…'">
+                    <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
+                </button>
+            </span>
         </div>
     </article>
 </div>
@@ -183,13 +200,19 @@
                th:href="@{/employees/{id}/edit(id=${e.id})}">
                 <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
             </a>
-            <form class="employee-mobile-btn-set__cell" th:action="@{/employees/{id}/delete(id=${e.id})}" method="post"
-                  onsubmit="return confirm('Remove this employee and all their payments?');">
-                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                <button type="submit" class="btn btn-outline-danger employee-mobile-btn-set__btn">
+            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
+                <button type="button"
+                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Remove employee"
+                        th:attr="data-app-confirm-message=|'Permanently remove ' + ${e.name} + ' and all payment records linked to this employee. This cannot be undone.'|,
+                                 data-app-confirm-action=@{/employees/{id}/delete(id=${e.id})},
+                                 data-app-confirm-loading='Removing employee…'">
                     <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
                 </button>
-            </form>
+            </span>
         </div>
     </article>
 </div>
@@ -231,16 +254,24 @@
                th:href="@{/employees/payments/{id}/edit(id=${p.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, q=${searchQuery})}">
                 <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
             </a>
-            <form class="employee-mobile-btn-set__cell" th:action="@{/employees/payments/{id}/delete(id=${p.id})}" method="post"
-                  onsubmit="return confirm('Delete this payment record?');">
-                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                <input type="hidden" name="q" th:value="${searchQuery}"/>
-                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
-                <button type="submit" class="btn btn-outline-danger employee-mobile-btn-set__btn">
+            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
+                <button type="button"
+                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Delete payment"
+                        data-app-confirm-message="Delete this payment record? This cannot be undone."
+                        th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
+                                 data-app-confirm-loading='Removing payment…'">
                     <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
                 </button>
-            </form>
+                <template class="app-confirm-extra-fields">
+                    <input type="hidden" name="q" th:value="${searchQuery}"/>
+                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                    <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                </template>
+            </span>
         </div>
     </article>
 </div>
@@ -270,18 +301,26 @@
                th:href="@{/employees/payments/{id}/edit(id=${p.id}, returnEmployeeId=${employee.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, from=${paymentFrom}, to=${paymentTo})}">
                 <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
             </a>
-            <form class="employee-mobile-btn-set__cell" th:action="@{/employees/payments/{id}/delete(id=${p.id})}" method="post"
-                  onsubmit="return confirm('Delete this payment?');">
-                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                <input type="hidden" name="returnEmployeeId" th:value="${employee.id}"/>
-                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
-                <input type="hidden" name="from" th:if="${paymentFrom != null}" th:value="${paymentFrom}"/>
-                <input type="hidden" name="to" th:if="${paymentTo != null}" th:value="${paymentTo}"/>
-                <button type="submit" class="btn btn-outline-danger employee-mobile-btn-set__btn">
+            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
+                <button type="button"
+                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Delete payment"
+                        data-app-confirm-message="Delete this payment record? This cannot be undone."
+                        th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
+                                 data-app-confirm-loading='Removing payment…'">
                     <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
                 </button>
-            </form>
+                <template class="app-confirm-extra-fields">
+                    <input type="hidden" name="returnEmployeeId" th:value="${employee.id}"/>
+                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                    <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                    <input type="hidden" name="from" th:if="${paymentFrom != null}" th:value="${paymentFrom}"/>
+                    <input type="hidden" name="to" th:if="${paymentTo != null}" th:value="${paymentTo}"/>
+                </template>
+            </span>
         </div>
     </article>
 </div>
@@ -321,14 +360,24 @@
                th:href="@{/office-expenses/{id}/edit(id=${e.id}, period=${paymentPeriod}, page=${expensesPage.number}, q=${searchQuery})}">
                 <i class="bi bi-pencil"></i> Edit
             </a>
-            <form th:action="@{/office-expenses/{id}/delete(id=${e.id})}" method="post"
-                  onsubmit="return confirm('Delete this expense record?');">
-                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                <input type="hidden" name="q" th:value="${searchQuery}"/>
-                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                <input type="hidden" name="page" th:value="${expensesPage.number}"/>
-                <button type="submit" class="btn btn-outline-danger w-100">Delete</button>
-            </form>
+            <span class="app-confirm-delete-trigger d-grid">
+                <button type="button"
+                        class="btn btn-outline-danger w-100"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Delete expense"
+                        data-app-confirm-message="Delete this expense record? This cannot be undone."
+                        th:attr="data-app-confirm-action=@{/office-expenses/{id}/delete(id=${e.id})},
+                                 data-app-confirm-loading='Removing expense…'">
+                    Delete
+                </button>
+                <template class="app-confirm-extra-fields">
+                    <input type="hidden" name="q" th:value="${searchQuery}"/>
+                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                    <input type="hidden" name="page" th:value="${expensesPage.number}"/>
+                </template>
+            </span>
         </div>
     </article>
 </div>

@@ -1,29 +1,51 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<form th:fragment="cancelRentalForm(rentalId, variant)"
-      th:action="@{/rentals/{id}/cancel(id=${rentalId})}"
-      method="post"
-      class="rental-cancel-form"
-      onsubmit="return confirm('Cancel this rental? The vehicle will be available again.');">
-    <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-    <button th:if="${variant == 'form'}" type="submit"
-            class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2">
+<span th:fragment="cancelRentalForm(rentalId, variant)" class="app-confirm-delete-trigger rental-cancel-form">
+    <button th:if="${variant == 'form'}" type="button"
+            class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2"
+            data-app-confirm
+            data-bs-toggle="modal"
+            data-bs-target="#appConfirmDeleteModal"
+            data-app-confirm-title="Cancel rental"
+            data-app-confirm-message="Cancel this rental? The vehicle will be available again. This cannot be undone."
+            th:attr="data-app-confirm-action=@{/rentals/{id}/cancel(id=${rentalId})}"
+            data-app-confirm-submit="Cancel rental"
+            data-app-confirm-loading="Cancelling rental…"
+            data-app-confirm-variant="warning">
         <i class="bi bi-x-circle"></i>
         <span>Cancel rental</span>
     </button>
-    <button th:if="${variant == 'card'}" type="submit"
-            class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2">
+    <button th:if="${variant == 'card'}" type="button"
+            class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
+            data-app-confirm
+            data-bs-toggle="modal"
+            data-bs-target="#appConfirmDeleteModal"
+            data-app-confirm-title="Cancel rental"
+            data-app-confirm-message="Cancel this rental? The vehicle will be available again. This cannot be undone."
+            th:attr="data-app-confirm-action=@{/rentals/{id}/cancel(id=${rentalId})}"
+            data-app-confirm-submit="Cancel rental"
+            data-app-confirm-loading="Cancelling rental…"
+            data-app-confirm-variant="warning">
         <i class="bi bi-x-circle"></i>
         <span>Cancel rental</span>
     </button>
-    <button th:if="${variant == 'table'}" type="submit"
+    <button th:if="${variant == 'table'}" type="button"
             class="rental-table-actions__btn rental-table-actions__btn--cancel"
             title="Cancel rental"
-            aria-label="Cancel rental">
+            aria-label="Cancel rental"
+            data-app-confirm
+            data-bs-toggle="modal"
+            data-bs-target="#appConfirmDeleteModal"
+            data-app-confirm-title="Cancel rental"
+            data-app-confirm-message="Cancel this rental? The vehicle will be available again."
+            th:attr="data-app-confirm-action=@{/rentals/{id}/cancel(id=${rentalId})}"
+            data-app-confirm-submit="Cancel rental"
+            data-app-confirm-loading="Cancelling rental…"
+            data-app-confirm-variant="warning">
         <i class="bi bi-x-circle" aria-hidden="true"></i>
         <span class="rental-table-actions__text">Cancel</span>
     </button>
-</form>
+</span>
 </body>
 </html>

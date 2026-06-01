@@ -201,7 +201,9 @@
             });
         </script>
     </th:block>
+    <div th:replace="~{fragments/confirm-delete-modal :: confirmDeleteModalShell}"></div>
     <script th:src="@{/js/app-modals.js}" defer></script>
+    <script th:src="@{/js/app-confirm-modal.js}" defer></script>
     <script th:src="@{/js/hire-period.js}" defer></script>
 </th:block>
 </body>

@@ -217,21 +217,24 @@
 
                                            th:href="@{/office-expenses/{id}/edit(id=${e.id}, period=${paymentPeriod}, page=${expensesPage.number}, q=${searchQuery})}">Edit</a>
 
-                                        <form class="d-inline" th:action="@{/office-expenses/{id}/delete(id=${e.id})}" method="post"
-
-                                              onsubmit="return confirm('Delete this expense record?');">
-
-                                            <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-
-                                            <input type="hidden" name="q" th:value="${searchQuery}"/>
-
-                                            <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-
-                                            <input type="hidden" name="page" th:value="${expensesPage.number}"/>
-
-                                            <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
-
-                                        </form>
+                                        <span class="app-confirm-delete-trigger d-inline">
+                                            <button type="button"
+                                                    class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                                                    data-app-confirm
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#appConfirmDeleteModal"
+                                                    data-app-confirm-title="Delete expense"
+                                                    data-app-confirm-message="Delete this expense record? This cannot be undone."
+                                                    th:attr="data-app-confirm-action=@{/office-expenses/{id}/delete(id=${e.id})},
+                                                             data-app-confirm-loading='Removing expense…'">
+                                                Delete
+                                            </button>
+                                            <template class="app-confirm-extra-fields">
+                                                <input type="hidden" name="q" th:value="${searchQuery}"/>
+                                                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                                                <input type="hidden" name="page" th:value="${expensesPage.number}"/>
+                                            </template>
+                                        </span>
 
                                     </div>
 

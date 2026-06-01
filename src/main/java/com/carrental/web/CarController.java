@@ -31,9 +31,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -64,7 +67,9 @@ public class CarController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String q, Model model) {
-        model.addAttribute("cars", carService.search(q));
+        List<Car> cars = carService.search(q);
+        model.addAttribute("cars", cars);
+        model.addAttribute("carDeleteSummaries", carService.mapDeleteImpactByCarId(cars));
         model.addAttribute("searchQuery", SearchQuery.normalize(q));
         model.addAttribute("activeNav", "cars");
         return "cars/list";
@@ -147,6 +152,8 @@ public class CarController {
         model.addAttribute("rentalHistoryPage", rentalHistoryPage);
         model.addAttribute("maintenanceHistoryPage", maintenanceHistoryPage);
         model.addAttribute("activeNav", "cars");
+        model.addAttribute("carDeleteRentalCount", carService.countRentalsForCar(id));
+        model.addAttribute("carDeleteMaintenanceCount", carService.countMaintenanceForCar(id));
         Map<String, Object> chartPayload = new HashMap<String, Object>();
         chartPayload.put("incomeChart", detail.getIncomeChart());
         chartPayload.put("expenseChart", detail.getExpenseChart());
@@ -308,8 +315,30 @@ public class CarController {
         model.addAttribute("car", carService.getById(id));
         model.addAttribute("statuses", CarStatus.values());
         model.addAttribute("vehicleTypes", com.carrental.model.VehicleType.values());
+        model.addAttribute("carDeleteRentalCount", carService.countRentalsForCar(id));
+        model.addAttribute("carDeleteMaintenanceCount", carService.countMaintenanceForCar(id));
         model.addAttribute("activeNav", "cars");
         return "cars/form";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(
+            @PathVariable Long id,
+            @RequestParam(value = "q", required = false) String q,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String message = carService.deleteWithMappedRecords(id);
+            redirectAttributes.addFlashAttribute("successMessage", message);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Could not delete vehicle: " + e.getMessage());
+        }
+        try {
+            return buildCarsListRedirect(q);
+        } catch (UnsupportedEncodingException e) {
+            return "redirect:/cars";
+        }
     }
 
     @PostMapping("/{id}")
@@ -346,6 +375,13 @@ public class CarController {
         }
         redirectAttributes.addFlashAttribute("successMessage", "Car updated.");
         return "redirect:/cars/" + id;
+    }
+
+    private static String buildCarsListRedirect(String q) throws UnsupportedEncodingException {
+        if (q == null || q.trim().isEmpty()) {
+            return "redirect:/cars";
+        }
+        return "redirect:/cars?q=" + URLEncoder.encode(q.trim(), "UTF-8");
     }
 
     private static String carDetailPaginationRedirect(

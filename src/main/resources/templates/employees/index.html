@@ -149,11 +149,19 @@
                                         </a>
                                         <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
                                            th:href="@{/employees/{id}/edit(id=${e.id})}">Edit</a>
-                                        <form class="d-inline" th:action="@{/employees/{id}/delete(id=${e.id})}" method="post"
-                                              onsubmit="return confirm('Remove this employee and all their payments?');">
-                                            <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                                            <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
-                                        </form>
+                                        <span class="app-confirm-delete-trigger d-inline">
+                                            <button type="button"
+                                                    class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                                                    data-app-confirm
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#appConfirmDeleteModal"
+                                                    data-app-confirm-title="Remove employee"
+                                                    th:attr="data-app-confirm-message=|'Permanently remove ' + ${e.name} + ' and all payment records linked to this employee. This cannot be undone.'|,
+                                                             data-app-confirm-action=@{/employees/{id}/delete(id=${e.id})},
+                                                             data-app-confirm-loading='Removing employee…'">
+                                                Delete
+                                            </button>
+                                        </span>
                                     </div>
                                 </td>
                             </tr>
@@ -335,14 +343,24 @@
                                         <div class="fleet-table-actions">
                                             <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
                                                th:href="@{/employees/payments/{id}/edit(id=${p.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, q=${searchQuery})}">Edit</a>
-                                            <form class="d-inline" th:action="@{/employees/payments/{id}/delete(id=${p.id})}" method="post"
-                                                  onsubmit="return confirm('Delete this payment record?');">
-                                                <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
-                                                <input type="hidden" name="q" th:value="${searchQuery}"/>
-                                                <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                                                <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
-                                                <button type="submit" class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger">Delete</button>
-                                            </form>
+                                            <span class="app-confirm-delete-trigger d-inline">
+                                                <button type="button"
+                                                        class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                                                        data-app-confirm
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#appConfirmDeleteModal"
+                                                        data-app-confirm-title="Delete payment"
+                                                        data-app-confirm-message="Delete this payment record? This cannot be undone."
+                                                        th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
+                                                                 data-app-confirm-loading='Removing payment…'">
+                                                    Delete
+                                                </button>
+                                                <template class="app-confirm-extra-fields">
+                                                    <input type="hidden" name="q" th:value="${searchQuery}"/>
+                                                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                                                    <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                                                </template>
+                                            </span>
                                         </div>
                                     </td>
                                 </tr>

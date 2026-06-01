@@ -24,4 +24,8 @@ public interface MaintenanceRecordRepository extends JpaRepository<MaintenanceRe
             @Param("carId") Long carId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
+
+    long countByCar_Id(Long carId);
+
+    void deleteByCar_Id(Long carId);
 }

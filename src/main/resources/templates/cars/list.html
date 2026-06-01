@@ -30,7 +30,7 @@
 
             <div th:replace="~{fragments/page-search :: pageSearch(@{/cars}, 'Registration, status, mileage…')}"></div>
 
-            <div th:replace="~{fragments/record-lists :: carRecordList(${cars})}"></div>
+            <div th:replace="~{fragments/record-lists :: carRecordList(${cars}, ${searchQuery}, ${carDeleteSummaries})}"></div>
 
             <div class="app-card-table d-none d-xl-block" th:if="${!cars.isEmpty()}">
                 <div class="table-responsive">
@@ -86,6 +86,23 @@
                                         <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                         <span>Edit</span>
                                     </a>
+                                    <button type="button"
+                                            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#appConfirmDeleteModal"
+                                            title="Delete vehicle and linked records"
+                                            data-app-confirm
+                                            data-app-confirm-title="Delete vehicle"
+                                            data-app-confirm-summary="vehicle"
+                                            th:attr="data-app-confirm-subject=${c.registrationNumber},
+                                                     data-app-confirm-count-rentals=${carDeleteSummaries[c.id].rentalCount},
+                                                     data-app-confirm-count-maintenance=${carDeleteSummaries[c.id].maintenanceCount},
+                                                     data-app-confirm-action=@{/cars/{id}/delete(id=${c.id})},
+                                                     data-app-confirm-param-q=${searchQuery},
+                                                     data-app-confirm-loading='Removing vehicle and linked records…'">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span>Delete</span>
+                                    </button>
                                 </div>
                             </td>
                         </tr>

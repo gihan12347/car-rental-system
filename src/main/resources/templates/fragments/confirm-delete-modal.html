@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="confirmDeleteModalShell"
+     class="modal fade app-delete-modal"
+     id="appConfirmDeleteModal"
+     tabindex="-1"
+     aria-labelledby="appConfirmDeleteModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content app-modal border-danger border-opacity-25" id="appConfirmDeleteModalContent">
+            <div class="modal-header app-modal-header border-danger border-opacity-25" id="appConfirmDeleteModalHeader">
+                <h5 class="modal-title text-danger" id="appConfirmDeleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2" id="appConfirmDeleteModalIcon" aria-hidden="true"></i>
+                    <span id="appConfirmDeleteModalTitleText">Confirm</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3" id="appConfirmDeleteModalMessage">Are you sure?</p>
+                <ul class="list-unstyled mb-0 app-delete-summary d-none" id="appConfirmDeleteModalSummaryList"></ul>
+                <ul class="list-unstyled mb-0 app-delete-summary d-none" id="appConfirmDeleteVehicleSummary">
+                    <li class="d-flex align-items-center gap-2 py-2 border-bottom border-opacity-10">
+                        <i class="bi bi-calendar3 text-danger" aria-hidden="true"></i>
+                        <span><strong id="appConfirmDeleteRentalCount">0</strong> rental record(s)</span>
+                    </li>
+                    <li class="d-flex align-items-center gap-2 py-2">
+                        <i class="bi bi-wrench-adjustable text-danger" aria-hidden="true"></i>
+                        <span><strong id="appConfirmDeleteMaintenanceCount">0</strong> maintenance record(s)</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-soft" data-bs-dismiss="modal" id="appConfirmDeleteCancelBtn">Cancel</button>
+                <form id="appConfirmDeleteForm" method="post" action="#" class="mb-0">
+                    <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
+                    <div id="appConfirmDeleteExtraFields"></div>
+                    <button type="submit" class="btn btn-danger d-inline-flex align-items-center gap-2" id="appConfirmDeleteSubmitBtn">
+                        <i class="bi bi-trash" id="appConfirmDeleteSubmitIcon" aria-hidden="true"></i>
+                        <span id="appConfirmDeleteSubmitText">Delete permanently</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

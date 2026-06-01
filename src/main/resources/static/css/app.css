@@ -3642,6 +3642,37 @@ body.app-loading-curtain-open {
   transform: scale(1);
 }
 
+.app-danger-panel {
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--app-radius-lg);
+  border: 1px solid #fecaca;
+  background: linear-gradient(180deg, #fff5f5 0%, #fff 100%);
+}
+
+.app-delete-summary li:last-child {
+  border-bottom: none !important;
+}
+
+.app-delete-modal .modal-content {
+  box-shadow: 0 1rem 2.5rem rgba(185, 28, 28, 0.12);
+}
+
+.app-delete-modal .app-delete-summary {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--app-radius-md);
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+}
+
+.app-delete-modal .modal-content.border-warning .app-delete-summary {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.app-confirm-delete-trigger {
+  display: inline-block;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-loading-curtain__panel,
   .app-loading-curtain__stage,

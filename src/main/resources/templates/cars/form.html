@@ -104,6 +104,32 @@
                     <a class="btn btn-outline-soft" th:href="${car.id != null} ? @{/cars/{id}(id=${car.id})} : @{/cars}">Cancel</a>
                 </div>
             </form>
+
+            <section th:if="${car.id != null}" class="app-danger-panel mt-4" aria-labelledby="deleteCarHeading">
+                <h2 class="h6 text-danger mb-2" id="deleteCarHeading">
+                    <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Delete vehicle
+                </h2>
+                <p class="small text-muted mb-3">
+                    Removes <strong th:text="${car.registrationNumber}">vehicle</strong>,
+                    <strong th:text="${carDeleteRentalCount}">0</strong> rental(s), and
+                    <strong th:text="${carDeleteMaintenanceCount}">0</strong> maintenance record(s).
+                    This cannot be undone.
+                </p>
+                <button type="button"
+                        class="btn btn-outline-danger d-inline-flex align-items-center gap-2"
+                        data-app-confirm
+                        data-bs-toggle="modal"
+                        data-bs-target="#appConfirmDeleteModal"
+                        data-app-confirm-title="Delete vehicle"
+                        data-app-confirm-summary="vehicle"
+                        data-app-confirm-loading="Removing vehicle and linked records…"
+                        th:attr="data-app-confirm-subject=${car.registrationNumber},
+                                 data-app-confirm-count-rentals=${carDeleteRentalCount},
+                                 data-app-confirm-count-maintenance=${carDeleteMaintenanceCount},
+                                 data-app-confirm-action=@{/cars/{id}/delete(id=${car.id})}">
+                    <i class="bi bi-trash" aria-hidden="true"></i> Delete vehicle and linked records
+                </button>
+            </section>
         </main>
     </div>
 </div>

@@ -207,4 +207,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     long countByEmployeeHireTrue();
 
     long countByEmployee_Id(Long employeeId);
+
+    long countByCar_Id(Long carId);
+
+    void deleteByCar_Id(Long carId);
 }

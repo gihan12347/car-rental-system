@@ -73,4 +73,30 @@ public class CarImageStorageService {
         Files.copy(file.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
         return "/uploads/cars/" + filename;
     }
+
+    /**
+     * Removes the stored image file for a vehicle, if the path is under this app's upload directory.
+     */
+    public void deleteIfPresent(String imagePath) {
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            return;
+        }
+        String normalized = imagePath.trim().replace('\\', '/');
+        if (!normalized.startsWith("/uploads/cars/")) {
+            return;
+        }
+        String filename = normalized.substring("/uploads/cars/".length());
+        if (filename.isEmpty() || filename.contains("..")) {
+            return;
+        }
+        try {
+            Path file = uploadRoot.resolve(filename).normalize();
+            if (!file.startsWith(uploadRoot)) {
+                return;
+            }
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            log.warn("Could not delete car image {}: {}", imagePath, e.getMessage());
+        }
+    }
 }
