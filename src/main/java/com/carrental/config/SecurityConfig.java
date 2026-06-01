@@ -33,6 +33,7 @@ public class SecurityConfig {
                                 "/site.webmanifest",
                                 "/favicon.ico",
                                 "/icons/**",
+                                "/media/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated())
