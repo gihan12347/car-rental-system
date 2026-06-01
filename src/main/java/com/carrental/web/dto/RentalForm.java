@@ -1,5 +1,7 @@
 package com.carrental.web.dto;
 
+import com.carrental.model.HireType;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -8,6 +10,9 @@ public class RentalForm {
 
     @NotNull
     private Long carId;
+
+    @NotNull
+    private HireType hireType = HireType.PER_DAY;
 
     @NotNull
     private LocalDate startDate;
@@ -42,6 +47,14 @@ public class RentalForm {
 
     public void setCarId(Long carId) {
         this.carId = carId;
+    }
+
+    public HireType getHireType() {
+        return hireType;
+    }
+
+    public void setHireType(HireType hireType) {
+        this.hireType = hireType;
     }
 
     public LocalDate getStartDate() {

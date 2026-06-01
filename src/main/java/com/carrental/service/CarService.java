@@ -51,7 +51,12 @@ public class CarService {
     }
 
     public Car getById(Long id) {
-        return carRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Car not found: " + id));
+        Car car = carRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Car not found: " + id));
+        if (car.getRentalPricePerDay() != null
+                && (car.getRentalPricePerWeek() == null || car.getRentalPricePerMonth() == null)) {
+            CarPricingHelper.normalizeHirePrices(car);
+        }
+        return car;
     }
 
     @Transactional
@@ -62,6 +67,7 @@ public class CarService {
         if (car.getVehicleType() == null) {
             car.setVehicleType(com.carrental.model.VehicleType.SEDAN);
         }
+        CarPricingHelper.normalizeHirePrices(car);
         return carRepository.save(car);
     }
 

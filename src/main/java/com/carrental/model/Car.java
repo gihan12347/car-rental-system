@@ -57,6 +57,20 @@ public class Car {
 
     @NotNull
     @Min(0)
+    /** Per-day rate when hire type is weekly. */
+    @NotNull
+    @Min(0)
+    @Column(name = "rental_price_per_week", nullable = false, precision = 12, scale = 2)
+    private BigDecimal rentalPricePerWeek;
+
+    /** Per-day rate when hire type is monthly. */
+    @NotNull
+    @Min(0)
+    @Column(name = "rental_price_per_month", nullable = false, precision = 12, scale = 2)
+    private BigDecimal rentalPricePerMonth;
+
+    @NotNull
+    @Min(0)
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal extraPricePerKm;
 
@@ -144,6 +158,22 @@ public class Car {
 
     public void setRentalPricePerDay(BigDecimal rentalPricePerDay) {
         this.rentalPricePerDay = rentalPricePerDay;
+    }
+
+    public BigDecimal getRentalPricePerWeek() {
+        return rentalPricePerWeek;
+    }
+
+    public void setRentalPricePerWeek(BigDecimal rentalPricePerWeek) {
+        this.rentalPricePerWeek = rentalPricePerWeek;
+    }
+
+    public BigDecimal getRentalPricePerMonth() {
+        return rentalPricePerMonth;
+    }
+
+    public void setRentalPricePerMonth(BigDecimal rentalPricePerMonth) {
+        this.rentalPricePerMonth = rentalPricePerMonth;
     }
 
     public BigDecimal getExtraPricePerKm() {

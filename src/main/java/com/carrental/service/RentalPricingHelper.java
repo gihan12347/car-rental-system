@@ -1,6 +1,7 @@
 package com.carrental.service;
 
 import com.carrental.model.Car;
+import com.carrental.model.HireType;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +14,63 @@ public final class RentalPricingHelper {
 
     public static PriceBreakdown calculate(
             Car car,
+            HireType hireType,
+            LocalDate pickupDate,
+            LocalDate returnDate,
+            int returnMileageKm) {
+        return calculateInternal(car, resolveHireType(hireType), pickupDate, returnDate, returnMileageKm);
+    }
+
+    public static PriceBreakdown calculate(
+            Car car,
+            LocalDate pickupDate,
+            LocalDate returnDate,
+            int returnMileageKm) {
+        return calculate(car, HireType.PER_DAY, pickupDate, returnDate, returnMileageKm);
+    }
+
+    /** Employee vehicle hire — records trip details but charges nothing. */
+    public static PriceBreakdown calculateWaived(
+            Car car,
+            HireType hireType,
+            LocalDate pickupDate,
+            LocalDate returnDate,
+            int returnMileageKm) {
+        PriceBreakdown breakdown = calculateInternal(car, resolveHireType(hireType), pickupDate, returnDate, returnMileageKm);
+        return zeroCharges(breakdown);
+    }
+
+    public static PriceBreakdown calculateWaived(
+            Car car,
+            LocalDate pickupDate,
+            LocalDate returnDate,
+            int returnMileageKm) {
+        return calculateWaived(car, HireType.PER_DAY, pickupDate, returnDate, returnMileageKm);
+    }
+
+    /** Per-day rate for this hire type (changes with type; charge is always rate × days). */
+    public static BigDecimal effectiveDailyRate(Car car, HireType hireType) {
+        return CarPricingHelper.dailyRateForHireType(car, resolveHireType(hireType));
+    }
+
+    public static BigDecimal computeDailyCharge(Car car, HireType hireType, int days) {
+        if (days <= 0) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        return effectiveDailyRate(car, hireType)
+                .multiply(BigDecimal.valueOf(days))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public static String dailyChargeFormula(Car car, HireType hireType, int days) {
+        BigDecimal rate = effectiveDailyRate(car, hireType);
+        String dayLabel = days == 1 ? "day" : "days";
+        return rate + " / day × " + days + " " + dayLabel;
+    }
+
+    private static PriceBreakdown calculateInternal(
+            Car car,
+            HireType hireType,
             LocalDate pickupDate,
             LocalDate returnDate,
             int returnMileageKm) {
@@ -38,14 +96,14 @@ public final class RentalPricingHelper {
         int includedKm = freeKmPerDay * days;
         int billableExtraKm = Math.max(0, tripKm - includedKm);
 
-        BigDecimal dailyRate = car.getRentalPricePerDay() != null ? car.getRentalPricePerDay() : BigDecimal.ZERO;
+        BigDecimal dailyRate = effectiveDailyRate(car, hireType);
         BigDecimal kmRate = car.getExtraPricePerKm() != null ? car.getExtraPricePerKm() : BigDecimal.ZERO;
-
-        BigDecimal dailyCharge = dailyRate.multiply(BigDecimal.valueOf(days)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal dailyCharge = computeDailyCharge(car, hireType, days);
         BigDecimal kmCharge = kmRate.multiply(BigDecimal.valueOf(billableExtraKm)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal total = dailyCharge.add(kmCharge).setScale(2, RoundingMode.HALF_UP);
 
         return new PriceBreakdown(
+                hireType,
                 startMileage,
                 returnMileageKm,
                 tripKm,
@@ -60,14 +118,9 @@ public final class RentalPricingHelper {
                 total);
     }
 
-    /** Employee vehicle hire — records trip details but charges nothing. */
-    public static PriceBreakdown calculateWaived(
-            Car car,
-            LocalDate pickupDate,
-            LocalDate returnDate,
-            int returnMileageKm) {
-        PriceBreakdown breakdown = calculate(car, pickupDate, returnDate, returnMileageKm);
+    private static PriceBreakdown zeroCharges(PriceBreakdown breakdown) {
         return new PriceBreakdown(
+                breakdown.getHireType(),
                 breakdown.getStartMileageKm(),
                 breakdown.getReturnMileageKm(),
                 breakdown.getTripKm(),
@@ -82,7 +135,12 @@ public final class RentalPricingHelper {
                 BigDecimal.ZERO);
     }
 
+    private static HireType resolveHireType(HireType hireType) {
+        return hireType != null ? hireType : HireType.PER_DAY;
+    }
+
     public static class PriceBreakdown {
+        private final HireType hireType;
         private final int startMileageKm;
         private final int returnMileageKm;
         private final int tripKm;
@@ -97,6 +155,7 @@ public final class RentalPricingHelper {
         private final BigDecimal total;
 
         public PriceBreakdown(
+                HireType hireType,
                 int startMileageKm,
                 int returnMileageKm,
                 int tripKm,
@@ -109,6 +168,7 @@ public final class RentalPricingHelper {
                 BigDecimal dailyCharge,
                 BigDecimal kmCharge,
                 BigDecimal total) {
+            this.hireType = hireType;
             this.startMileageKm = startMileageKm;
             this.returnMileageKm = returnMileageKm;
             this.tripKm = tripKm;
@@ -121,6 +181,10 @@ public final class RentalPricingHelper {
             this.dailyCharge = dailyCharge;
             this.kmCharge = kmCharge;
             this.total = total;
+        }
+
+        public HireType getHireType() {
+            return hireType;
         }
 
         public int getStartMileageKm() {

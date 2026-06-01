@@ -178,6 +178,44 @@ body.app-body {
 }
 
 /* Fleet table — desktop action buttons */
+/* Fleet list: daily / weekly / monthly per-day hire rates in one cell */
+.fleet-hire-rates__list {
+  min-width: 6.5rem;
+}
+
+.fleet-hire-rates__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  line-height: 1.35;
+  padding: 0.1rem 0;
+}
+
+.fleet-hire-rates__item + .fleet-hire-rates__item {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.fleet-hire-rates__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--bs-secondary-color, #64748b);
+  flex-shrink: 0;
+}
+
+.fleet-hire-rates__value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.app-record-card__row--hire-rates dd {
+  width: 100%;
+}
+
 .fleet-table-actions-col {
   width: 1%;
   white-space: nowrap;

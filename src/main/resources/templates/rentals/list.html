@@ -95,7 +95,11 @@
                                 <span class="badge text-bg-danger"
                                       th:text="|${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today)} ${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today) == 1 ? 'day' : 'days'}|"></span>
                             </td>
-                            <td th:text="${r.numberOfDays}"></td>
+                            <td>
+                                <span th:text="${r.numberOfDays}"></span>
+                                <span class="d-block small text-muted" th:if="${r.hireType != null}"
+                                      th:text="${r.hireType.label}"></span>
+                            </td>
                             <td>
                                 <span class="badge badge-status"
                                       th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${r.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${r.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"

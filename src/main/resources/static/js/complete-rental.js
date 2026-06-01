@@ -65,9 +65,35 @@
         var pickupDate = parseDateInput(form.getAttribute('data-pickup-date'));
         var startMileage = parseNum(form.getAttribute('data-start-mileage'), 0);
         var dailyRate = parseNum(form.getAttribute('data-daily-rate'), 0);
+        var hireType = form.getAttribute('data-hire-type') || 'PER_DAY';
+        var pricePerDay = parseNum(form.getAttribute('data-price-per-day'), 0);
+        var pricePerWeek = parseNum(form.getAttribute('data-price-per-week'), 0);
+        var pricePerMonth = parseNum(form.getAttribute('data-price-per-month'), 0);
         var kmRate = parseNum(form.getAttribute('data-km-rate'), 0);
         var freeKmPerDay = parseNum(form.getAttribute('data-free-km-per-day'), 0);
         var employeeHire = form.getAttribute('data-employee-hire') === 'true';
+
+        function rateForHireType() {
+            if (hireType === 'PER_WEEK') {
+                return pricePerWeek;
+            }
+            if (hireType === 'PER_MONTH') {
+                return pricePerMonth;
+            }
+            return pricePerDay;
+        }
+
+        function computeDailyCharge(days) {
+            if (days <= 0) {
+                return 0;
+            }
+            return rateForHireType() * days;
+        }
+
+        function dailyChargeFormula(days) {
+            var dayLabel = days === 1 ? 'day' : 'days';
+            return formatMoney(rateForHireType()) + ' / day × ' + days + ' ' + dayLabel;
+        }
 
         var returnDateInput = document.getElementById('returnDate');
         var returnMileageInput = document.getElementById('returnMileageKm');
@@ -90,7 +116,7 @@
         }
 
         function formatRatePerDay() {
-            return formatMoney(dailyRate) + ' / day';
+            return formatMoney(rateForHireType()) + ' / day';
         }
 
         function formatRatePerKm() {
@@ -159,7 +185,7 @@
             var freePerDay = Math.max(0, Math.floor(freeKmPerDay));
             var includedKm = freePerDay * days;
             var billableExtraKm = Math.max(0, tripKm - includedKm);
-            var dailyCharge = employeeHire ? 0 : dailyRate * days;
+            var dailyCharge = employeeHire ? 0 : computeDailyCharge(days);
             var kmCharge = employeeHire ? 0 : kmRate * billableExtraKm;
             var total = employeeHire ? 0 : dailyCharge + kmCharge;
             var dayLabel = days === 1 ? 'day' : 'days';
@@ -174,7 +200,7 @@
                 setText('previewDailyFormula', 'Employee hire — waived');
                 setText('previewKmFormula', 'Employee hire — waived');
             } else {
-                setText('previewDailyFormula', formatMoney(dailyRate) + ' × ' + days + ' ' + dayLabel);
+                setText('previewDailyFormula', dailyChargeFormula(days));
                 if (billableExtraKm > 0) {
                     setText('previewKmFormula', formatMoney(kmRate) + ' × ' + billableExtraKm + ' km');
                 } else {

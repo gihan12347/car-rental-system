@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Compact per-day rates for daily / weekly / monthly hire types (single table column or card row). -->
+<div th:fragment="hireRatesDisplay(car)" class="fleet-hire-rates" th:if="${car != null}">
+    <ul class="fleet-hire-rates__list list-unstyled mb-0">
+        <li class="fleet-hire-rates__item">
+            <span class="fleet-hire-rates__label">Daily</span>
+            <span class="fleet-hire-rates__value" th:text="${#numbers.formatDecimal(car.rentalPricePerDay, 1, 'COMMA', 0, 'POINT')}">0</span>
+        </li>
+        <li class="fleet-hire-rates__item">
+            <span class="fleet-hire-rates__label">Weekly</span>
+            <span class="fleet-hire-rates__value" th:text="${#numbers.formatDecimal(car.rentalPricePerWeek, 1, 'COMMA', 0, 'POINT')}">0</span>
+        </li>
+        <li class="fleet-hire-rates__item">
+            <span class="fleet-hire-rates__label">Monthly</span>
+            <span class="fleet-hire-rates__value" th:text="${#numbers.formatDecimal(car.rentalPricePerMonth, 1, 'COMMA', 0, 'POINT')}">0</span>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

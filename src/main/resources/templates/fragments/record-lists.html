@@ -35,9 +35,11 @@
                 <dt>Driver</dt>
                 <dd th:text="${c.withDriver} ? 'Yes' : 'No'"></dd>
             </div>
-            <div class="app-record-card__row">
-                <dt>Per day</dt>
-                <dd th:text="${c.rentalPricePerDay}"></dd>
+            <div class="app-record-card__row app-record-card__row--hire-rates">
+                <dt>Rates / day</dt>
+                <dd>
+                    <div th:replace="~{fragments/fleet-hire-rates :: hireRatesDisplay(${c})}"></div>
+                </dd>
             </div>
             <div class="app-record-card__row">
                 <dt>Extra / km</dt>
@@ -139,6 +141,10 @@
             <div class="app-record-card__row">
                 <dt>Days</dt>
                 <dd th:text="${r.numberOfDays}"></dd>
+            </div>
+            <div class="app-record-card__row" th:if="${r.hireType != null}">
+                <dt>Hire type</dt>
+                <dd th:text="${r.hireType.label}"></dd>
             </div>
         </dl>
         <div class="app-record-card__actions"

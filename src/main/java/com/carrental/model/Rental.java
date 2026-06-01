@@ -35,6 +35,11 @@ public class Rental {
     @Column(nullable = false)
     private Integer numberOfDays;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "hire_type", nullable = false, length = 32)
+    private HireType hireType = HireType.PER_DAY;
+
     @NotBlank
     @Column(nullable = false)
     private String customerName;
@@ -117,6 +122,14 @@ public class Rental {
 
     public void setNumberOfDays(Integer numberOfDays) {
         this.numberOfDays = numberOfDays;
+    }
+
+    public HireType getHireType() {
+        return hireType;
+    }
+
+    public void setHireType(HireType hireType) {
+        this.hireType = hireType;
     }
 
     public String getCustomerName() {

@@ -1,5 +1,6 @@
 package com.carrental.web;
 
+import com.carrental.model.HireType;
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
 import com.carrental.service.BlacklistedCustomerService;
@@ -122,6 +123,7 @@ public class RentalController {
         try {
             Rental created = rentalService.createRental(
                     form.getCarId(),
+                    form.getHireType(),
                     form.getStartDate(),
                     form.getEndDate(),
                     form.getCustomerName(),
@@ -228,7 +230,9 @@ public class RentalController {
         model.addAttribute("rental", rental);
         model.addAttribute("startMileageKm", rental.getCar().getMileageKm());
         model.addAttribute("pickupDate", RentalPeriodHelper.startDate(rental));
-        model.addAttribute("dailyRate", rental.getCar().getRentalPricePerDay());
+        HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
+        model.addAttribute("hireType", hireType);
+        model.addAttribute("dailyRate", RentalPricingHelper.effectiveDailyRate(rental.getCar(), hireType));
         model.addAttribute("kmRate", rental.getCar().getExtraPricePerKm());
         model.addAttribute("freeKmPerDay", rental.getCar().getFreeKmPerDay() != null ? rental.getCar().getFreeKmPerDay() : 0);
         model.addAttribute("customerBlacklisted", blacklistedCustomerService.isBlacklisted(rental.getCustomerIdNumber()));
@@ -245,14 +249,17 @@ public class RentalController {
         }
         try {
             boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
+            HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
             RentalPricingHelper.PriceBreakdown breakdown = employeeHire
                     ? RentalPricingHelper.calculateWaived(
                             rental.getCar(),
+                            hireType,
                             RentalPeriodHelper.startDate(rental),
                             form.getReturnDate(),
                             form.getReturnMileageKm())
                     : RentalPricingHelper.calculate(
                             rental.getCar(),
+                            hireType,
                             RentalPeriodHelper.startDate(rental),
                             form.getReturnDate(),
                             form.getReturnMileageKm());

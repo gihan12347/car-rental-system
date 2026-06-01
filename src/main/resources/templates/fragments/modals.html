@@ -59,10 +59,23 @@
                                     <label class="form-check-label" for="nc-driver">Chauffeur / with driver</label>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="nc-dayprice">Price per day</label>
+                            <div class="col-12">
+                                <p class="small text-muted mb-0">Per-day rate for each hire type (× number of days when charging).</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="nc-dayprice">Per day — daily hire</label>
                                 <input class="form-control" type="number" step="0.01" min="0" id="nc-dayprice" th:field="*{rentalPricePerDay}" required/>
                                 <div class="invalid-feedback d-block small" th:errors="*{rentalPricePerDay}"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="nc-weekprice">Per day — weekly hire</label>
+                                <input class="form-control" type="number" step="0.01" min="0" id="nc-weekprice" th:field="*{rentalPricePerWeek}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{rentalPricePerWeek}"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="nc-monthprice">Per day — monthly hire</label>
+                                <input class="form-control" type="number" step="0.01" min="0" id="nc-monthprice" th:field="*{rentalPricePerMonth}" required/>
+                                <div class="invalid-feedback d-block small" th:errors="*{rentalPricePerMonth}"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold" for="nc-kmprice">Extra per km</label>
@@ -121,6 +134,18 @@
                             </div>
                             <div class="col-12">
                                 <p class="small text-muted mb-0" id="nh-days-hint">Select start and end dates.</p>
+                            </div>
+                            <div class="col-12">
+                                <span class="form-label small fw-semibold d-block">Hire type</span>
+                                <div class="d-flex flex-wrap gap-3" id="nh-hire-type-group">
+                                    <div class="form-check" th:each="ht : ${hireTypes}">
+                                        <input class="form-check-input" type="radio" name="hireType" th:id="${'nh-hire-' + ht.name()}"
+                                               th:value="${ht.name()}"
+                                               th:checked="${hireForm.hireType == ht}"/>
+                                        <label class="form-check-label" th:for="${'nh-hire-' + ht.name()}" th:text="${ht.label}">Type</label>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-0 mt-1" id="nh-rate-hint">Per-day rate for this hire type × number of days (plus extra km if applicable).</p>
                             </div>
                         </div>
                         <div class="mb-3">

@@ -2,6 +2,7 @@ package com.carrental.service;
 
 import com.carrental.model.Car;
 import com.carrental.model.CarStatus;
+import com.carrental.model.HireType;
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
 import com.carrental.util.NicNormalizer;
@@ -142,7 +143,9 @@ public class RentalService {
                         car.getRegistrationNumber(),
                         car.getModelName(),
                         car.getPassengerCount(),
-                        car.getRentalPricePerDay()))
+                        car.getRentalPricePerDay(),
+                        CarPricingHelper.resolveWeekPrice(car),
+                        CarPricingHelper.resolveMonthPrice(car)))
                 .collect(Collectors.toList());
     }
 
@@ -160,6 +163,7 @@ public class RentalService {
     @Transactional
     public Rental createRental(
             Long carId,
+            HireType hireType,
             LocalDate startDate,
             LocalDate endDate,
             String customerName,
@@ -180,6 +184,7 @@ public class RentalService {
         Rental rental = new Rental();
         rental.setCar(car);
         rental.setNumberOfDays(days);
+        rental.setHireType(hireType != null ? hireType : HireType.PER_DAY);
         rental.setCustomerName(customerName);
         rental.setCustomerAddress(customerAddress);
         rental.setCustomerContact(customerContact);
@@ -220,9 +225,10 @@ public class RentalService {
         applyEmployeeHireIfMatched(rental, rental.getCustomerIdNumber());
         boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
 
+        HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
         RentalPricingHelper.PriceBreakdown pricing = employeeHire
-                ? RentalPricingHelper.calculateWaived(car, pickupDate, returnDate, returnMileageKm)
-                : RentalPricingHelper.calculate(car, pickupDate, returnDate, returnMileageKm);
+                ? RentalPricingHelper.calculateWaived(car, hireType, pickupDate, returnDate, returnMileageKm)
+                : RentalPricingHelper.calculate(car, hireType, pickupDate, returnDate, returnMileageKm);
 
         rental.setReturnDate(returnDate);
         rental.setNumberOfDays(pricing.getDays());

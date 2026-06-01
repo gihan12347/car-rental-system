@@ -37,6 +37,44 @@
         return n === 1 ? '1 day' : n + ' days';
     }
 
+    function parseMoney(value) {
+        var n = parseFloat(String(value));
+        return isNaN(n) ? 0 : n;
+    }
+
+    function formatMoney(n) {
+        return n.toFixed(2);
+    }
+
+    function getSelectedHireType(form) {
+        var checked = form.querySelector('input[name="hireType"]:checked');
+        return checked ? checked.value : 'PER_DAY';
+    }
+
+    function dailyRateForHireType(car, hireType) {
+        if (hireType === 'PER_WEEK') {
+            return parseMoney(car.rentalPricePerWeek);
+        }
+        if (hireType === 'PER_MONTH') {
+            return parseMoney(car.rentalPricePerMonth);
+        }
+        return parseMoney(car.rentalPricePerDay);
+    }
+
+    function buildCarLabel(car, hireType) {
+        var name = car.modelName && car.modelName.trim() !== '' ? car.modelName : car.registrationNumber;
+        var rate = dailyRateForHireType(car, hireType);
+        return name + ' · ' + car.registrationNumber + ' · ' + car.passengerCount + ' seats · '
+            + formatMoney(rate) + ' / day';
+    }
+
+    function computeDailyCharge(car, hireType, days) {
+        if (days <= 0) {
+            return 0;
+        }
+        return dailyRateForHireType(car, hireType) * days;
+    }
+
     function initHirePeriodForm() {
         var form = byId('newHireForm');
         if (!form) {
@@ -86,6 +124,9 @@
         var apiUrl = form.getAttribute('data-available-cars-url');
         var preservedCarId = carSelect ? carSelect.getAttribute('data-selected-car-id') : '';
         var loadTimer = null;
+        var carsById = {};
+        var rateHint = byId('nh-rate-hint');
+        var hireTypeGroup = byId('nh-hire-type-group');
 
         function setSubmitEnabled(enabled) {
             if (submitBtn) {
@@ -130,6 +171,43 @@
             refreshSubmit();
         }
 
+        function updateRateHint() {
+            if (!rateHint) {
+                return;
+            }
+            var hireType = getSelectedHireType(form);
+            var days = inclusiveDays(startInput.value, endInput.value);
+            var carId = carSelect ? carSelect.value : '';
+            var car = carId ? carsById[carId] : null;
+            if (!car || days <= 0) {
+                rateHint.textContent = 'Select dates and a vehicle to see the rate for this hire type.';
+                return;
+            }
+            var rate = dailyRateForHireType(car, hireType);
+            var charge = rate * days;
+            rateHint.textContent = formatMoney(rate) + ' / day × ' + days + ' day'
+                + (days === 1 ? '' : 's') + ' = ' + formatMoney(charge)
+                + ' time charge (excl. extra km).';
+        }
+
+        function refreshCarOptions() {
+            var hireType = getSelectedHireType(form);
+            if (!carSelect) {
+                return;
+            }
+            var current = carSelect.value;
+            Array.prototype.forEach.call(carSelect.options, function (opt) {
+                if (!opt.value) {
+                    return;
+                }
+                var car = carsById[opt.value];
+                if (car) {
+                    opt.textContent = buildCarLabel(car, hireType);
+                }
+            });
+            updateRateHint();
+        }
+
         function showCars(cars) {
             if (pickDatesMsg) {
                 pickDatesMsg.classList.add('d-none');
@@ -140,16 +218,19 @@
             if (!carSelect) {
                 return;
             }
+            carsById = {};
             carSelect.innerHTML = '';
             var placeholder = document.createElement('option');
             placeholder.value = '';
             placeholder.textContent = 'Choose a vehicle…';
             carSelect.appendChild(placeholder);
 
+            var hireType = getSelectedHireType(form);
             cars.forEach(function (car) {
+                carsById[String(car.id)] = car;
                 var opt = document.createElement('option');
                 opt.value = String(car.id);
-                opt.textContent = car.label;
+                opt.textContent = buildCarLabel(car, hireType);
                 carSelect.appendChild(opt);
             });
 
@@ -162,6 +243,7 @@
             if (carWrap) {
                 carWrap.classList.remove('d-none');
             }
+            refreshCarOptions();
             refreshSubmit();
         }
 
@@ -180,6 +262,7 @@
                 daysHint.textContent = 'Select start and end dates.';
                 daysHint.classList.remove('text-danger');
             }
+            updateRateHint();
         }
 
         function loadCars() {
@@ -232,7 +315,16 @@
         endInput.addEventListener('input', scheduleLoad);
 
         if (carSelect) {
-            carSelect.addEventListener('change', refreshSubmit);
+            carSelect.addEventListener('change', function () {
+                refreshSubmit();
+                updateRateHint();
+            });
+        }
+        if (hireTypeGroup) {
+            hireTypeGroup.addEventListener('change', function () {
+                refreshCarOptions();
+                refreshSubmit();
+            });
         }
         [nameInput, idInput, addressInput, contactInput, travelInput].forEach(function (input) {
             if (input) {
