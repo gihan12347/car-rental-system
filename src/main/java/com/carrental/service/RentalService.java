@@ -208,7 +208,9 @@ public class RentalService {
             Integer returnMileageKm,
             boolean documentReturned,
             boolean blacklistCustomer,
-            String blacklistReason) {
+            String blacklistReason,
+            BigDecimal discount,
+            String completionComment) {
         Rental rental = getByIdWithCar(rentalId);
         if (rental.getRentalStatus() != RentalStatus.ACTIVE) {
             throw new IllegalStateException("Rental is already completed.");
@@ -230,10 +232,18 @@ public class RentalService {
                 ? RentalPricingHelper.calculateWaived(car, hireType, pickupDate, returnDate, returnMileageKm)
                 : RentalPricingHelper.calculate(car, hireType, pickupDate, returnDate, returnMileageKm);
 
+        BigDecimal discountAmount = normalizeCompletionDiscount(discount);
+        BigDecimal subtotal = pricing.getTotal();
+        if (discountAmount.compareTo(subtotal) > 0) {
+            throw new IllegalArgumentException("Discount cannot exceed the calculated total of " + subtotal + ".");
+        }
+
         rental.setReturnDate(returnDate);
         rental.setNumberOfDays(pricing.getDays());
         rental.setExtraKm(BigDecimal.valueOf(pricing.getBillableExtraKm()));
-        rental.setTotalPrice(pricing.getTotal());
+        rental.setCompletionDiscount(discountAmount);
+        rental.setCompletionComment(normalizeCompletionComment(completionComment));
+        rental.setTotalPrice(subtotal.subtract(discountAmount));
         rental.setDocumentReturned(documentReturned);
         rental.setRentalStatus(RentalStatus.COMPLETED);
         rental.setCompletedDate(LocalDate.now());
@@ -307,5 +317,20 @@ public class RentalService {
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException("End date must be on or after the start date.");
         }
+    }
+
+    public static BigDecimal normalizeCompletionDiscount(BigDecimal discount) {
+        if (discount == null || discount.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return discount;
+    }
+
+    private static String normalizeCompletionComment(String completionComment) {
+        if (completionComment == null) {
+            return null;
+        }
+        String trimmed = completionComment.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

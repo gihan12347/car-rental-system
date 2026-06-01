@@ -97,6 +97,7 @@
 
         var returnDateInput = document.getElementById('returnDate');
         var returnMileageInput = document.getElementById('returnMileageKm');
+        var discountInput = document.getElementById('discount');
         var submitBtn = document.getElementById('completeSubmitBtn');
 
         if (!returnDateInput || !returnMileageInput) {
@@ -129,6 +130,50 @@
             setText('previewFreeKmPerDay', Math.max(0, Math.floor(freeKmPerDay)) + ' km / day');
         }
 
+        function parseDiscount() {
+            if (!discountInput || employeeHire) {
+                return 0;
+            }
+            var raw = discountInput.value.trim();
+            if (raw === '') {
+                return 0;
+            }
+            var amount = parseNum(discountInput.value, 0);
+            return amount < 0 ? 0 : amount;
+        }
+
+        function applyDiscountToTotal(subtotal) {
+            var discount = parseDiscount();
+            if (discount > subtotal) {
+                discount = subtotal;
+            }
+            return {
+                subtotal: subtotal,
+                discount: discount,
+                total: subtotal - discount
+            };
+        }
+
+        function updateDiscountRow(subtotal, discount, finalTotal) {
+            var discountRow = document.getElementById('previewDiscountRow');
+            if (!discountRow) {
+                return;
+            }
+            if (discount > 0) {
+                discountRow.classList.remove('d-none');
+                setText('previewDiscountAmount', '−' + formatMoney(discount));
+            } else {
+                discountRow.classList.add('d-none');
+                setText('previewDiscountAmount', '—');
+            }
+            setText('previewSubtotal', formatMoney(subtotal));
+            setText('previewTotal', formatMoney(finalTotal));
+            var badge = document.getElementById('previewTotalBadge');
+            if (badge) {
+                badge.textContent = 'Total: ' + formatMoney(finalTotal);
+            }
+        }
+
         function clearPreview(message) {
             setText('previewPeriod', '—');
             setText('previewStartMileage', startMileage + ' km');
@@ -142,6 +187,12 @@
             setText('previewKmFormula', '');
             setText('previewDailyCharge', '—');
             setText('previewKmCharge', '—');
+            setText('previewSubtotal', '—');
+            var discountRow = document.getElementById('previewDiscountRow');
+            if (discountRow) {
+                discountRow.classList.add('d-none');
+            }
+            setText('previewDiscountAmount', '—');
             setText('previewTotal', '—');
             var badge = document.getElementById('previewTotalBadge');
             if (badge) {
@@ -187,7 +238,8 @@
             var billableExtraKm = Math.max(0, tripKm - includedKm);
             var dailyCharge = employeeHire ? 0 : computeDailyCharge(days);
             var kmCharge = employeeHire ? 0 : kmRate * billableExtraKm;
-            var total = employeeHire ? 0 : dailyCharge + kmCharge;
+            var subtotal = employeeHire ? 0 : dailyCharge + kmCharge;
+            var priced = applyDiscountToTotal(subtotal);
             var dayLabel = days === 1 ? 'day' : 'days';
 
             setText('previewPeriod', formatDateLabel(pickupDate) + ' → ' + formatDateLabel(returnDate) + ' (' + days + ' ' + dayLabel + ')');
@@ -209,12 +261,8 @@
             }
             setText('previewDailyCharge', formatMoney(dailyCharge));
             setText('previewKmCharge', formatMoney(kmCharge));
-            setText('previewTotal', formatMoney(total));
+            updateDiscountRow(priced.subtotal, priced.discount, priced.total);
 
-            var badge = document.getElementById('previewTotalBadge');
-            if (badge) {
-                badge.textContent = 'Total: ' + formatMoney(total);
-            }
             setText('previewHint', employeeHire
                 ? 'Employee vehicle hire — total charge will be 0.00.'
                 : 'This total will be saved when you complete the rental.');
@@ -225,6 +273,10 @@
         returnDateInput.addEventListener('input', updatePreview);
         returnMileageInput.addEventListener('change', updatePreview);
         returnMileageInput.addEventListener('input', updatePreview);
+        if (discountInput) {
+            discountInput.addEventListener('change', updatePreview);
+            discountInput.addEventListener('input', updatePreview);
+        }
         setStaticRates();
         updatePreview();
         updateSubmitState();

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -191,7 +192,9 @@ public class RentalController {
                     form.getReturnMileageKm(),
                     Boolean.TRUE.equals(form.getDocumentReturned()),
                     blacklist,
-                    form.getBlacklistReason());
+                    form.getBlacklistReason(),
+                    form.getDiscount(),
+                    form.getCompletionComment());
             String chargeNote = Boolean.TRUE.equals(completed.getEmployeeHire())
                     ? "Total charged: 0.00 (employee hire)."
                     : "Total charged: " + completed.getTotalPrice() + ".";
@@ -264,6 +267,12 @@ public class RentalController {
                             form.getReturnDate(),
                             form.getReturnMileageKm());
             model.addAttribute("priceBreakdown", breakdown);
+            BigDecimal discount = RentalService.normalizeCompletionDiscount(form.getDiscount());
+            if (discount.compareTo(breakdown.getTotal()) > 0) {
+                discount = breakdown.getTotal();
+            }
+            model.addAttribute("previewDiscount", discount);
+            model.addAttribute("previewFinalTotal", breakdown.getTotal().subtract(discount));
         } catch (IllegalArgumentException ignored) {
             // Preview hidden until inputs are valid
         }

@@ -4,6 +4,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class CompleteRentalForm {
@@ -23,6 +25,12 @@ public class CompleteRentalForm {
     private Boolean blacklistCustomer = Boolean.FALSE;
 
     private String blacklistReason;
+
+    @Min(value = 0, message = "Discount must be zero or positive.")
+    private BigDecimal discount = BigDecimal.ZERO;
+
+    @Size(max = 1000, message = "Comment must be at most 1000 characters.")
+    private String completionComment;
 
     public Long getRentalId() {
         return rentalId;
@@ -70,5 +78,21 @@ public class CompleteRentalForm {
 
     public void setBlacklistReason(String blacklistReason) {
         this.blacklistReason = blacklistReason;
+    }
+
+    public BigDecimal getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(BigDecimal discount) {
+        this.discount = discount;
+    }
+
+    public String getCompletionComment() {
+        return completionComment;
+    }
+
+    public void setCompletionComment(String completionComment) {
+        this.completionComment = completionComment;
     }
 }

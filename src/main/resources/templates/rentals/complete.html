@@ -110,12 +110,30 @@
                     </p>
                 </fieldset>
 
+                <div class="row g-3 mb-4" th:unless="${employeeHire}">
+                    <div class="col-md-6">
+                        <label class="form-label" for="discount">Discount <span class="text-muted fw-normal">(optional)</span></label>
+                        <div class="input-group">
+                            <input class="form-control" type="number" id="discount" min="0" step="0.01"
+                                   th:field="*{discount}" placeholder="0.00"/>
+                        </div>
+                        <div class="form-text">Subtracted from the calculated subtotal. Defaults to 0.</div>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('discount')}" th:errors="*{discount}"></div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="completionComment">Comment <span class="text-muted fw-normal">(optional)</span></label>
+                        <textarea class="form-control" id="completionComment" rows="2" th:field="*{completionComment}"
+                                  placeholder="e.g. Loyalty discount, agreed adjustment…"></textarea>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('completionComment')}" th:errors="*{completionComment}"></div>
+                    </div>
+                </div>
+
                 <div class="complete-price-breakdown border rounded-3 p-3 p-md-4 mb-4" id="pricePreview" aria-live="polite">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                         <h2 class="h6 mb-0 fw-bold">Price breakdown</h2>
                         <span class="badge bg-light text-primary border" id="previewTotalBadge"
                               th:if="${priceBreakdown != null}"
-                              th:text="|Total: ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')}|">Total</span>
+                              th:text="|Total: ${#numbers.formatDecimal(previewFinalTotal != null ? previewFinalTotal : priceBreakdown.total, 1, 'COMMA', 2, 'POINT')}|">Total</span>
                     </div>
 
                     <dl class="complete-price-breakdown__list mb-0">
@@ -186,10 +204,19 @@
                             <dd id="previewKmCharge" class="mb-0"
                                 th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.kmCharge, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
                         </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--subtotal">
+                            <dt>Subtotal (before discount)</dt>
+                            <dd id="previewSubtotal" class="mb-0"
+                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--discount d-none" id="previewDiscountRow">
+                            <dt>Discount</dt>
+                            <dd id="previewDiscountAmount" class="mb-0 text-success">—</dd>
+                        </div>
                         <div class="complete-price-breakdown__row complete-price-breakdown__row--total">
                             <dt class="fw-bold">Total charge</dt>
                             <dd id="previewTotal" class="mb-0 fw-bold"
-                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                                th:text="${previewFinalTotal != null} ? ${#numbers.formatDecimal(previewFinalTotal, 1, 'COMMA', 2, 'POINT')} : (${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')} : '—')">—</dd>
                         </div>
                     </dl>
                     <p class="small text-muted mb-0 mt-3" id="previewHint"

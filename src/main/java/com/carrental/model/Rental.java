@@ -90,6 +90,13 @@ public class Rental {
     @Column(precision = 12, scale = 2)
     private BigDecimal totalPrice;
 
+    @Min(0)
+    @Column(name = "completion_discount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal completionDiscount = BigDecimal.ZERO;
+
+    @Column(name = "completion_comment", length = 1000)
+    private String completionComment;
+
     @Column(nullable = false)
     private Boolean documentReturned = Boolean.FALSE;
 
@@ -234,6 +241,22 @@ public class Rental {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public BigDecimal getCompletionDiscount() {
+        return completionDiscount;
+    }
+
+    public void setCompletionDiscount(BigDecimal completionDiscount) {
+        this.completionDiscount = completionDiscount;
+    }
+
+    public String getCompletionComment() {
+        return completionComment;
+    }
+
+    public void setCompletionComment(String completionComment) {
+        this.completionComment = completionComment;
     }
 
     public Boolean getDocumentReturned() {
