@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Sign in'">
 <head th:replace="~{fragments/head :: commonHead}"></head>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        var dashboardUrl = /*[[@{/dashboard}]]*/ '/dashboard';
+        var statusUrl = /*[[@{/api/auth/status}]]*/ '/api/auth/status';
+        function check() {
+            fetch(statusUrl, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : { authenticated: false }; })
+                .then(function (data) {
+                    if (data && data.authenticated) {
+                        sessionStorage.setItem('fleetDeskActiveSession', '1');
+                        window.location.replace(dashboardUrl);
+                    }
+                })
+                .catch(function () { /* ignore */ });
+        }
+        check();
+        window.addEventListener('pageshow', check);
+    })();
+    /*]]>*/
+</script>
 <body class="login-page">
 <div class="login-shell min-vh-100">
     <div class="login-bg" aria-hidden="true"

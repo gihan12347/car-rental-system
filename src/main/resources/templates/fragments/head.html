@@ -4,6 +4,9 @@
 <head th:fragment="commonHead">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta name="fleetdesk-dashboard-url" th:content="@{/dashboard}"/>
+    <meta name="fleetdesk-login-url" th:content="@{/login}"/>
+    <meta name="fleetdesk-auth-status-url" th:content="@{/api/auth/status}"/>
     <!-- PWA / install as standalone app from Chrome; icons match desktop taskbar -->
     <link rel="manifest" th:href="@{/site.webmanifest}"/>
     <link rel="icon" th:href="@{/favicon.ico}" sizes="any"/>
@@ -36,6 +39,7 @@
         /*]]>*/
     </script>
     <script th:src="@{/js/loading-curtain.js}" defer=""></script>
+    <script th:src="@{/js/auth-session-guard.js}" defer=""></script>
     <script th:inline="javascript" defer="">
         /*<![CDATA[*/
         (function () {
