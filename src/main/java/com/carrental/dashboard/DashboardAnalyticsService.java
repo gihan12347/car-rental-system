@@ -238,7 +238,8 @@ public class DashboardAnalyticsService {
     private long countBookingsInPeriod(List<Rental> rentals, DateRange range) {
         long total = 0;
         for (Rental rental : rentals) {
-            if (range.contains(rental.getHireDate())) {
+            if (range.contains(rental.getHireDate())
+                    && rental.getRentalStatus() != RentalStatus.CANCELLED) {
                 total++;
             }
         }
