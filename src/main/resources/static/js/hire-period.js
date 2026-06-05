@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    var MINUTES_PER_DAY = 24 * 60;
+
     function byId(id) {
         return document.getElementById(id);
     }
@@ -23,18 +25,55 @@
         return dt;
     }
 
-    function inclusiveDays(startVal, endVal) {
-        var start = parseDate(startVal);
-        var end = parseDate(endVal);
-        if (!start || !end || end < start) {
-            return 0;
+    function parseTimeInput(value) {
+        if (!value) {
+            return null;
         }
-        var ms = end.getTime() - start.getTime();
-        return Math.floor(ms / 86400000) + 1;
+        var parts = value.split(':');
+        if (parts.length < 2) {
+            return null;
+        }
+        return {
+            h: parseInt(parts[0], 10),
+            m: parseInt(parts[1], 10)
+        };
     }
 
-    function formatDays(n) {
-        return n === 1 ? '1 day' : n + ' days';
+    function combineDateTime(dateVal, timeVal) {
+        var date = parseDate(dateVal);
+        var time = parseTimeInput(timeVal);
+        if (!date || !time || isNaN(time.h) || isNaN(time.m)) {
+            return null;
+        }
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.h, time.m, 0, 0);
+    }
+
+    function split24h(startDt, endDt) {
+        if (!startDt || !endDt || endDt <= startDt) {
+            return null;
+        }
+        var totalMinutes = Math.floor((endDt.getTime() - startDt.getTime()) / 60000);
+        var fullDays = Math.floor(totalMinutes / MINUTES_PER_DAY);
+        var remainderMinutes = totalMinutes % MINUTES_PER_DAY;
+        var extraHours = Math.round(remainderMinutes / 60 * 100) / 100;
+        return { fullDays: fullDays, extraHours: extraHours, totalMinutes: totalMinutes };
+    }
+
+    function formatDuration(duration) {
+        if (!duration) {
+            return '—';
+        }
+        var parts = [];
+        if (duration.fullDays > 0) {
+            parts.push(duration.fullDays + (duration.fullDays === 1 ? ' day' : ' days'));
+        }
+        if (duration.extraHours > 0) {
+            parts.push(duration.extraHours + ' hr');
+        }
+        if (parts.length === 0) {
+            return 'under 1 hour';
+        }
+        return parts.join(' + ');
     }
 
     function parseMoney(value) {
@@ -75,6 +114,13 @@
         return dailyRateForHireType(car, hireType) * days;
     }
 
+    function computeHourCharge(car, extraHours) {
+        if (extraHours <= 0) {
+            return 0;
+        }
+        return parseMoney(car.extraPricePerHour) * extraHours;
+    }
+
     function initHirePeriodForm() {
         var form = byId('newHireForm');
         if (!form) {
@@ -82,7 +128,9 @@
         }
 
         var startInput = byId('nh-start');
+        var startTimeInput = byId('nh-start-time');
         var endInput = byId('nh-end');
+        var endTimeInput = byId('nh-end-time');
         var carSelect = byId('nh-car');
         var carWrap = byId('nh-car-wrap');
         var emptyMsg = byId('nh-no-cars');
@@ -97,8 +145,14 @@
         var contactInput = byId('nh-contact');
         var travelInput = byId('nh-travel');
 
-        if (!startInput || !endInput) {
+        if (!startInput || !endInput || !startTimeInput || !endTimeInput) {
             return;
+        }
+
+        function currentDuration() {
+            var start = combineDateTime(startInput.value, startTimeInput.value);
+            var end = combineDateTime(endInput.value, endTimeInput.value);
+            return split24h(start, end);
         }
 
         function isCustomerComplete() {
@@ -110,8 +164,7 @@
         }
 
         function isHireReady() {
-            var days = inclusiveDays(startInput.value, endInput.value);
-            return days > 0
+            return currentDuration() !== null
                 && carSelect && carSelect.value !== ''
                 && !carSelect.disabled
                 && isCustomerComplete();
@@ -176,18 +229,19 @@
                 return;
             }
             var hireType = getSelectedHireType(form);
-            var days = inclusiveDays(startInput.value, endInput.value);
+            var duration = currentDuration();
             var carId = carSelect ? carSelect.value : '';
             var car = carId ? carsById[carId] : null;
-            if (!car || days <= 0) {
-                rateHint.textContent = 'Select dates and a vehicle to see the rate for this hire type.';
+            if (!car || !duration) {
+                rateHint.textContent = 'Select date/time and a vehicle to see the estimated time charge.';
                 return;
             }
-            var rate = dailyRateForHireType(car, hireType);
-            var charge = rate * days;
-            rateHint.textContent = formatMoney(rate) + ' / day × ' + days + ' day'
-                + (days === 1 ? '' : 's') + ' = ' + formatMoney(charge)
-                + ' time charge (excl. extra km).';
+            var dailyCharge = computeDailyCharge(car, hireType, duration.fullDays);
+            var hourCharge = computeHourCharge(car, duration.extraHours);
+            var total = dailyCharge + hourCharge;
+            var detail = formatDuration(duration);
+            rateHint.textContent = formatMoney(dailyCharge) + ' (days) + ' + formatMoney(hourCharge)
+                + ' (extra hr) = ' + formatMoney(total) + ' for ' + detail + ' (excl. extra km).';
         }
 
         function refreshCarOptions() {
@@ -195,7 +249,6 @@
             if (!carSelect) {
                 return;
             }
-            var current = carSelect.value;
             Array.prototype.forEach.call(carSelect.options, function (opt) {
                 if (!opt.value) {
                     return;
@@ -251,15 +304,16 @@
             if (!daysHint) {
                 return;
             }
-            var days = inclusiveDays(startInput.value, endInput.value);
-            if (days > 0) {
-                daysHint.textContent = formatDays(days);
+            var duration = currentDuration();
+            if (duration) {
+                daysHint.textContent = 'Duration: ' + formatDuration(duration)
+                    + ' (each billing day = 24 hours from pickup).';
                 daysHint.classList.remove('text-danger');
-            } else if (startInput.value && endInput.value) {
-                daysHint.textContent = 'End date must be on or after start date.';
+            } else if (startInput.value && endInput.value && startTimeInput.value && endTimeInput.value) {
+                daysHint.textContent = 'End date/time must be after the start date/time.';
                 daysHint.classList.add('text-danger');
             } else {
-                daysHint.textContent = 'Select start and end dates.';
+                daysHint.textContent = 'Select start and end date/time. Each billing day is 24 hours from pickup.';
                 daysHint.classList.remove('text-danger');
             }
             updateRateHint();
@@ -270,8 +324,8 @@
             refreshSubmit();
             var start = startInput.value;
             var end = endInput.value;
-            var days = inclusiveDays(start, end);
-            if (!apiUrl || days <= 0) {
+            var duration = currentDuration();
+            if (!apiUrl || !duration) {
                 showPickDates();
                 return;
             }
@@ -309,10 +363,10 @@
             loadTimer = setTimeout(loadCars, 200);
         }
 
-        startInput.addEventListener('change', scheduleLoad);
-        endInput.addEventListener('change', scheduleLoad);
-        startInput.addEventListener('input', scheduleLoad);
-        endInput.addEventListener('input', scheduleLoad);
+        [startInput, endInput, startTimeInput, endTimeInput].forEach(function (input) {
+            input.addEventListener('change', scheduleLoad);
+            input.addEventListener('input', scheduleLoad);
+        });
 
         if (carSelect) {
             carSelect.addEventListener('change', function () {

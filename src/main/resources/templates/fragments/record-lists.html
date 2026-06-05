@@ -31,10 +31,6 @@
                 <dt>Passengers</dt>
                 <dd th:text="${c.passengerCount}"></dd>
             </div>
-            <div class="app-record-card__row">
-                <dt>Driver</dt>
-                <dd th:text="${c.withDriver} ? 'Yes' : 'No'"></dd>
-            </div>
             <div class="app-record-card__row app-record-card__row--hire-rates">
                 <dt>Rates / day</dt>
                 <dd>
@@ -45,22 +41,31 @@
                 <dt>Extra / km</dt>
                 <dd th:text="${c.extraPricePerKm}"></dd>
             </div>
+            <div class="app-record-card__row">
+                <dt>Extra / hr</dt>
+                <dd th:text="${c.extraPricePerHour}"></dd>
+            </div>
         </dl>
-        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Vehicle actions">
-            <a class="btn btn-app-primary employee-mobile-btn-set__btn"
-               th:href="@{/cars/{id}(id=${c.id})}">
-                <i class="bi bi-eye" aria-hidden="true"></i><span>View</span>
-            </a>
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/cars/{id}/edit(id=${c.id})}">
-                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
-            </a>
-            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Vehicle actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                   th:href="@{/cars/{id}(id=${c.id})}"
+                   title="View profile">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span>View</span>
+                </a>
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/cars/{id}/edit(id=${c.id})}"
+                   title="Edit vehicle">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </a>
                 <button type="button"
-                        class="btn btn-outline-danger employee-mobile-btn-set__btn w-100"
-                        data-app-confirm
+                        class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
                         data-bs-toggle="modal"
                         data-bs-target="#appConfirmDeleteModal"
+                        title="Delete vehicle"
+                        data-app-confirm
                         data-app-confirm-title="Delete vehicle"
                         data-app-confirm-summary="vehicle"
                         th:attr="data-app-confirm-subject=${c.registrationNumber},
@@ -69,9 +74,10 @@
                                  data-app-confirm-action=@{/cars/{id}/delete(id=${c.id})},
                                  data-app-confirm-param-q=${searchQuery},
                                  data-app-confirm-loading='Removing vehicle and linked records…'">
-                    <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                    <span>Delete</span>
                 </button>
-            </span>
+            </div>
         </div>
     </article>
 </div>
@@ -83,47 +89,30 @@
     <article class="app-record-card"
              th:each="r : ${rentals}"
              th:classappend="${listMode == 'overdue'} ? ' app-record-card--overdue' : ''">
-        <div class="app-record-card__header">
-            <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
-                 class="car-avatar car-avatar--md flex-shrink-0"
-                 th:src="${r.car.imagePath}" alt=""/>
-            <span th:if="${r.car.imagePath == null or r.car.imagePath.isEmpty()}"
-                  class="car-avatar car-avatar--md car-avatar--placeholder flex-shrink-0">
-                <i class="bi bi-image"></i>
-            </span>
-            <div class="min-w-0 flex-grow-1">
-                <h3 class="app-record-card__title mb-1" th:text="${r.car.registrationNumber}">—</h3>
-                <div class="app-record-card__badges">
-                    <span class="badge badge-status"
-                          th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${r.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${r.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"
-                          th:text="${r.rentalStatus}"></span>
-                    <span class="badge bg-info-subtle text-info border border-info-subtle"
-                          th:if="${r.employeeHire}">Staff</span>
-                </div>
+        <div class="app-record-card__header app-record-card__header--vehicle-stack">
+            <div th:replace="~{fragments/rental-period :: rentalVehicleTwoLine(${r.car}, 'md')}"></div>
+            <div class="app-record-card__badges">
+                <div th:replace="~{fragments/rental-period :: rentalStatusBadges(${r})}"></div>
             </div>
         </div>
         <dl class="app-record-card__meta">
             <div class="app-record-card__row">
                 <dt>Customer</dt>
                 <dd>
-                    <span th:text="${r.customerName}"></span>
-                    <span class="d-block small text-muted fw-normal" th:if="${r.customerIdNumber}"
-                          th:text="|ID: ${r.customerIdNumber}|"></span>
+                    <div th:replace="~{fragments/rental-period :: rentalCustomerCell(${r})}"></div>
                 </dd>
             </div>
             <div class="app-record-card__row">
                 <dt>Contact</dt>
                 <dd>
-                    <a class="app-record-card__link" th:href="|tel:${r.customerContact}|"
+                    <a class="rental-contact-link" th:href="|tel:${r.customerContact}|"
                        th:text="${r.customerContact}"></a>
                 </dd>
             </div>
             <div class="app-record-card__row">
                 <dt>Period</dt>
-                <dd class="text-nowrap">
-                    <span th:text="${r.pickupDate != null ? r.pickupDate : r.hireDate}"></span>
-                    <span class="text-muted"> – </span>
-                    <span th:text="${r.returnDate != null ? r.returnDate : r.hireDate}"></span>
+                <dd>
+                    <div th:replace="~{fragments/rental-period :: rentalPeriodTwoLine(${r})}"></div>
                 </dd>
             </div>
             <div class="app-record-card__row" th:if="${listMode == 'overdue'}">
@@ -139,22 +128,30 @@
                 </dd>
             </div>
             <div class="app-record-card__row">
-                <dt>Days</dt>
-                <dd th:text="${r.numberOfDays}"></dd>
+                <dt>Duration</dt>
+                <dd>
+                    <div th:replace="~{fragments/rental-period :: rentalDurationTwoLine(${r})}"></div>
+                </dd>
             </div>
-            <div class="app-record-card__row" th:if="${r.hireType != null}">
-                <dt>Hire type</dt>
-                <dd th:text="${r.hireType.label}"></dd>
+            <div class="app-record-card__row">
+                <dt>Hire price</dt>
+                <dd>
+                    <div th:replace="~{fragments/rental-period :: rentalHirePrice(${r})}"></div>
+                </dd>
             </div>
         </dl>
-        <div class="app-record-card__actions"
+        <div class="app-record-card__actions app-mobile-actions"
              th:if="${r.rentalStatus.name() == 'ACTIVE' or r.rentalStatus.name() == 'PENDING'}">
-            <a class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2"
-               th:if="${r.rentalStatus.name() == 'ACTIVE'}"
-               th:href="@{/rentals/{id}/complete(id=${r.id})}">
-                <i class="bi bi-check2-circle"></i> Complete rental
-            </a>
-            <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(${r.id}, 'card')}"></th:block>
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                   th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                   th:href="@{/rentals/{id}/complete(id=${r.id})}"
+                   title="Complete rental">
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    <span>Complete</span>
+                </a>
+                <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(${r.id}, 'pill')}"></th:block>
+            </div>
         </div>
     </article>
 </div>
@@ -193,32 +190,42 @@
                 <dd th:text="${e.jobStartDate}"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Employee actions">
-            <a class="btn btn-app-primary employee-mobile-btn-set__btn"
-               th:href="@{/employees/{id}(id=${e.id})}">
-                <i class="bi bi-wallet2" aria-hidden="true"></i><span>Payments</span>
-            </a>
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/employees/{id}/rentals(id=${e.id})}">
-                <i class="bi bi-car-front" aria-hidden="true"></i><span>Activity</span>
-            </a>
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/employees/{id}/edit(id=${e.id})}">
-                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
-            </a>
-            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
-                <button type="button"
-                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
-                        data-app-confirm
-                        data-bs-toggle="modal"
-                        data-bs-target="#appConfirmDeleteModal"
-                        data-app-confirm-title="Remove employee"
-                        th:attr="data-app-confirm-message=|'Permanently remove ' + ${e.name} + ' and all payment records linked to this employee. This cannot be undone.'|,
-                                 data-app-confirm-action=@{/employees/{id}/delete(id=${e.id})},
-                                 data-app-confirm-loading='Removing employee…'">
-                    <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
-                </button>
-            </span>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Employee actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                   th:href="@{/employees/{id}(id=${e.id})}"
+                   title="Payments">
+                    <i class="bi bi-wallet2" aria-hidden="true"></i>
+                    <span>Payments</span>
+                </a>
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/employees/{id}/rentals(id=${e.id})}"
+                   title="Activity">
+                    <i class="bi bi-car-front" aria-hidden="true"></i>
+                    <span>Activity</span>
+                </a>
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/employees/{id}/edit(id=${e.id})}"
+                   title="Edit employee">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </a>
+                <span class="app-confirm-delete-trigger">
+                    <button type="button"
+                            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                            data-app-confirm
+                            data-bs-toggle="modal"
+                            data-bs-target="#appConfirmDeleteModal"
+                            title="Remove employee"
+                            data-app-confirm-title="Remove employee"
+                            th:attr="data-app-confirm-message=|'Permanently remove ' + ${e.name} + ' and all payment records linked to this employee. This cannot be undone.'|,
+                                     data-app-confirm-action=@{/employees/{id}/delete(id=${e.id})},
+                                     data-app-confirm-loading='Removing employee…'">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span>Delete</span>
+                    </button>
+                </span>
+            </div>
         </div>
     </article>
 </div>
@@ -255,29 +262,35 @@
                 <dd th:text="${#numbers.formatDecimal(p.paymentValue, 1, 'COMMA', 2, 'POINT')}"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Payment actions">
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/employees/payments/{id}/edit(id=${p.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, q=${searchQuery})}">
-                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
-            </a>
-            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
-                <button type="button"
-                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
-                        data-app-confirm
-                        data-bs-toggle="modal"
-                        data-bs-target="#appConfirmDeleteModal"
-                        data-app-confirm-title="Delete payment"
-                        data-app-confirm-message="Delete this payment record? This cannot be undone."
-                        th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
-                                 data-app-confirm-loading='Removing payment…'">
-                    <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
-                </button>
-                <template class="app-confirm-extra-fields">
-                    <input type="hidden" name="q" th:value="${searchQuery}"/>
-                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                    <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
-                </template>
-            </span>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Payment actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/employees/payments/{id}/edit(id=${p.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, q=${searchQuery})}"
+                   title="Edit payment">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </a>
+                <span class="app-confirm-delete-trigger">
+                    <button type="button"
+                            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                            data-app-confirm
+                            data-bs-toggle="modal"
+                            data-bs-target="#appConfirmDeleteModal"
+                            title="Delete payment"
+                            data-app-confirm-title="Delete payment"
+                            data-app-confirm-message="Delete this payment record? This cannot be undone."
+                            th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
+                                     data-app-confirm-loading='Removing payment…'">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span>Delete</span>
+                    </button>
+                    <template class="app-confirm-extra-fields">
+                        <input type="hidden" name="q" th:value="${searchQuery}"/>
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                    </template>
+                </span>
+            </div>
         </div>
     </article>
 </div>
@@ -302,31 +315,37 @@
                 <dd th:text="${#numbers.formatDecimal(p.paymentValue, 1, 'COMMA', 2, 'POINT')}"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Payment actions">
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/employees/payments/{id}/edit(id=${p.id}, returnEmployeeId=${employee.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, from=${paymentFrom}, to=${paymentTo})}">
-                <i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span>
-            </a>
-            <span class="app-confirm-delete-trigger employee-mobile-btn-set__cell">
-                <button type="button"
-                        class="btn btn-outline-danger employee-mobile-btn-set__btn"
-                        data-app-confirm
-                        data-bs-toggle="modal"
-                        data-bs-target="#appConfirmDeleteModal"
-                        data-app-confirm-title="Delete payment"
-                        data-app-confirm-message="Delete this payment record? This cannot be undone."
-                        th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
-                                 data-app-confirm-loading='Removing payment…'">
-                    <i class="bi bi-trash" aria-hidden="true"></i><span>Delete</span>
-                </button>
-                <template class="app-confirm-extra-fields">
-                    <input type="hidden" name="returnEmployeeId" th:value="${employee.id}"/>
-                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                    <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
-                    <input type="hidden" name="from" th:if="${paymentFrom != null}" th:value="${paymentFrom}"/>
-                    <input type="hidden" name="to" th:if="${paymentTo != null}" th:value="${paymentTo}"/>
-                </template>
-            </span>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Payment actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/employees/payments/{id}/edit(id=${p.id}, returnEmployeeId=${employee.id}, period=${paymentPeriod}, paymentPage=${paymentsPage.number}, from=${paymentFrom}, to=${paymentTo})}"
+                   title="Edit payment">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </a>
+                <span class="app-confirm-delete-trigger">
+                    <button type="button"
+                            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                            data-app-confirm
+                            data-bs-toggle="modal"
+                            data-bs-target="#appConfirmDeleteModal"
+                            title="Delete payment"
+                            data-app-confirm-title="Delete payment"
+                            data-app-confirm-message="Delete this payment record? This cannot be undone."
+                            th:attr="data-app-confirm-action=@{/employees/payments/{id}/delete(id=${p.id})},
+                                     data-app-confirm-loading='Removing payment…'">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span>Delete</span>
+                    </button>
+                    <template class="app-confirm-extra-fields">
+                        <input type="hidden" name="returnEmployeeId" th:value="${employee.id}"/>
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="paymentPage" th:value="${paymentsPage.number}"/>
+                        <input type="hidden" name="from" th:if="${paymentFrom != null}" th:value="${paymentFrom}"/>
+                        <input type="hidden" name="to" th:if="${paymentTo != null}" th:value="${paymentTo}"/>
+                    </template>
+                </span>
+            </div>
         </div>
     </article>
 </div>
@@ -361,29 +380,35 @@
                 <dd th:text="${#numbers.formatDecimal(e.amount, 1, 'COMMA', 2, 'POINT')}"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions">
-            <a class="btn btn-outline-soft d-inline-flex align-items-center justify-content-center gap-2"
-               th:href="@{/office-expenses/{id}/edit(id=${e.id}, period=${paymentPeriod}, page=${expensesPage.number}, q=${searchQuery})}">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-            <span class="app-confirm-delete-trigger d-grid">
-                <button type="button"
-                        class="btn btn-outline-danger w-100"
-                        data-app-confirm
-                        data-bs-toggle="modal"
-                        data-bs-target="#appConfirmDeleteModal"
-                        data-app-confirm-title="Delete expense"
-                        data-app-confirm-message="Delete this expense record? This cannot be undone."
-                        th:attr="data-app-confirm-action=@{/office-expenses/{id}/delete(id=${e.id})},
-                                 data-app-confirm-loading='Removing expense…'">
-                    Delete
-                </button>
-                <template class="app-confirm-extra-fields">
-                    <input type="hidden" name="q" th:value="${searchQuery}"/>
-                    <input type="hidden" name="period" th:value="${paymentPeriod}"/>
-                    <input type="hidden" name="page" th:value="${expensesPage.number}"/>
-                </template>
-            </span>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Expense actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/office-expenses/{id}/edit(id=${e.id}, period=${paymentPeriod}, page=${expensesPage.number}, q=${searchQuery})}"
+                   title="Edit expense">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </a>
+                <span class="app-confirm-delete-trigger">
+                    <button type="button"
+                            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+                            data-app-confirm
+                            data-bs-toggle="modal"
+                            data-bs-target="#appConfirmDeleteModal"
+                            title="Delete expense"
+                            data-app-confirm-title="Delete expense"
+                            data-app-confirm-message="Delete this expense record? This cannot be undone."
+                            th:attr="data-app-confirm-action=@{/office-expenses/{id}/delete(id=${e.id})},
+                                     data-app-confirm-loading='Removing expense…'">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span>Delete</span>
+                    </button>
+                    <template class="app-confirm-extra-fields">
+                        <input type="hidden" name="q" th:value="${searchQuery}"/>
+                        <input type="hidden" name="period" th:value="${paymentPeriod}"/>
+                        <input type="hidden" name="page" th:value="${expensesPage.number}"/>
+                    </template>
+                </span>
+            </div>
         </div>
     </article>
 </div>
@@ -416,11 +441,15 @@
                 <dd class="text-danger" th:text="|${a.kmOverdue} km|"></dd>
             </div>
         </dl>
-        <div class="app-record-card__actions">
-            <a class="btn btn-app-primary d-inline-flex align-items-center justify-content-center gap-2"
-               th:href="@{/cars/{id}(id=${a.carId})}">
-                <i class="bi bi-eye"></i> View vehicle
-            </a>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Vehicle actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                   th:href="@{/cars/{id}(id=${a.carId})}"
+                   title="View vehicle">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span>View</span>
+                </a>
+            </div>
         </div>
     </article>
 </div>
@@ -446,13 +475,21 @@
                 <dt>Period</dt>
                 <dd class="text-nowrap">
                     <span th:text="${r.pickupDate != null ? r.pickupDate : r.hireDate}"></span>
+                    <span class="text-muted" th:if="${r.pickupTime != null}"
+                          th:text="| ${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(r.pickupTime)}|"></span>
                     <span class="text-muted"> – </span>
                     <span th:text="${r.returnDate != null ? r.returnDate : r.hireDate}"></span>
+                    <span class="text-muted" th:if="${r.returnTime != null}"
+                          th:text="| ${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(r.returnTime)}|"></span>
                 </dd>
             </div>
             <div class="app-record-card__row">
                 <dt>Days</dt>
-                <dd th:text="${r.numberOfDays}"></dd>
+                <dd>
+                    <span th:text="${r.numberOfDays}"></span>
+                    <span class="text-muted small" th:if="${r.billableExtraHours != null and r.billableExtraHours.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+                          th:text="| + ${r.billableExtraHours} hr|"></span>
+                </dd>
             </div>
             <div class="app-record-card__row">
                 <dt>Income</dt>
@@ -551,16 +588,22 @@
                 </dd>
             </div>
         </dl>
-        <div class="app-record-card__actions employee-mobile-btn-set" role="group" aria-label="Rental actions">
-            <a class="btn btn-app-primary employee-mobile-btn-set__btn"
-               th:if="${r.rentalStatus.name() == 'ACTIVE'}"
-               th:href="@{/rentals/{id}/complete(id=${r.id})}">
-                <i class="bi bi-check2-circle" aria-hidden="true"></i><span>Complete</span>
-            </a>
-            <a class="btn btn-outline-soft employee-mobile-btn-set__btn"
-               th:href="@{/rentals(q=${r.car.registrationNumber})}">
-                <i class="bi bi-eye" aria-hidden="true"></i><span>View</span>
-            </a>
+        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Rental actions">
+            <div class="fleet-table-actions">
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
+                   th:if="${r.rentalStatus.name() == 'ACTIVE'}"
+                   th:href="@{/rentals/{id}/complete(id=${r.id})}"
+                   title="Complete rental">
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    <span>Complete</span>
+                </a>
+                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                   th:href="@{/rentals(q=${r.car.registrationNumber})}"
+                   title="View rental">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span>View</span>
+                </a>
+            </div>
         </div>
     </article>
 </div>

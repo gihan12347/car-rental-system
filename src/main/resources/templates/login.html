@@ -1,26 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Sign in'">
 <head th:replace="~{fragments/head :: commonHead}"></head>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    (function () {
-        var dashboardUrl = /*[[@{/dashboard}]]*/ '/dashboard';
-        var statusUrl = /*[[@{/api/auth/status}]]*/ '/api/auth/status';
-        function check() {
-            fetch(statusUrl, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
-                .then(function (r) { return r.ok ? r.json() : { authenticated: false }; })
-                .then(function (data) {
-                    if (data && data.authenticated) {
-                        sessionStorage.setItem('fleetDeskActiveSession', '1');
-                        window.location.replace(dashboardUrl);
-                    }
-                })
-                .catch(function () { /* ignore */ });
+<script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted ||
+            performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+            window.location.reload();
         }
-        check();
-        window.addEventListener('pageshow', check);
-    })();
-    /*]]>*/
+    });
 </script>
 <body class="login-page">
 <div class="login-shell min-vh-100">
@@ -52,9 +39,15 @@
                         <i class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></i>
                         <span>You have been signed out.</span>
                     </div>
+                    <div th:if="${param.denied}" class="alert login-alert login-alert--warning d-flex align-items-center gap-2 mb-3" role="alert">
+                        <i class="bi bi-shield-lock flex-shrink-0" aria-hidden="true"></i>
+                        <span>Sign in to continue.</span>
+                    </div>
 
                     <form method="post" id="loginForm" th:attr="action=@{/login}" class="login-form"
-                          data-loading-message="Signing in…">
+                          data-loading-variant="login"
+                          data-loading-message="Signing in…"
+                          data-loading-hint="Opening your dashboard…">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <div class="mb-3">
                             <label class="form-label" for="username">Username</label>

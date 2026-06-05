@@ -25,7 +25,11 @@
                     </div>
                     <span class="account-user-pill d-none d-lg-inline-flex align-items-center gap-2" sec:authorize="isAuthenticated()">
                         <i class="bi bi-person-circle" aria-hidden="true"></i>
-                        <span sec:authentication="name" th:text="${currentUsername}">user</span>
+                        <span>
+                            <span sec:authentication="name" th:text="${currentUsername}">user</span>
+                            <span class="account-user-pill__role text-muted" th:if="${currentUserRole != null}"
+                                  th:text="' · ' + ${currentUserRole.label}"> · role</span>
+                        </span>
                     </span>
                 </div>
             </header>
@@ -76,14 +80,15 @@
                         </form>
                 </section>
 
-                <section class="app-form-card account-section account-section--create p-4 p-lg-5 d-flex flex-column">
+                <section class="app-form-card account-section account-section--create p-4 p-lg-5 d-flex flex-column"
+                         sec:authorize="hasRole('ADMIN')">
                     <div class="account-section__head mb-4 flex-shrink-0">
                         <span class="account-section__icon account-section__icon--create d-inline-flex align-items-center justify-content-center rounded-3">
                             <i class="bi bi-person-plus" aria-hidden="true"></i>
                         </span>
                         <div>
                             <h2 class="h5 mb-1">Create new user</h2>
-                            <p class="small text-muted mb-0">Adds another username that can sign in to FleetDesk.</p>
+                            <p class="small text-muted mb-0">Adds another username that can sign in to FleetDesk. Administrators can manage users.</p>
                         </div>
                     </div>
                     <form id="createUserForm" class="account-section__form d-flex flex-column flex-grow-1"
@@ -96,6 +101,15 @@
                                        th:field="*{username}" required minlength="3" maxlength="64"/>
                                 <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('username')}"
                                      th:errors="*{username}"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="newUserRole">Role</label>
+                                <select class="form-select" id="newUserRole" th:field="*{role}" required>
+                                    <option th:each="r : ${appRoles}" th:value="${r.name()}" th:text="${r.label}">Role</option>
+                                </select>
+                                <div class="form-text">Administrators can create users; standard users can use the app but not add accounts.</div>
+                                <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('role')}"
+                                     th:errors="*{role}"></div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="createUserPassword">Password</label>
@@ -116,6 +130,19 @@
                         </button>
                     </div>
                         </form>
+                </section>
+
+                <section class="app-form-card account-section account-section--create p-4 p-lg-5 d-flex flex-column"
+                         sec:authorize="!hasRole('ADMIN')">
+                    <div class="account-section__head mb-0 flex-shrink-0">
+                        <span class="account-section__icon account-section__icon--create d-inline-flex align-items-center justify-content-center rounded-3">
+                            <i class="bi bi-person-plus" aria-hidden="true"></i>
+                        </span>
+                        <div>
+                            <h2 class="h5 mb-1">Create new user</h2>
+                            <p class="small text-muted mb-0">Only administrators can add sign-in users. Contact an administrator if you need a new account.</p>
+                        </div>
+                    </div>
                 </section>
             </div>
         </main>

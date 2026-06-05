@@ -3,7 +3,7 @@
 <body>
 <span th:fragment="cancelRentalForm(rentalId, variant)" class="app-confirm-delete-trigger rental-cancel-form">
     <button th:if="${variant == 'form'}" type="button"
-            class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2"
+            class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
             data-app-confirm
             data-bs-toggle="modal"
             data-bs-target="#appConfirmDeleteModal"
@@ -15,6 +15,21 @@
             data-app-confirm-variant="warning">
         <i class="bi bi-x-circle"></i>
         <span>Cancel rental</span>
+    </button>
+    <button th:if="${variant == 'pill'}" type="button"
+            class="fleet-table-actions__btn fleet-table-actions__btn--edit text-danger border-danger"
+            title="Cancel rental"
+            data-app-confirm
+            data-bs-toggle="modal"
+            data-bs-target="#appConfirmDeleteModal"
+            data-app-confirm-title="Cancel rental"
+            data-app-confirm-message="Cancel this rental? The vehicle will be available again. This cannot be undone."
+            th:attr="data-app-confirm-action=@{/rentals/{id}/cancel(id=${rentalId})}"
+            data-app-confirm-submit="Cancel rental"
+            data-app-confirm-loading="Cancelling rental…"
+            data-app-confirm-variant="warning">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Cancel</span>
     </button>
     <button th:if="${variant == 'card'}" type="button"
             class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"

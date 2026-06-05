@@ -1,6 +1,9 @@
 package com.carrental.web.dto;
 
+import com.carrental.model.AppRole;
+
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 public class CreateUserForm {
@@ -15,6 +18,9 @@ public class CreateUserForm {
 
     @NotBlank(message = "Confirm password is required.")
     private String confirmPassword;
+
+    @NotNull(message = "Role is required.")
+    private AppRole role = AppRole.USER;
 
     public String getUsername() {
         return username;
@@ -38,5 +44,13 @@ public class CreateUserForm {
 
     public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
+    }
+
+    public AppRole getRole() {
+        return role;
+    }
+
+    public void setRole(AppRole role) {
+        this.role = role;
     }
 }

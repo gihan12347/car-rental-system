@@ -1,5 +1,7 @@
 package com.carrental.web;
 
+import com.carrental.model.AppRole;
+import com.carrental.repository.AppUserRepository;
 import com.carrental.service.AppUserService;
 import com.carrental.web.dto.ChangePasswordForm;
 import com.carrental.web.dto.CreateUserForm;
@@ -20,9 +22,11 @@ import javax.validation.Valid;
 public class AccountController {
 
     private final AppUserService appUserService;
+    private final AppUserRepository appUserRepository;
 
-    public AccountController(AppUserService appUserService) {
+    public AccountController(AppUserService appUserService, AppUserRepository appUserRepository) {
         this.appUserService = appUserService;
+        this.appUserRepository = appUserRepository;
     }
 
     @GetMapping
@@ -37,7 +41,10 @@ public class AccountController {
         }
         if (authentication != null) {
             model.addAttribute("currentUsername", authentication.getName());
+            appUserRepository.findByUsername(authentication.getName())
+                    .ifPresent(user -> model.addAttribute("currentUserRole", user.getRole()));
         }
+        model.addAttribute("appRoles", AppRole.values());
         return "account/index";
     }
 
@@ -58,13 +65,16 @@ public class AccountController {
             return "redirect:/account";
         }
         try {
-            appUserService.createUser(form.getUsername(), form.getPassword());
+            appUserService.createUser(form.getUsername(), form.getPassword(), form.getRole());
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("createUserForm", form);
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account";
         }
-        redirectAttributes.addFlashAttribute("successMessage", "User \"" + form.getUsername().trim() + "\" created.");
+        AppRole role = form.getRole() != null ? form.getRole() : AppRole.USER;
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "User \"" + form.getUsername().trim() + "\" created with role " + role.getLabel() + ".");
         return "redirect:/account";
     }
 

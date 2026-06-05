@@ -11,8 +11,14 @@
             <header class="app-page-header dashboard-header mb-2 mb-lg-3">
                 <div class="dashboard-header-bar d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 gap-md-3">
                     <div class="min-w-0">
-                        <h1 class="h2 mb-0 dashboard-header-title">Analytics dashboard</h1>
-                        <p class="lead mb-0 dashboard-header-lead">Revenue, fleet utilization, and customer insights.</p>
+                        <h1 class="h2 mb-0 dashboard-header-title"
+                            th:text="${session.USER_ROLE == 'ROLE_ADMIN'} ? 'Analytics dashboard' : 'Dashboard'">Analytics dashboard</h1>
+                        <p class="lead mb-0 dashboard-header-lead" th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
+                            Revenue, fleet utilization, and customer insights.
+                        </p>
+                        <p class="lead mb-0 dashboard-header-lead" th:unless="${session.USER_ROLE == 'ROLE_ADMIN'}">
+                            Fleet utilization overview.
+                        </p>
                         <p class="small text-muted mb-0 dashboard-header-range" th:text="${d.rangeLabel}">—</p>
                     </div>
                     <div th:replace="~{fragments/period-filter :: simple(
@@ -27,8 +33,8 @@
                 </div>
             </header>
 
-            <!-- Summary KPIs -->
-            <div class="row g-2 g-md-3 mb-3 mb-xl-3 dashboard-summary-row">
+            <!-- Summary KPIs (admin) -->
+            <div class="row g-2 g-md-3 mb-3 mb-xl-3 dashboard-summary-row" th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
                 <div class="col-6 col-xl-3">
                     <div class="stat-card p-3 p-lg-4 h-100">
                         <div class="stat-label mb-1">Total revenue</div>
@@ -55,8 +61,8 @@
                 </div>
             </div>
 
-            <!-- 1. Revenue Analytics -->
-            <section class="dashboard-section dashboard-section--revenue mb-4">
+            <!-- 1. Revenue Analytics (admin) -->
+            <section class="dashboard-section dashboard-section--revenue mb-4" th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
                 <div class="dashboard-section-head dashboard-section-head--compact">
                     <h2 class="h5 mb-0"><i class="bi bi-currency-dollar me-2 text-primary"></i>Revenue analytics</h2>
                     <p class="small text-muted mb-0 dashboard-section-subtitle">Which cars earn the most and which months need promotions.</p>
@@ -222,7 +228,7 @@
                                         </li>
                                     </ul>
                                     <p class="small text-muted mb-0" th:if="${d.nearingService.isEmpty()}">None due within 500 km.</p>
-                                    <a th:if="${serviceOverdueCount > 0}" th:href="@{/cars/service-overdue}"
+                                    <a th:if="${session.serviceOverdueCount != null and session.serviceOverdueCount > 0}" th:href="@{/cars/service-overdue}"
                                        class="small d-inline-block mt-2">View all overdue</a>
                                 </div>
                             </div>
@@ -283,8 +289,8 @@
                 </div>
             </section>
 
-            <!-- Operating costs -->
-            <section class="dashboard-section dashboard-section--costs mb-0">
+            <!-- Operating costs (admin) -->
+            <section class="dashboard-section dashboard-section--costs mb-0" th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
                 <div class="dashboard-section-head dashboard-section-head--compact">
                     <h2 class="h5 mb-0"><i class="bi bi-wallet2 me-2 text-primary"></i>Operating costs</h2>
                     <p class="small text-muted mb-0 dashboard-section-subtitle">Employee payments and office expenses for <span th:text="${selectedPeriod.label}">the selected period</span>.</p>
@@ -328,10 +334,12 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<th:block th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script type="application/json" id="dashboardChartPayload" th:utext="${chartsJson}">{}</script>
 <script th:src="@{/js/charts-common.js}"></script>
 <script th:src="@{/js/dashboard-charts.js}" defer></script>
+</th:block>
 <div th:replace="~{fragments/modals :: appModals}"></div>
 </body>
 </html>

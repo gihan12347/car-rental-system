@@ -14,7 +14,7 @@
 
             <header class="app-page-header mb-4">
                 <h1 class="h2 mb-1">Complete rental</h1>
-                <p class="lead mb-0">Enter return date and odometer reading. The total charge is calculated automatically.</p>
+                <p class="lead mb-0">Enter return date, time, and odometer reading. The total charge is calculated automatically.</p>
             </header>
 
             <div th:if="${employeeHire}" class="alert app-alert border-0 d-flex align-items-start gap-2 mb-4"
@@ -46,7 +46,10 @@
                     </div>
                     <div class="app-record-card__row">
                         <dt>Rental start</dt>
-                        <dd th:text="${pickupDate}">—</dd>
+                        <dd>
+                            <span th:text="${pickupDate}">—</span>
+                            <span class="text-muted" th:text="| ${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(pickupTime)}|"></span>
+                        </dd>
                     </div>
                     <div class="app-record-card__row" th:if="${hireType != null}">
                         <dt>Hire type</dt>
@@ -59,8 +62,12 @@
                   th:action="@{/rentals/{id}/complete(id=${rental.id})}"
                   th:object="${completeForm}" method="post" novalidate
                   th:attr="data-pickup-date=${#temporals.format(pickupDate, 'yyyy-MM-dd')},
+                           data-pickup-time=${#temporals.format(pickupTime, 'HH:mm')},
+                           data-planned-return-date=${plannedReturnDate != null ? #temporals.format(plannedReturnDate, 'yyyy-MM-dd') : ''},
+                           data-planned-return-time=${#temporals.format(plannedReturnTime, 'HH:mm')},
                            data-start-mileage=${startMileageKm},
                            data-daily-rate=${dailyRate},
+                           data-hour-rate=${hourRate},
                            data-hire-type=${hireType != null ? hireType.name() : 'PER_DAY'},
                            data-price-per-day=${rental.car.rentalPricePerDay},
                            data-price-per-week=${rental.car.rentalPricePerWeek},
@@ -70,12 +77,22 @@
                            data-employee-hire=${employeeHire}">
                 <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
 
-                <div class="mb-3">
-                    <label class="form-label" for="returnDate">Return date</label>
-                    <input class="form-control" type="date" id="returnDate" required
-                           th:field="*{returnDate}"
-                           th:attr="min=${#temporals.format(pickupDate, 'yyyy-MM-dd')}"/>
-                    <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('returnDate')}" th:errors="*{returnDate}"></div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="returnDate">Return date</label>
+                        <input class="form-control" type="date" id="returnDate" required
+                               th:field="*{returnDate}"
+                               th:attr="min=${#temporals.format(pickupDate, 'yyyy-MM-dd')}"/>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('returnDate')}" th:errors="*{returnDate}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="returnTime">Return time</label>
+                        <input type="hidden" id="returnTime" name="returnTime" required
+                               th:value="${completeForm.returnTime != null ? #temporals.format(completeForm.returnTime, 'HH:mm') : #temporals.format(plannedReturnTime, 'HH:mm')}"/>
+                        <div th:replace="~{fragments/time-ampm-picker :: controls('returnTime')}"></div>
+                        <div class="form-text">Select hour, minute, and AM or PM.</div>
+                        <div class="invalid-feedback d-block small" th:if="${#fields.hasErrors('returnTime')}" th:errors="*{returnTime}"></div>
+                    </div>
                 </div>
 
                 <fieldset class="mb-4">
@@ -137,10 +154,18 @@
                     </div>
 
                     <dl class="complete-price-breakdown__list mb-0">
-                        <div class="complete-price-breakdown__row">
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--period">
                             <dt>Rental period</dt>
-                            <dd id="previewPeriod" class="mb-0"
-                                th:text="${priceBreakdown != null} ? |${pickupDate} → ${completeForm.returnDate} (${priceBreakdown.days} days)| : '—'">—</dd>
+                            <dd id="previewPeriod" class="mb-0 complete-price-breakdown__period">
+                                <span class="complete-price-breakdown__period-line" id="previewPeriodFrom"
+                                      th:text="${priceBreakdown != null} ? |From ${pickupDate} ${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(pickupTime)}| : '—'">—</span>
+                                <span class="complete-price-breakdown__period-line" id="previewPeriodTo"
+                                      th:text="${priceBreakdown != null} ? |To ${completeForm.returnDate} ${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(completeForm.returnTime)}| : '—'">—</span>
+                                <span class="complete-price-breakdown__period-duration"
+                                      id="previewPeriodDuration"
+                                      th:classappend="${priceBreakdown == null} ? ' d-none' : ''"
+                                      th:text="${priceBreakdown != null} ? |${T(com.carrental.service.RentalDisplayHelper).formatDurationParts(priceBreakdown.days, priceBreakdown.extraHours)}${billedPlannedPeriod ? ' · booked rate' : ''}| : ''"></span>
+                            </dd>
                         </div>
                         <div class="complete-price-breakdown__row">
                             <dt>Existing mileage</dt>
@@ -171,6 +196,11 @@
                                 th:text="|${freeKmPerDay} km / day|">—</dd>
                         </div>
                         <div class="complete-price-breakdown__row">
+                            <dt>Extra price per hour</dt>
+                            <dd id="previewHourRate" class="mb-0"
+                                th:text="|${#numbers.formatDecimal(hourRate, 1, 'COMMA', 2, 'POINT')} / hr (beyond full days)|">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row">
                             <dt>Extra price per km</dt>
                             <dd id="previewKmRate" class="mb-0"
                                 th:text="|${#numbers.formatDecimal(kmRate, 1, 'COMMA', 2, 'POINT')} / km (over allowance)|">—</dd>
@@ -198,6 +228,14 @@
                         </div>
                         <div class="complete-price-breakdown__row complete-price-breakdown__row--charge">
                             <dt>
+                                Extra hours charge
+                                <span class="d-block small fw-normal text-muted" id="previewHourFormula"></span>
+                            </dt>
+                            <dd id="previewHourCharge" class="mb-0"
+                                th:text="${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.hourCharge, 1, 'COMMA', 2, 'POINT')} : '—'">—</dd>
+                        </div>
+                        <div class="complete-price-breakdown__row complete-price-breakdown__row--charge">
+                            <dt>
                                 Extra km charge
                                 <span class="d-block small fw-normal text-muted" id="previewKmFormula"></span>
                             </dt>
@@ -219,9 +257,8 @@
                                 th:text="${previewFinalTotal != null} ? ${#numbers.formatDecimal(previewFinalTotal, 1, 'COMMA', 2, 'POINT')} : (${priceBreakdown != null} ? ${#numbers.formatDecimal(priceBreakdown.total, 1, 'COMMA', 2, 'POINT')} : '—')">—</dd>
                         </div>
                     </dl>
-                    <p class="small text-muted mb-0 mt-3" id="previewHint"
-                       th:text="${priceBreakdown != null} ? 'Amount saved when you complete this rental.' : 'Enter return date and return odometer to calculate the total.'">
-                        Enter return date and return odometer to calculate the total.
+                    <p class="small text-muted mb-0 mt-3" id="previewHint">
+                        Enter return date, time, and return odometer to calculate the total.
                     </p>
                 </div>
 
@@ -260,18 +297,16 @@
                     </th:block>
                 </div>
 
-                <div class="d-grid d-sm-flex flex-wrap gap-2 app-form-actions">
+                <div class="d-grid gap-2 app-form-actions app-form-actions--stacked">
                     <button class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2 fw-semibold px-4"
                             type="submit" id="completeSubmitBtn" disabled>
                         <i class="bi bi-check-circle"></i> Complete &amp; release car
                     </button>
+                    <th:block th:if="${rental.rentalStatus.name() == 'ACTIVE' or rental.rentalStatus.name() == 'PENDING'}"
+                              th:replace="~{fragments/rental-cancel :: cancelRentalForm(${rental.id}, 'form')}"></th:block>
                     <a class="btn btn-outline-soft" th:href="@{/rentals/active}">Back</a>
                 </div>
             </form>
-            <div class="d-grid d-sm-flex flex-wrap gap-2 app-form-actions mt-2"
-                 th:if="${rental.rentalStatus.name() == 'ACTIVE' or rental.rentalStatus.name() == 'PENDING'}">
-                <th:block th:replace="~{fragments/rental-cancel :: cancelRentalForm(${rental.id}, 'form')}"></th:block>
-            </div>
         </main>
     </div>
 </div>

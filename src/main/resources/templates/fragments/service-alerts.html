@@ -4,7 +4,7 @@
 <body>
 <div th:fragment="topbarNotifications" sec:authorize="isAuthenticated()">
     <div class="dropdown app-service-notify"
-         th:if="${fleetNotificationCount != null and fleetNotificationCount > 0}">
+         th:if="${session.fleetNotificationCount != null and session.fleetNotificationCount > 0}">
         <button type="button"
                 class="btn btn-outline-soft btn-sm d-inline-flex align-items-center gap-1 app-service-notify__btn"
                 id="fleetNotificationsDropdown"
@@ -14,15 +14,15 @@
                 aria-label="Fleet notifications">
             <i class="bi bi-bell-fill text-warning" aria-hidden="true"></i>
             <span class="badge rounded-pill text-bg-danger app-service-notify__badge"
-                  th:text="${fleetNotificationCount}">0</span>
+                  th:text="${session.fleetNotificationCount}">0</span>
         </button>
         <div class="dropdown-menu dropdown-menu-end app-service-notify__menu shadow"
              aria-labelledby="fleetNotificationsDropdown">
-            <th:block th:if="${rentalOverdueCount > 0}">
+            <th:block th:if="${session.rentalOverdueCount != null and session.rentalOverdueCount > 0}">
                 <h6 class="dropdown-header">Rental overdue</h6>
                 <div class="app-service-notify__list">
                     <a class="dropdown-item app-service-notify__item"
-                       th:each="alert : ${rentalOverdueAlerts}"
+                       th:each="alert : ${session.rentalOverdueAlerts}"
                        th:href="@{/rentals/{id}/complete(id=${alert.rentalId})}">
                         <span class="fw-semibold" th:text="${alert.registrationNumber}">—</span>
                         <span class="d-block small text-muted" th:text="${alert.customerName}"></span>
@@ -34,12 +34,12 @@
                    th:href="@{/rentals/overdue}">View all overdue rentals</a>
             </th:block>
             <div class="dropdown-divider"
-                 th:if="${rentalOverdueCount > 0 and serviceOverdueCount > 0}"></div>
-            <th:block th:if="${serviceOverdueCount > 0}">
+                 th:if="${session.rentalOverdueCount != null and session.rentalOverdueCount > 0 and session.serviceOverdueCount != null and session.serviceOverdueCount > 0}"></div>
+            <th:block th:if="${session.serviceOverdueCount != null and session.serviceOverdueCount > 0}">
                 <h6 class="dropdown-header">Service overdue</h6>
                 <div class="app-service-notify__list">
                     <a class="dropdown-item app-service-notify__item"
-                       th:each="alert : ${serviceOverdueAlerts}"
+                       th:each="alert : ${session.serviceOverdueAlerts}"
                        th:href="@{/cars/{id}(id=${alert.carId})}">
                         <span class="fw-semibold" th:text="${alert.registrationNumber}">—</span>
                         <span class="d-block small text-muted" th:text="${alert.displayName}"></span>

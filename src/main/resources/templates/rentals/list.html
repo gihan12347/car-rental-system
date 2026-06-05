@@ -3,7 +3,7 @@
       th:with="pageTitle=${listMode == 'active'} ? 'Active rentals' : (${listMode == 'overdue'} ? 'Overdue rentals' : 'Rentals'),
                listBaseUrl=${listMode == 'active'} ? @{/rentals/active} : (${listMode == 'overdue'} ? @{/rentals/overdue} : @{/rentals})">
 <head th:replace="~{fragments/head :: commonHead}"></head>
-<body class="app-body">
+<body class="app-body rentals-page">
 <div class="d-flex min-vh-100 app-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
     <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
@@ -42,70 +42,69 @@
 
             <div th:replace="~{fragments/record-lists :: rentalRecordList(${rentals}, ${listMode}, ${today})}"></div>
 
-            <div class="app-card-table d-none d-xl-block" th:if="${!rentals.isEmpty()}">
+            <div class="app-card-table app-card-table--rentals d-none d-xl-block" th:if="${!rentals.isEmpty()}">
                 <div class="table-responsive">
-                    <table class="table app-table mb-0 align-middle"
+                    <table class="table app-table app-table--rentals mb-0 align-middle"
                            th:classappend="${listMode == 'overdue'} ? ' app-table--overdue' : ''">
+                        <colgroup>
+                            <col class="rental-col-vehicle"/>
+                            <col class="rental-col-customer"/>
+                            <col class="rental-col-contact"/>
+                            <col class="rental-col-period"/>
+                            <col class="rental-col-overdue" th:if="${listMode == 'overdue'}"/>
+                            <col class="rental-col-overdue-days" th:if="${listMode == 'overdue'}"/>
+                            <col class="rental-col-duration"/>
+                            <col class="rental-col-price"/>
+                            <col class="rental-col-status"/>
+                            <col class="rental-col-actions"/>
+                        </colgroup>
                         <thead>
                         <tr>
-                            <th style="width:72px;"></th>
                             <th>Vehicle</th>
                             <th>Customer</th>
                             <th>Contact</th>
                             <th>Period</th>
                             <th th:if="${listMode == 'overdue'}">Expected return</th>
                             <th th:if="${listMode == 'overdue'}">Overdue</th>
-                            <th>Days</th>
+                            <th>Duration</th>
+                            <th class="text-end">Hire price</th>
                             <th>Status</th>
-                            <th></th>
+                            <th class="text-end">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="r : ${rentals}"
                             th:classappend="${listMode == 'overdue'} ? ' app-table-row--overdue' : ''">
-                            <td>
-                                <img th:if="${r.car.imagePath != null and !r.car.imagePath.isEmpty()}"
-                                     class="car-avatar car-avatar--sm" th:src="${r.car.imagePath}" alt=""/>
-                                <span th:if="${r.car.imagePath == null or r.car.imagePath.isEmpty()}"
-                                      class="car-avatar car-avatar--sm car-avatar--placeholder">
-                                    <i class="bi bi-image"></i>
-                                </span>
+                            <td class="rental-table__vehicle">
+                                <div th:replace="~{fragments/rental-period :: rentalVehicleTwoLine(${r.car}, 'sm')}"></div>
                             </td>
-                            <td class="fw-semibold" th:text="${r.car.registrationNumber}"></td>
-                            <td>
-                                <div th:text="${r.customerName}"></div>
-                                <div class="small text-muted" th:if="${r.customerIdNumber}" th:text="|ID: ${r.customerIdNumber}|"></div>
-                                <div class="small text-muted" th:text="${r.customerAddress}"></div>
-                                <div class="small text-muted" th:if="${r.travelLocation}" th:text="|Travel: ${r.travelLocation}|"></div>
+                            <td class="rental-table__customer">
+                                <div th:replace="~{fragments/rental-period :: rentalCustomerCell(${r})}"></div>
                             </td>
-                            <td>
-                                <a class="text-decoration-none" th:href="|tel:${r.customerContact}|">
-                                    <i class="bi bi-telephone me-1 text-muted"></i><span th:text="${r.customerContact}"></span>
+                            <td class="rental-table__contact">
+                                <a class="rental-contact-link" th:href="|tel:${r.customerContact}|">
+                                    <i class="bi bi-telephone"></i>
+                                    <span th:text="${r.customerContact}"></span>
                                 </a>
                             </td>
-                            <td class="text-nowrap">
-                                <span th:text="${r.pickupDate != null ? r.pickupDate : r.hireDate}"></span>
-                                <span class="text-muted"> – </span>
-                                <span th:text="${r.returnDate != null ? r.returnDate : r.hireDate}"></span>
+                            <td class="rental-table__period">
+                                <div th:replace="~{fragments/rental-period :: rentalPeriodTwoLine(${r})}"></div>
                             </td>
-                            <td class="text-nowrap text-danger fw-semibold"
+                            <td class="text-nowrap text-danger fw-semibold rental-table__overdue"
                                 th:if="${listMode == 'overdue'}"
                                 th:text="${T(com.carrental.service.RentalPeriodHelper).endDate(r)}"></td>
                             <td th:if="${listMode == 'overdue'}">
                                 <span class="badge text-bg-danger"
                                       th:text="|${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today)} ${T(com.carrental.service.RentalPeriodHelper).daysOverdue(r, today) == 1 ? 'day' : 'days'}|"></span>
                             </td>
-                            <td>
-                                <span th:text="${r.numberOfDays}"></span>
-                                <span class="d-block small text-muted" th:if="${r.hireType != null}"
-                                      th:text="${r.hireType.label}"></span>
+                            <td class="rental-table__duration">
+                                <div th:replace="~{fragments/rental-period :: rentalDurationTwoLine(${r})}"></div>
                             </td>
-                            <td>
-                                <span class="badge badge-status"
-                                      th:classappend="${r.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${r.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${r.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"
-                                      th:text="${r.rentalStatus}"></span>
-                                <span class="badge bg-info-subtle text-info border border-info-subtle ms-1"
-                                      th:if="${r.employeeHire}">Staff</span>
+                            <td class="text-end rental-table__price">
+                                <div th:replace="~{fragments/rental-period :: rentalHirePrice(${r})}"></div>
+                            </td>
+                            <td class="rental-table__status">
+                                <div th:replace="~{fragments/rental-period :: rentalStatusBadges(${r})}"></div>
                             </td>
                             <td class="text-end rental-table-actions-col">
                                 <div class="rental-table-actions"

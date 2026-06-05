@@ -1,18 +1,72 @@
 /**
  * Full-screen curtain loader on POST form submissions.
- * Video: /media/car-trunk-loading.mp4 (white backdrop removed via blend on dark stage).
+ * Default: car-trunk video. Login: animated loading GIF.
  */
 (function (global) {
     'use strict';
 
     var OVERLAY_ID = 'appLoadingCurtain';
     var shown = false;
+    var activeVariant = 'default';
 
     function mediaUrl() {
         if (global.FleetDeskLoading && global.FleetDeskLoading.mediaUrl) {
             return global.FleetDeskLoading.mediaUrl;
         }
         return '/media/car-trunk-loading.mp4';
+    }
+
+    function loginLoadingGifUrl() {
+        if (global.FleetDeskLoading && global.FleetDeskLoading.loginGifUrl) {
+            return global.FleetDeskLoading.loginGifUrl;
+        }
+        return '/images/login-loading.jpg';
+    }
+
+    function loginLoaderMarkup() {
+        return (
+            '<div class="app-loading-curtain__login-loader" aria-hidden="true">' +
+            '  <img class="app-loading-curtain__login-gif" alt="" decoding="async" role="presentation"/>' +
+            '  <div class="login-dots-loader" role="presentation" hidden>' +
+            '    <span class="login-dots-loader__dot"></span>' +
+            '    <span class="login-dots-loader__dot"></span>' +
+            '    <span class="login-dots-loader__dot"></span>' +
+            '  </div>' +
+            '</div>'
+        );
+    }
+
+    function refreshLoginLoader(overlay) {
+        if (!overlay) {
+            return;
+        }
+        var img = overlay.querySelector('.app-loading-curtain__login-gif');
+        var dots = overlay.querySelector('.login-dots-loader');
+        if (!img) {
+            return;
+        }
+        if (dots) {
+            dots.hidden = true;
+        }
+        img.hidden = false;
+        img.onload = function () {
+            img.hidden = false;
+            if (dots) {
+                dots.hidden = true;
+            }
+        };
+        img.onerror = function () {
+            img.hidden = true;
+            if (dots) {
+                dots.hidden = false;
+            }
+        };
+        var nextSrc = loginLoadingGifUrl();
+        if (img.getAttribute('src') !== nextSrc) {
+            img.setAttribute('src', nextSrc);
+        } else if (img.complete && img.naturalWidth === 0) {
+            img.onerror();
+        }
     }
 
     function buildOverlay() {
@@ -36,8 +90,13 @@
             '<div class="app-loading-curtain__panel app-loading-curtain__panel--bottom" aria-hidden="true"></div>' +
             '<div class="app-loading-curtain__stage">' +
             '  <div class="app-loading-curtain__glow" aria-hidden="true"></div>' +
-            '  <div class="app-loading-curtain__video-wrap">' +
-            '    <video class="app-loading-curtain__video" muted loop playsinline preload="auto" aria-hidden="true"></video>' +
+            '  <div class="app-loading-curtain__media app-loading-curtain__media--default">' +
+            '    <div class="app-loading-curtain__video-wrap">' +
+            '      <video class="app-loading-curtain__video" muted loop playsinline preload="auto" aria-hidden="true"></video>' +
+            '    </div>' +
+            '  </div>' +
+            '  <div class="app-loading-curtain__media app-loading-curtain__media--login" hidden>' +
+                 loginLoaderMarkup() +
             '  </div>' +
             '  <p class="app-loading-curtain__title" id="appLoadingCurtainTitle">Saving your changes…</p>' +
             '  <p class="app-loading-curtain__hint">Please wait</p>' +
@@ -74,16 +133,57 @@
         }
     }
 
-    function show(message) {
+    function resolveVariant(form) {
+        if (form && form.dataset && form.dataset.loadingVariant) {
+            return form.dataset.loadingVariant;
+        }
+        if (document.body.classList.contains('login-page')) {
+            return 'login';
+        }
+        return 'default';
+    }
+
+    function applyVariant(overlay, variant) {
+        activeVariant = variant === 'login' ? 'login' : 'default';
+        overlay.classList.toggle('app-loading-curtain--login', activeVariant === 'login');
+
+        var defaultMedia = overlay.querySelector('.app-loading-curtain__media--default');
+        var loginMedia = overlay.querySelector('.app-loading-curtain__media--login');
+        if (defaultMedia) {
+            if (activeVariant === 'login') {
+                defaultMedia.setAttribute('hidden', 'hidden');
+            } else {
+                defaultMedia.removeAttribute('hidden');
+            }
+        }
+        if (loginMedia) {
+            if (activeVariant === 'login') {
+                loginMedia.removeAttribute('hidden');
+                refreshLoginLoader(overlay);
+            } else {
+                loginMedia.setAttribute('hidden', 'hidden');
+            }
+        }
+    }
+
+    function show(message, options) {
+        options = options || {};
         if (shown) {
             return;
         }
         shown = true;
 
         var overlay = buildOverlay();
+        applyVariant(overlay, options.variant || 'default');
+
         var title = overlay.querySelector('.app-loading-curtain__title');
         if (title && message) {
             title.textContent = message;
+        }
+
+        var hint = overlay.querySelector('.app-loading-curtain__hint');
+        if (hint) {
+            hint.textContent = options.hint || (activeVariant === 'login' ? 'Opening your dashboard…' : 'Please wait');
         }
 
         overlay.hidden = false;
@@ -92,7 +192,11 @@
 
         requestAnimationFrame(function () {
             overlay.classList.add('is-active');
-            playVideo(overlay);
+            if (activeVariant === 'login') {
+                pauseVideo(overlay);
+            } else {
+                playVideo(overlay);
+            }
         });
     }
 
@@ -139,12 +243,25 @@
         return 'Saving your changes…';
     }
 
+    function hintForForm(form) {
+        if (form.dataset && form.dataset.loadingHint) {
+            return form.dataset.loadingHint;
+        }
+        if (resolveVariant(form) === 'login') {
+            return 'Opening your dashboard…';
+        }
+        return 'Please wait';
+    }
+
     function onFormSubmit(event) {
         var form = event.target;
         if (!isPostForm(form)) {
             return;
         }
-        show(messageForForm(form));
+        show(messageForForm(form), {
+            variant: resolveVariant(form),
+            hint: hintForForm(form)
+        });
     }
 
     function init() {

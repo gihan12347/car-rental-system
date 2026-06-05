@@ -1,16 +1,16 @@
 package com.carrental.config;
 
-import com.carrental.security.DatabaseUserDetailsService;
-import com.carrental.security.FleetDeskAuthenticationSuccessHandler;
-import com.carrental.security.FleetDeskLogoutSuccessHandler;
-import com.carrental.security.FriendlyAccessDeniedHandler;
+import com.carrental.security.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
@@ -18,9 +18,17 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 public class SecurityConfig {
 
     private final DatabaseUserDetailsService userDetailsService;
+    private final FleetDeskAuthenticationSuccessHandler fleetDeskAuthenticationSuccessHandler;
+    private final FleetDeskAuthenticationFailureHandler fleetDeskAuthenticationFailureHandler;
+    private final FriendlyAccessDeniedHandler friendlyAccessDeniedHandler;
 
-    public SecurityConfig(DatabaseUserDetailsService userDetailsService) {
+
+    public SecurityConfig(DatabaseUserDetailsService userDetailsService,
+                          FleetDeskAuthenticationSuccessHandler fleetDeskAuthenticationSuccessHandler, FleetDeskAuthenticationFailureHandler fleetDeskAuthenticationFailureHandler, FriendlyAccessDeniedHandler friendlyAccessDeniedHandler) {
         this.userDetailsService = userDetailsService;
+        this.fleetDeskAuthenticationSuccessHandler = fleetDeskAuthenticationSuccessHandler;
+        this.fleetDeskAuthenticationFailureHandler = fleetDeskAuthenticationFailureHandler;
+        this.friendlyAccessDeniedHandler = friendlyAccessDeniedHandler;
     }
 
     @Bean
@@ -31,6 +39,7 @@ public class SecurityConfig {
                                 "/login",
                                 "/api/auth/status",
                                 "/css/**",
+                                "/js/**",
                                 "/images/**",
                                 "/uploads/cars/**",
                                 "/sw.js",
@@ -40,26 +49,32 @@ public class SecurityConfig {
                                 "/media/**",
                                 "/error"
                         ).permitAll()
+                        .antMatchers(HttpMethod.POST, "/account/users").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.GET, "/employees").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.GET, "/office-expenses").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .invalidSessionUrl("/login?expired=1"))
                 .exceptionHandling(ex -> ex
-                        .accessDeniedHandler(new FriendlyAccessDeniedHandler()))
+                        .accessDeniedHandler(friendlyAccessDeniedHandler))
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(new FleetDeskAuthenticationSuccessHandler("/dashboard"))
-                        .failureUrl("/login?error=true")
+                        .successHandler(fleetDeskAuthenticationSuccessHandler)
+                        .failureHandler(fleetDeskAuthenticationFailureHandler)
                         .permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessHandler(new FleetDeskLogoutSuccessHandler())
+                        .logoutSuccessUrl("/login?signedOut=1")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll())
                 .headers(headers -> {
                     headers.cacheControl();
-                    headers.referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN);
+                    headers.referrerPolicy(
+                            ReferrerPolicyHeaderWriter.ReferrerPolicy
+                                    .STRICT_ORIGIN_WHEN_CROSS_ORIGIN
+                    );
                 })
                 .userDetailsService(userDetailsService);
 

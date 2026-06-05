@@ -282,13 +282,224 @@ body.app-body {
   outline-offset: 2px;
 }
 
-.rental-table-actions-col {
-  width: 1%;
+/* Fleet list page — fit table without horizontal scroll */
+.cars-page .app-card-table--fleet {
+  overflow: hidden;
+}
+
+.cars-page .app-table--fleet {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.cars-page .app-table--fleet thead th {
+  white-space: normal;
+  font-size: 0.68rem;
+  padding: 0.7rem 0.55rem;
+  line-height: 1.25;
+}
+
+.cars-page .app-table--fleet tbody td {
+  padding: 0.65rem 0.55rem;
+  font-size: 0.8125rem;
+  overflow: hidden;
+}
+
+.cars-page .fleet-col-vehicle { width: 5.75rem; }
+.cars-page .fleet-col-mileage { width: 3.85rem; }
+.cars-page .fleet-col-passengers { width: 2.75rem; }
+.cars-page .fleet-col-rates { width: 8.75rem; }
+.cars-page .fleet-col-extras { width: 5rem; }
+.cars-page .fleet-col-status { width: 5.75rem; }
+.cars-page .fleet-col-actions { width: 13.5rem; }
+
+.fleet-vehicle-two-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.fleet-vehicle-two-line__image {
+  display: flex;
+  justify-content: center;
+  line-height: 0;
+}
+
+.fleet-vehicle-two-line__reg {
+  display: block;
+  max-width: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.fleet-mileage-cell {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.fleet-mileage-cell__value {
+  display: block;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.fleet-mileage-cell__unit {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--app-text-muted);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.fleet-extras-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  line-height: 1.25;
+}
+
+.fleet-extras-cell__line {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.fleet-extras-cell__value {
+  font-weight: 600;
+}
+
+.fleet-extras-cell__unit {
+  font-size: 0.68rem;
+  color: var(--app-text-muted);
+  font-weight: 500;
+}
+
+.fleet-status-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  white-space: normal;
+  line-height: 1.2;
+  max-width: 100%;
+}
+
+.cars-page .app-table--fleet .fleet-hire-rates__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.15rem 0.35rem;
+  min-width: 0;
+}
+
+.cars-page .app-table--fleet .fleet-hire-rates__item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  padding: 0;
+  line-height: 1.2;
+}
+
+.cars-page .app-table--fleet .fleet-hire-rates__item + .fleet-hire-rates__item {
+  border-top: none;
+}
+
+.cars-page .app-table--fleet .fleet-hire-rates__label {
+  font-size: 0.62rem;
+}
+
+.cars-page .app-table--fleet .fleet-hire-rates__value {
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.cars-page .fleet-table-actions-col {
+  padding-left: 0.5rem !important;
+}
+
+.cars-page .fleet-table-actions {
+  gap: 0.2rem;
+  padding: 0.18rem;
+}
+
+.cars-page .fleet-table-actions__btn {
+  padding: 0.4rem 0.72rem;
+  font-size: 0.75rem;
+}
+
+.cars-page .fleet-table-actions__btn i {
+  font-size: 0.875rem;
+}
+
+/* Mobile record cards — pill action buttons (icon-only below xl) */
+@media (max-width: 1199.98px) {
+  .app-mobile-actions {
+    display: block;
+    margin-top: 0.15rem;
+  }
+
+  .app-mobile-actions .fleet-table-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .app-mobile-actions .fleet-table-actions__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding: 0.6rem 0.45rem;
+    gap: 0;
+    flex-direction: row;
+    min-height: 2.65rem;
+    position: relative;
+  }
+
+  .app-mobile-actions .fleet-table-actions__btn > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .app-mobile-actions .fleet-table-actions__btn i {
+    font-size: 1.125rem;
+  }
+
+  .app-mobile-actions .app-confirm-delete-trigger {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    margin: 0;
+  }
+
+  .app-mobile-actions .app-confirm-delete-trigger .fleet-table-actions__btn {
+    width: 100%;
+  }
+}
+
+.rental-table-actions-col {
+  width: 1%;
+  white-space: normal;
+  min-width: 6.75rem;
+}
+
 .rental-table-actions {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
   gap: 0.35rem;
   justify-content: flex-end;
@@ -299,6 +510,7 @@ body.app-body {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
+  width: 100%;
   padding: 0.35rem 0.65rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -345,7 +557,8 @@ body.app-body {
 }
 
 .rental-table-actions .rental-cancel-form {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
 }
 
 .rental-cancel-form .rental-table-actions__btn--cancel {
@@ -1540,6 +1753,55 @@ body.login-page {
   background: var(--app-accent-soft);
 }
 
+@media (max-width: 991.98px) {
+  .app-topbar-nav-link {
+    min-width: 2.85rem;
+    padding: 0.45rem 0.35rem;
+    gap: 0;
+  }
+
+  .app-topbar-nav-link > span:not(.badge) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .app-topbar-nav-link .badge {
+    position: absolute;
+    top: 0.12rem;
+    right: 0.08rem;
+    min-width: 0.95rem;
+    height: 0.95rem;
+    padding: 0 0.2rem;
+    margin: 0 !important;
+    font-size: 0.58rem;
+    line-height: 0.95rem;
+  }
+
+  .app-signout-btn > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .app-signout-btn {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+}
+
 .app-icon-btn {
   width: 2.5rem;
   height: 2.5rem;
@@ -1604,6 +1866,245 @@ body.login-page {
   margin: 0 0 1rem;
 }
 
+.rental-period-two-line {
+  line-height: 1.45;
+  min-width: 10.5rem;
+}
+
+.rental-period-two-line__row {
+  display: block;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.rental-period-two-line__row + .rental-period-two-line__row {
+  margin-top: 0.2rem;
+}
+
+.rental-period-two-line__label {
+  display: inline-block;
+  min-width: 2.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-text-muted, #64748b);
+  margin-right: 0.15rem;
+}
+
+.rental-period-two-line__time {
+  color: var(--app-text-muted, #64748b);
+  font-size: 0.8125rem;
+  margin-left: 0.15rem;
+}
+
+.rental-hire-price {
+  line-height: 1.35;
+}
+
+.rental-hire-price__amount {
+  display: block;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.rentals-page .text-end .rental-hire-price__amount {
+  font-size: 0.9375rem;
+}
+
+.rental-hire-price__hint {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-text-muted, #64748b);
+}
+
+.rental-vehicle-two-line {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  line-height: 1.2;
+  min-width: 4.75rem;
+}
+
+.rental-vehicle-two-line__image {
+  display: block;
+  line-height: 0;
+}
+
+.rental-vehicle-two-line__reg {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: #0f172a;
+}
+
+.rental-duration-two-line__primary {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.rental-duration-two-line__type {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--app-text-muted, #64748b);
+}
+
+.rental-customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: 13rem;
+}
+
+.rental-customer-cell__name {
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.rental-customer-cell__meta {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--app-text-muted, #64748b);
+  line-height: 1.35;
+}
+
+.rental-customer-cell__meta--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rental-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--app-accent, #2563eb);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rental-contact-link:hover {
+  color: var(--app-accent-hover, #1d4ed8);
+  text-decoration: underline;
+}
+
+.rental-contact-link i {
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.rental-status-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.rental-status-badges__staff {
+  font-size: 0.65rem;
+}
+
+.rentals-page .app-card-table--rentals {
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+.rentals-page .app-table--rentals thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.rentals-page .app-table--rentals .rental-col-vehicle { width: 5.5rem; }
+.rentals-page .app-table--rentals .rental-col-contact { width: 8.5rem; }
+.rentals-page .app-table--rentals .rental-col-period { width: 11rem; }
+.rentals-page .app-table--rentals .rental-col-duration { width: 8rem; }
+.rentals-page .app-table--rentals .rental-col-price { width: 6.5rem; }
+.rentals-page .app-table--rentals .rental-col-status { width: 6.5rem; }
+.rentals-page .app-table--rentals .rental-col-actions { width: 6.75rem; }
+
+.rentals-page .app-table--rentals tbody td {
+  vertical-align: top;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.rentals-page .app-table--rentals tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.rentals-page .rental-table-actions__btn {
+  border-radius: 0.5rem;
+  min-height: 2rem;
+}
+
+/* 12-hour time picker (hour : minute AM/PM) */
+.time-ampm-picker__controls {
+  flex-wrap: nowrap;
+}
+
+.time-ampm-picker__controls .form-select {
+  min-width: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-ampm-picker__hour {
+  flex: 0 1 4.25rem;
+  max-width: 4.75rem;
+}
+
+.time-ampm-picker__minute {
+  flex: 0 1 4.25rem;
+  max-width: 4.75rem;
+}
+
+.time-ampm-picker__ampm {
+  flex: 0 1 5rem;
+  max-width: 5.5rem;
+}
+
+.time-ampm-picker__sep {
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+  font-weight: 700;
+  color: #64748b;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.login-input-group + .time-ampm-picker,
+.time-ampm-picker + .invalid-feedback {
+  margin-top: 0;
+}
+
+.app-record-card__header--vehicle-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.app-record-card__header--vehicle-stack .app-record-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .app-record-card__row {
   display: flex;
   justify-content: space-between;
@@ -1653,6 +2154,21 @@ body.login-page {
 .app-record-card__actions {
   display: grid;
   gap: 0.5rem;
+}
+
+.app-record-card__actions--stacked {
+  grid-template-columns: 1fr;
+}
+
+.app-record-card__actions--stacked .btn,
+.app-record-card__actions--stacked .rental-cancel-form,
+.app-record-card__actions--stacked .rental-cancel-form .btn {
+  width: 100%;
+}
+
+.app-form-actions--stacked .rental-cancel-form {
+  display: block;
+  width: 100%;
 }
 
 .app-record-list--panel {
@@ -1893,30 +2409,78 @@ body.login-page {
 
   .employees-page .employee-mobile-btn-set__btn {
     display: inline-flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 0.2rem;
+    gap: 0;
     flex: 1 1 0;
     min-width: 0;
     width: 100%;
-    min-height: 3.1rem;
-    padding: 0.45rem 0.2rem;
-    font-size: 0.6875rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    line-height: 1.15;
+    line-height: 1;
     text-align: center;
-    white-space: normal;
+    white-space: nowrap;
     border-radius: var(--app-radius);
+    position: relative;
+  }
+
+  .employees-page .employee-mobile-btn-set__btn > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .employees-page .employee-mobile-btn-set__btn i {
-    font-size: 1.05rem;
+    font-size: 1.125rem;
     flex-shrink: 0;
   }
 
-  .employees-page .employee-mobile-btn-set__btn.btn-app-primary {
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
+  .employees-page .employees-activity-bar__btn {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0;
+    padding: 0.5rem 0.35rem;
+    min-height: 2.75rem;
+  }
+
+  .employees-page .employees-activity-bar__btn > span:not(.employees-activity-bar__count) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .employees-page .employees-activity-bar__btn i {
+    font-size: 1.125rem;
+  }
+
+  .employees-page .employees-activity-bar__count {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.15rem;
+    min-width: 0.95rem;
+    height: 0.95rem;
+    padding: 0 0.2rem;
+    font-size: 0.58rem;
+    line-height: 0.95rem;
+  }
+
+  .employees-page .employees-activity-bar__btn {
+    position: relative;
   }
 
   .employees-page .employee-mobile-btn-set--nav {
@@ -1927,13 +2491,17 @@ body.login-page {
   }
 
   .employees-page .employee-mobile-btn-set--nav .employees-activity-bar__btn {
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
-    padding: 0.55rem 0.35rem;
-    gap: 0.2rem;
-    font-size: 0.75rem;
+    padding: 0.5rem 0.35rem;
+    gap: 0;
+    font-size: 0.8125rem;
     text-align: center;
-    min-height: 3.25rem;
+    min-height: 2.75rem;
+  }
+
+  .employees-page .employee-mobile-btn-set__btn.btn-app-primary {
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
   }
 
   .employees-page .employee-mobile-toolbar {
@@ -2790,16 +3358,54 @@ body.login-page {
 .complete-price-breakdown__row dt {
   color: #475569;
   font-weight: 500;
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 0 0 auto;
+  max-width: 42%;
+  padding-right: 0.5rem;
 }
 
 .complete-price-breakdown__row dd {
   color: #0f172a;
   font-weight: 600;
-  flex: 0 0 auto;
+  flex: 1 1 0;
+  min-width: 0;
   text-align: right;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.complete-price-breakdown__row--period {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.complete-price-breakdown__row--period dt {
+  max-width: none;
+  padding-right: 0;
+}
+
+.complete-price-breakdown__period {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.complete-price-breakdown__period-line {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.complete-price-breakdown__period-duration {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 0.1rem;
 }
 
 .complete-price-breakdown__section-label {
@@ -3500,15 +4106,8 @@ body.login-page {
 }
 
 @media (max-width: 399.98px) {
-  .employees-page .app-module-tabs .nav-link span,
-  .employees-page .employees-activity-bar__btn span:not(.employees-activity-bar__count),
-  .employees-page .employee-mobile-btn-set__btn span {
+  .employees-page .app-module-tabs .nav-link span {
     font-size: 0.65rem;
-  }
-
-  .employees-page .employee-mobile-btn-set__btn {
-    min-height: 2.85rem;
-    padding: 0.4rem 0.15rem;
   }
 
   .employee-tab-summary {
@@ -3678,6 +4277,112 @@ body.app-loading-curtain-open {
 .app-loading-curtain.is-active .app-loading-curtain__stage {
   opacity: 1;
   transform: scale(1);
+}
+
+/* Login — loading GIF (replaces video) */
+.app-loading-curtain--login .app-loading-curtain__veil {
+  background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.72) 0%, rgba(0, 0, 0, 0.94) 72%);
+}
+
+.app-loading-curtain--login .app-loading-curtain__panel {
+  background: linear-gradient(180deg, #0a0a0f 0%, #0f172a 55%, #111827 100%);
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.22);
+}
+
+.app-loading-curtain--login .app-loading-curtain__panel--bottom {
+  background: linear-gradient(0deg, #0a0a0f 0%, #0f172a 55%, #111827 100%);
+}
+
+.app-loading-curtain--login .app-loading-curtain__panel--top {
+  border-bottom-color: rgba(37, 99, 235, 0.45);
+}
+
+.app-loading-curtain--login .app-loading-curtain__panel--bottom {
+  border-top-color: rgba(37, 99, 235, 0.45);
+}
+
+.app-loading-curtain--login .app-loading-curtain__glow {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.38) 0%, rgba(220, 38, 38, 0.12) 45%, rgba(37, 99, 235, 0) 68%);
+}
+
+.app-loading-curtain--login .app-loading-curtain__title {
+  color: #f8fafc;
+}
+
+.app-loading-curtain--login .app-loading-curtain__hint {
+  color: rgba(191, 219, 254, 0.82);
+}
+
+.app-loading-curtain--login .app-loading-curtain__progress-bar {
+  background: linear-gradient(90deg, #2563eb, #dc2626, #2563eb);
+}
+
+.app-loading-curtain__media--login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.app-loading-curtain__login-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0;
+}
+
+.app-loading-curtain__login-gif {
+  display: block;
+  width: auto;
+  height: 2.75rem;
+  max-width: min(80vw, 12rem);
+  object-fit: contain;
+}
+
+.login-dots-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+}
+
+.login-dots-loader__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #0070d2;
+  animation: login-dots-pulse 1s ease-in-out infinite;
+}
+
+.login-dots-loader__dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.login-dots-loader__dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes login-dots-pulse {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.55);
+    opacity: 0.4;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-dots-loader__dot {
+    animation: none;
+    opacity: 0.85;
+  }
 }
 
 .app-danger-panel {

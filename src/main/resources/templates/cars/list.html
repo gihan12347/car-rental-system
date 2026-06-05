@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Fleet'">
 <head th:replace="~{fragments/head :: commonHead}"></head>
-<body class="app-body">
+<body class="app-body cars-page">
 <div class="d-flex min-vh-100 app-shell">
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
     <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
@@ -32,18 +32,24 @@
 
             <div th:replace="~{fragments/record-lists :: carRecordList(${cars}, ${searchQuery}, ${carDeleteSummaries})}"></div>
 
-            <div class="app-card-table d-none d-xl-block" th:if="${!cars.isEmpty()}">
-                <div class="table-responsive">
-                    <table class="table app-table mb-0">
+            <div class="app-card-table app-card-table--fleet d-none d-xl-block" th:if="${!cars.isEmpty()}">
+                    <table class="table app-table app-table--fleet mb-0">
+                        <colgroup>
+                            <col class="fleet-col-vehicle"/>
+                            <col class="fleet-col-mileage"/>
+                            <col class="fleet-col-passengers"/>
+                            <col class="fleet-col-rates"/>
+                            <col class="fleet-col-extras"/>
+                            <col class="fleet-col-status"/>
+                            <col class="fleet-col-actions"/>
+                        </colgroup>
                         <thead>
                         <tr>
-                            <th style="width:72px;"></th>
-                            <th>Registration</th>
+                            <th>Vehicle</th>
                             <th>Mileage</th>
-                            <th>Passengers</th>
-                            <th>Driver</th>
-                            <th>Rates / day<br/><span class="fw-normal text-muted small">Daily · Weekly · Monthly</span></th>
-                            <th>Extra / km</th>
+                            <th class="text-center">Psg</th>
+                            <th>Rates / day</th>
+                            <th>Extras</th>
                             <th>Status</th>
                             <th class="text-end fleet-table-actions-col">Actions</th>
                         </tr>
@@ -51,27 +57,40 @@
                         <tbody>
                         <tr th:each="c : ${cars}">
                             <td>
-                                <img th:if="${c.imagePath != null and !c.imagePath.isEmpty()}"
-                                     class="car-avatar car-avatar--sm"
-                                     th:src="${c.imagePath}" alt=""/>
-                                <span th:if="${c.imagePath == null or c.imagePath.isEmpty()}"
-                                      class="car-avatar car-avatar--sm car-avatar--placeholder">
-                                    <i class="bi bi-image"></i>
-                                </span>
+                                <div class="fleet-vehicle-two-line">
+                                    <span class="fleet-vehicle-two-line__image">
+                                        <img th:if="${c.imagePath != null and !c.imagePath.isEmpty()}"
+                                             class="car-avatar car-avatar--sm"
+                                             th:src="${c.imagePath}" alt=""/>
+                                        <span th:if="${c.imagePath == null or c.imagePath.isEmpty()}"
+                                              class="car-avatar car-avatar--sm car-avatar--placeholder">
+                                            <i class="bi bi-car-front"></i>
+                                        </span>
+                                    </span>
+                                    <span class="fleet-vehicle-two-line__reg"
+                                          th:text="${c.registrationNumber}"></span>
+                                </div>
                             </td>
-                            <td class="fw-semibold" th:text="${c.registrationNumber}"></td>
-                            <td><span th:text="${c.mileageKm}"></span> <span class="text-muted small">km</span></td>
-                            <td th:text="${c.passengerCount}"></td>
-                            <td>
-                                <span class="badge rounded-pill" th:classappend="${c.withDriver} ? ' text-bg-info' : ' bg-light text-muted'"
-                                      th:text="${c.withDriver} ? 'Yes' : 'No'"></span>
+                            <td class="fleet-mileage-cell">
+                                <span class="fleet-mileage-cell__value" th:text="${c.mileageKm}"></span>
+                                <span class="fleet-mileage-cell__unit">km</span>
                             </td>
+                            <td class="text-center" th:text="${c.passengerCount}"></td>
                             <td class="fleet-hire-rates-cell">
                                 <div th:replace="~{fragments/fleet-hire-rates :: hireRatesDisplay(${c})}"></div>
                             </td>
-                            <td th:text="${c.extraPricePerKm}"></td>
+                            <td class="fleet-extras-cell">
+                                <span class="fleet-extras-cell__line">
+                                    <span class="fleet-extras-cell__value" th:text="${c.extraPricePerKm}"></span>
+                                    <span class="fleet-extras-cell__unit">/ km</span>
+                                </span>
+                                <span class="fleet-extras-cell__line">
+                                    <span class="fleet-extras-cell__value" th:text="${c.extraPricePerHour}"></span>
+                                    <span class="fleet-extras-cell__unit">/ hr</span>
+                                </span>
+                            </td>
                             <td>
-                                <span class="badge badge-status" th:classappend="${c.status.name() == 'AVAILABLE'} ? ' text-bg-success' : ' text-bg-secondary'"
+                                <span class="badge badge-status fleet-status-badge" th:classappend="${c.status.name() == 'AVAILABLE'} ? ' text-bg-success' : ' text-bg-secondary'"
                                       th:text="${c.status}"></span>
                             </td>
                             <td class="text-end fleet-table-actions-col">
@@ -110,7 +129,6 @@
                         </tr>
                         </tbody>
                     </table>
-                </div>
             </div>
 
             <div class="app-card-table empty-state"

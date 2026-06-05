@@ -38,9 +38,11 @@
 
     function createUserValid(fields) {
         var username = fields[0].value.trim();
-        var password = fields[1].value;
-        var confirm = fields[2].value;
+        var role = fields[1].value;
+        var password = fields[2].value;
+        var confirm = fields[3].value;
         return username.length >= 3
+            && role.length > 0
             && password.length >= 6
             && confirm.length >= 6
             && password === confirm;
@@ -54,7 +56,7 @@
             passwordPairValid);
         wireForm(
             'createUserForm',
-            ['newUsername', 'createUserPassword', 'createUserConfirmPassword'],
+            ['newUsername', 'newUserRole', 'createUserPassword', 'createUserConfirmPassword'],
             'createUserSubmitBtn',
             createUserValid);
     }

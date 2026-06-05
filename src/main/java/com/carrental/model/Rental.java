@@ -16,6 +16,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "rentals")
@@ -31,7 +32,7 @@ public class Rental {
     private Car car;
 
     @NotNull
-    @Min(1)
+    @Min(0)
     @Column(nullable = false)
     private Integer numberOfDays;
 
@@ -68,8 +69,18 @@ public class Rental {
     @Column(nullable = false)
     private LocalDate pickupDate = LocalDate.now();
 
+    @NotNull
+    @Column(name = "pickup_time", nullable = false)
+    private LocalTime pickupTime = LocalTime.of(9, 0);
+
     @Column
     private LocalDate returnDate;
+
+    @Column(name = "return_time")
+    private LocalTime returnTime;
+
+    @Column(name = "billable_extra_hours", precision = 8, scale = 2)
+    private BigDecimal billableExtraHours;
 
     @Column
     private LocalDate completedDate;
@@ -195,12 +206,36 @@ public class Rental {
         this.pickupDate = pickupDate;
     }
 
+    public LocalTime getPickupTime() {
+        return pickupTime;
+    }
+
+    public void setPickupTime(LocalTime pickupTime) {
+        this.pickupTime = pickupTime;
+    }
+
     public LocalDate getReturnDate() {
         return returnDate;
     }
 
     public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
+    }
+
+    public LocalTime getReturnTime() {
+        return returnTime;
+    }
+
+    public void setReturnTime(LocalTime returnTime) {
+        this.returnTime = returnTime;
+    }
+
+    public BigDecimal getBillableExtraHours() {
+        return billableExtraHours;
+    }
+
+    public void setBillableExtraHours(BigDecimal billableExtraHours) {
+        this.billableExtraHours = billableExtraHours;
     }
 
     public LocalDate getCompletedDate() {

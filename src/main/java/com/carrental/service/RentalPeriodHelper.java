@@ -4,6 +4,8 @@ import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 public final class RentalPeriodHelper {
@@ -16,6 +18,20 @@ public final class RentalPeriodHelper {
             return rental.getPickupDate();
         }
         return rental.getHireDate();
+    }
+
+    public static LocalTime pickupTime(Rental rental) {
+        return rental.getPickupTime() != null ? rental.getPickupTime() : LocalTime.MIDNIGHT;
+    }
+
+    public static LocalDateTime pickupDateTime(Rental rental) {
+        return RentalDurationHelper.combine(startDate(rental), pickupTime(rental));
+    }
+
+    public static LocalDateTime plannedReturnDateTime(Rental rental) {
+        LocalDate date = rental.getReturnDate() != null ? rental.getReturnDate() : endDate(rental);
+        LocalTime time = rental.getReturnTime() != null ? rental.getReturnTime() : pickupTime(rental);
+        return RentalDurationHelper.combine(date, time);
     }
 
     public static LocalDate endDate(Rental rental) {

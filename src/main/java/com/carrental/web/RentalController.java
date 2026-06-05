@@ -4,6 +4,7 @@ import com.carrental.model.HireType;
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
 import com.carrental.service.BlacklistedCustomerService;
+import com.carrental.service.RentalDurationHelper;
 import com.carrental.service.RentalPeriodHelper;
 import com.carrental.service.RentalPricingHelper;
 import com.carrental.service.RentalService;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -113,7 +115,7 @@ public class RentalController {
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
         if (!form.isValidPeriod()) {
-            bindingResult.rejectValue("endDate", "rental.period", "End date must be on or after the start date.");
+            bindingResult.rejectValue("endDate", "rental.period", "End date/time must be after the start date/time.");
         }
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("hireForm", form);
@@ -126,7 +128,9 @@ public class RentalController {
                     form.getCarId(),
                     form.getHireType(),
                     form.getStartDate(),
+                    form.getStartTime(),
                     form.getEndDate(),
+                    form.getEndTime(),
                     form.getCustomerName(),
                     form.getCustomerAddress(),
                     form.getCustomerContact(),
@@ -157,13 +161,7 @@ public class RentalController {
         }
         populateCompletePage(model, rental, null);
         if (!model.containsAttribute("completeForm")) {
-            CompleteRentalForm form = new CompleteRentalForm();
-            form.setRentalId(id);
-            LocalDate defaultReturn = rental.getReturnDate() != null
-                    ? rental.getReturnDate()
-                    : LocalDate.now();
-            form.setReturnDate(defaultReturn);
-            model.addAttribute("completeForm", form);
+            model.addAttribute("completeForm", CompleteRentalForm.forActiveRental(rental));
         } else {
             addPriceBreakdown(model, rental, (CompleteRentalForm) model.getAttribute("completeForm"));
         }
@@ -189,6 +187,7 @@ public class RentalController {
             Rental completed = rentalService.completeRental(
                     id,
                     form.getReturnDate(),
+                    form.getReturnTime(),
                     form.getReturnMileageKm(),
                     Boolean.TRUE.equals(form.getDocumentReturned()),
                     blacklist,
@@ -233,13 +232,22 @@ public class RentalController {
         model.addAttribute("rental", rental);
         model.addAttribute("startMileageKm", rental.getCar().getMileageKm());
         model.addAttribute("pickupDate", RentalPeriodHelper.startDate(rental));
+        model.addAttribute("pickupTime", RentalPeriodHelper.pickupTime(rental));
+        model.addAttribute("pickupDateTime", RentalPeriodHelper.pickupDateTime(rental));
+        model.addAttribute("plannedReturnDate", rental.getReturnDate());
+        model.addAttribute("plannedReturnTime", rental.getReturnTime() != null
+                ? rental.getReturnTime()
+                : RentalPeriodHelper.pickupTime(rental));
+        model.addAttribute("plannedReturnDateTime", RentalPeriodHelper.plannedReturnDateTime(rental));
         HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
         model.addAttribute("hireType", hireType);
         model.addAttribute("dailyRate", RentalPricingHelper.effectiveDailyRate(rental.getCar(), hireType));
+        model.addAttribute("hourRate", rental.getCar().getExtraPricePerHour());
         model.addAttribute("kmRate", rental.getCar().getExtraPricePerKm());
         model.addAttribute("freeKmPerDay", rental.getCar().getFreeKmPerDay() != null ? rental.getCar().getFreeKmPerDay() : 0);
         model.addAttribute("customerBlacklisted", blacklistedCustomerService.isBlacklisted(rental.getCustomerIdNumber()));
         model.addAttribute("employeeHire", Boolean.TRUE.equals(rental.getEmployeeHire()));
+        model.addAttribute("billedPlannedPeriod", false);
         model.addAttribute("activeNav", "rentals");
         if (form != null) {
             model.addAttribute("completeForm", form);
@@ -247,26 +255,33 @@ public class RentalController {
     }
 
     private static void addPriceBreakdown(Model model, Rental rental, CompleteRentalForm form) {
-        if (form == null || form.getReturnDate() == null || form.getReturnMileageKm() == null) {
+        if (form == null || form.getReturnDate() == null || form.getReturnTime() == null || form.getReturnMileageKm() == null) {
             return;
         }
         try {
             boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
             HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
+            LocalDateTime pickupDateTime = RentalPeriodHelper.pickupDateTime(rental);
+            LocalDateTime plannedReturnDateTime = RentalPeriodHelper.plannedReturnDateTime(rental);
+            LocalDateTime actualReturnDateTime = RentalDurationHelper.combine(form.getReturnDate(), form.getReturnTime());
             RentalPricingHelper.PriceBreakdown breakdown = employeeHire
-                    ? RentalPricingHelper.calculateWaived(
+                    ? RentalPricingHelper.calculateWaivedForCompletion(
                             rental.getCar(),
                             hireType,
-                            RentalPeriodHelper.startDate(rental),
-                            form.getReturnDate(),
+                            pickupDateTime,
+                            plannedReturnDateTime,
+                            actualReturnDateTime,
                             form.getReturnMileageKm())
-                    : RentalPricingHelper.calculate(
+                    : RentalPricingHelper.calculateForCompletion(
                             rental.getCar(),
                             hireType,
-                            RentalPeriodHelper.startDate(rental),
-                            form.getReturnDate(),
+                            pickupDateTime,
+                            plannedReturnDateTime,
+                            actualReturnDateTime,
                             form.getReturnMileageKm());
             model.addAttribute("priceBreakdown", breakdown);
+            model.addAttribute("billedPlannedPeriod", RentalPricingHelper.usesPlannedPeriodPrice(
+                    plannedReturnDateTime, actualReturnDateTime));
             BigDecimal discount = RentalService.normalizeCompletionDiscount(form.getDiscount());
             if (discount.compareTo(breakdown.getTotal()) > 0) {
                 discount = breakdown.getTotal();

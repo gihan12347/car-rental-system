@@ -1,10 +1,13 @@
 package com.carrental.web.dto;
 
 import com.carrental.model.HireType;
+import com.carrental.service.RentalDurationHelper;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class RentalForm {
 
@@ -18,7 +21,15 @@ public class RentalForm {
     private LocalDate startDate;
 
     @NotNull
+    @DateTimeFormat(pattern = "HH:mm")
+    private LocalTime startTime = LocalTime.of(9, 0);
+
+    @NotNull
     private LocalDate endDate;
+
+    @NotNull
+    @DateTimeFormat(pattern = "HH:mm")
+    private LocalTime endTime = LocalTime.of(9, 0);
 
     @NotBlank
     private String customerName;
@@ -65,12 +76,28 @@ public class RentalForm {
         this.startDate = startDate;
     }
 
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
     public LocalDate getEndDate() {
         return endDate;
     }
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
     }
 
     public String getCustomerName() {
@@ -114,6 +141,16 @@ public class RentalForm {
     }
 
     public boolean isValidPeriod() {
-        return startDate != null && endDate != null && !endDate.isBefore(startDate);
+        if (startDate == null || endDate == null) {
+            return false;
+        }
+        try {
+            RentalDurationHelper.split24h(
+                    RentalDurationHelper.combine(startDate, startTime),
+                    RentalDurationHelper.combine(endDate, endTime));
+            return true;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 }

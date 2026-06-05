@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -64,7 +66,7 @@ public class RentalService {
                 normalizePageSize(size),
                 Sort.by(Sort.Direction.DESC, "hireDate"));
         if (q.isEmpty()) {
-            return rentalRepository.findAllByOrderByHireDateDesc(pageable);
+            return rentalRepository.findAllByRentalStatusNotOrderByHireDateDesc(RentalStatus.CANCELLED, pageable);
         }
         return rentalRepository.searchAllByTerm(q, pageable);
     }
@@ -145,7 +147,8 @@ public class RentalService {
                         car.getPassengerCount(),
                         car.getRentalPricePerDay(),
                         CarPricingHelper.resolveWeekPrice(car),
-                        CarPricingHelper.resolveMonthPrice(car)))
+                        CarPricingHelper.resolveMonthPrice(car),
+                        car.getExtraPricePerHour()))
                 .collect(Collectors.toList());
     }
 
@@ -165,12 +168,20 @@ public class RentalService {
             Long carId,
             HireType hireType,
             LocalDate startDate,
+            LocalTime startTime,
             LocalDate endDate,
+            LocalTime endTime,
             String customerName,
             String customerAddress,
             String customerContact,
             String customerIdNumber,
             String travelLocation) {
+        LocalTime pickupTime = startTime != null ? startTime : LocalTime.of(9, 0);
+        LocalTime plannedReturnTime = endTime != null ? endTime : pickupTime;
+        LocalDateTime pickupDateTime = RentalDurationHelper.combine(startDate, pickupTime);
+        LocalDateTime endDateTime = RentalDurationHelper.combine(endDate, plannedReturnTime);
+        RentalDurationHelper.Split duration = RentalDurationHelper.split24h(pickupDateTime, endDateTime);
+
         validatePeriod(startDate, endDate);
         blacklistedCustomerService.ensureNotBlacklisted(customerIdNumber);
         Car car = carService.getById(carId);
@@ -178,12 +189,12 @@ public class RentalService {
             throw new IllegalStateException(
                     "This vehicle is already booked for part of the selected dates. Choose different dates or another car.");
         }
-        int days = RentalPeriodHelper.inclusiveDays(startDate, endDate);
         LocalDate today = LocalDate.now();
 
         Rental rental = new Rental();
         rental.setCar(car);
-        rental.setNumberOfDays(days);
+        rental.setNumberOfDays(duration.getFullDays());
+        rental.setBillableExtraHours(duration.getExtraHours());
         rental.setHireType(hireType != null ? hireType : HireType.PER_DAY);
         rental.setCustomerName(customerName);
         rental.setCustomerAddress(customerAddress);
@@ -192,7 +203,9 @@ public class RentalService {
         rental.setTravelLocation(travelLocation);
         rental.setHireDate(today);
         rental.setPickupDate(startDate);
+        rental.setPickupTime(pickupTime);
         rental.setReturnDate(endDate);
+        rental.setReturnTime(plannedReturnTime);
         rental.setRentalStatus(RentalStatus.ACTIVE);
         applyEmployeeHireIfMatched(rental, customerIdNumber);
         rentalRepository.save(rental);
@@ -205,6 +218,7 @@ public class RentalService {
     public Rental completeRental(
             Long rentalId,
             LocalDate returnDate,
+            LocalTime returnTime,
             Integer returnMileageKm,
             boolean documentReturned,
             boolean blacklistCustomer,
@@ -218,19 +232,26 @@ public class RentalService {
         if (returnDate == null) {
             throw new IllegalArgumentException("Return date is required.");
         }
+        if (returnTime == null) {
+            throw new IllegalArgumentException("Return time is required.");
+        }
         if (returnMileageKm == null || returnMileageKm < 0) {
             throw new IllegalArgumentException("Return mileage is required.");
         }
 
         Car car = rental.getCar();
-        LocalDate pickupDate = RentalPeriodHelper.startDate(rental);
+        LocalDateTime pickupDateTime = RentalPeriodHelper.pickupDateTime(rental);
+        LocalDateTime plannedReturnDateTime = RentalPeriodHelper.plannedReturnDateTime(rental);
+        LocalDateTime actualReturnDateTime = RentalDurationHelper.combine(returnDate, returnTime);
         applyEmployeeHireIfMatched(rental, rental.getCustomerIdNumber());
         boolean employeeHire = Boolean.TRUE.equals(rental.getEmployeeHire());
 
         HireType hireType = rental.getHireType() != null ? rental.getHireType() : HireType.PER_DAY;
         RentalPricingHelper.PriceBreakdown pricing = employeeHire
-                ? RentalPricingHelper.calculateWaived(car, hireType, pickupDate, returnDate, returnMileageKm)
-                : RentalPricingHelper.calculate(car, hireType, pickupDate, returnDate, returnMileageKm);
+                ? RentalPricingHelper.calculateWaivedForCompletion(
+                        car, hireType, pickupDateTime, plannedReturnDateTime, actualReturnDateTime, returnMileageKm)
+                : RentalPricingHelper.calculateForCompletion(
+                        car, hireType, pickupDateTime, plannedReturnDateTime, actualReturnDateTime, returnMileageKm);
 
         BigDecimal discountAmount = normalizeCompletionDiscount(discount);
         BigDecimal subtotal = pricing.getTotal();
@@ -239,7 +260,9 @@ public class RentalService {
         }
 
         rental.setReturnDate(returnDate);
+        rental.setReturnTime(returnTime);
         rental.setNumberOfDays(pricing.getDays());
+        rental.setBillableExtraHours(pricing.getExtraHours());
         rental.setExtraKm(BigDecimal.valueOf(pricing.getBillableExtraKm()));
         rental.setCompletionDiscount(discountAmount);
         rental.setCompletionComment(normalizeCompletionComment(completionComment));

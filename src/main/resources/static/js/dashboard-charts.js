@@ -5,6 +5,9 @@
         if (typeof FleetCharts === 'undefined' || typeof Chart === 'undefined') {
             return;
         }
+        if (!document.getElementById('chartRevenue')) {
+            return;
+        }
 
         var data = {};
         try {

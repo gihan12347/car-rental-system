@@ -34,11 +34,13 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         window.FleetDeskLoading = {
-            mediaUrl: /*[[@{/media/car-trunk-loading.mp4}]]*/ '/media/car-trunk-loading.mp4'
+            mediaUrl: /*[[@{/media/car-trunk-loading.mp4}]]*/ '/media/car-trunk-loading.mp4',
+            loginGifUrl: /*[[@{/images/login-loading.jpg}]]*/ '/images/login-loading.jpg'
         };
         /*]]>*/
     </script>
     <script th:src="@{/js/loading-curtain.js}" defer=""></script>
+    <script th:src="@{/js/time-ampm-picker.js}" defer=""></script>
     <script th:src="@{/js/auth-session-guard.js}" defer=""></script>
     <script th:inline="javascript" defer="">
         /*<![CDATA[*/

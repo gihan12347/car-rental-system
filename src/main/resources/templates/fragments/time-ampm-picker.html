@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 12-hour time picker controls; pair with a hidden input bound to LocalTime (HH:mm). -->
+<div th:fragment="controls(targetInputId)" class="time-ampm-picker" th:attr="data-time-target=${targetInputId}">
+    <div class="input-group time-ampm-picker__controls">
+        <select class="form-select time-ampm-picker__hour" th:attr="aria-label=${targetInputId + ' hour'}">
+            <option value="12">12</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+        </select>
+        <span class="input-group-text time-ampm-picker__sep">:</span>
+        <select class="form-select time-ampm-picker__minute" th:attr="aria-label=${targetInputId + ' minute'}"></select>
+        <select class="form-select time-ampm-picker__ampm" th:attr="aria-label=${targetInputId + ' AM or PM'}">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
+    </div>
+</div>
+
+</body>
+</html>

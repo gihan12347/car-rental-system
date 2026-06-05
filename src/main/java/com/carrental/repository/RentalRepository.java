@@ -18,7 +18,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     List<Rental> findByRentalStatusOrderByHireDateDesc(RentalStatus status);
 
-    Page<Rental> findAllByOrderByHireDateDesc(Pageable pageable);
+    Page<Rental> findAllByRentalStatusNotOrderByHireDateDesc(RentalStatus rentalStatus, Pageable pageable);
 
     @Query(
             value = "SELECT r FROM Rental r JOIN r.car c WHERE "

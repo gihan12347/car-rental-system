@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    var MINUTES_PER_DAY = 24 * 60;
+
     function parseNum(value, fallback) {
         var n = parseFloat(String(value).replace(',', '.'));
         return isNaN(n) ? fallback : n;
@@ -8,14 +10,6 @@
 
     function formatMoney(n) {
         return n.toFixed(2);
-    }
-
-    function inclusiveDays(start, end) {
-        if (!start || !end || end < start) {
-            return 0;
-        }
-        var ms = end.getTime() - start.getTime();
-        return Math.floor(ms / 86400000) + 1;
     }
 
     function parseDateInput(value) {
@@ -29,9 +23,72 @@
         return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     }
 
-    function formatDateLabel(d) {
-        if (!d) return '—';
-        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    function parseTimeInput(value) {
+        if (!value) {
+            return null;
+        }
+        var parts = value.split(':');
+        if (parts.length < 2) {
+            return null;
+        }
+        return {
+            h: parseInt(parts[0], 10),
+            m: parseInt(parts[1], 10)
+        };
+    }
+
+    function combineDateTime(dateVal, timeVal) {
+        var date = parseDateInput(dateVal);
+        var time = parseTimeInput(timeVal);
+        if (!date || !time || isNaN(time.h) || isNaN(time.m)) {
+            return null;
+        }
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.h, time.m, 0, 0);
+    }
+
+    function split24h(startDt, endDt) {
+        if (!startDt || !endDt || endDt <= startDt) {
+            return null;
+        }
+        var totalMinutes = Math.floor((endDt.getTime() - startDt.getTime()) / 60000);
+        var fullDays = Math.floor(totalMinutes / MINUTES_PER_DAY);
+        var remainderMinutes = totalMinutes % MINUTES_PER_DAY;
+        var extraHours = Math.round(remainderMinutes / 60 * 100) / 100;
+        return { fullDays: fullDays, extraHours: extraHours, totalMinutes: totalMinutes };
+    }
+
+    function formatTimeAmPm(h, m) {
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        var h12 = h % 12;
+        if (h12 === 0) {
+            h12 = 12;
+        }
+        return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+    }
+
+    function formatDateTimeLabel(dt) {
+        if (!dt) {
+            return '—';
+        }
+        return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+            + ' ' + formatTimeAmPm(dt.getHours(), dt.getMinutes());
+    }
+
+    function formatDurationLabel(duration) {
+        if (!duration) {
+            return '—';
+        }
+        var parts = [];
+        if (duration.fullDays > 0) {
+            parts.push(duration.fullDays + (duration.fullDays === 1 ? ' day' : ' days'));
+        }
+        if (duration.extraHours > 0) {
+            parts.push(duration.extraHours + ' hr');
+        }
+        if (parts.length === 0) {
+            return 'under 1 hour';
+        }
+        return parts.join(' + ');
     }
 
     function setText(id, text) {
@@ -62,9 +119,15 @@
 
         initBlacklistPanel();
 
-        var pickupDate = parseDateInput(form.getAttribute('data-pickup-date'));
+        var pickupDateStr = form.getAttribute('data-pickup-date');
+        var pickupTimeStr = form.getAttribute('data-pickup-time') || '00:00';
+        var plannedReturnDateStr = form.getAttribute('data-planned-return-date');
+        var plannedReturnTimeStr = form.getAttribute('data-planned-return-time') || pickupTimeStr;
+        var pickupDateTime = combineDateTime(pickupDateStr, pickupTimeStr);
+        var plannedReturnDateTime = combineDateTime(plannedReturnDateStr, plannedReturnTimeStr);
         var startMileage = parseNum(form.getAttribute('data-start-mileage'), 0);
         var dailyRate = parseNum(form.getAttribute('data-daily-rate'), 0);
+        var hourRate = parseNum(form.getAttribute('data-hour-rate'), 0);
         var hireType = form.getAttribute('data-hire-type') || 'PER_DAY';
         var pricePerDay = parseNum(form.getAttribute('data-price-per-day'), 0);
         var pricePerWeek = parseNum(form.getAttribute('data-price-per-week'), 0);
@@ -90,17 +153,43 @@
             return rateForHireType() * days;
         }
 
+        function computeHourCharge(extraHours) {
+            if (extraHours <= 0) {
+                return 0;
+            }
+            return hourRate * extraHours;
+        }
+
         function dailyChargeFormula(days) {
             var dayLabel = days === 1 ? 'day' : 'days';
             return formatMoney(rateForHireType()) + ' / day × ' + days + ' ' + dayLabel;
         }
 
+        function hourChargeFormula(extraHours) {
+            return formatMoney(hourRate) + ' / hr × ' + extraHours + ' hr';
+        }
+
+        function resolveBillingEnd(plannedDt, actualDt) {
+            if (!plannedDt || !actualDt) {
+                return actualDt || plannedDt;
+            }
+            return actualDt.getTime() > plannedDt.getTime() ? actualDt : plannedDt;
+        }
+
+        function usesPlannedPeriodPrice(plannedDt, actualDt) {
+            if (!plannedDt || !actualDt) {
+                return false;
+            }
+            return actualDt.getTime() <= plannedDt.getTime();
+        }
+
         var returnDateInput = document.getElementById('returnDate');
+        var returnTimeInput = document.getElementById('returnTime');
         var returnMileageInput = document.getElementById('returnMileageKm');
         var discountInput = document.getElementById('discount');
         var submitBtn = document.getElementById('completeSubmitBtn');
 
-        if (!returnDateInput || !returnMileageInput) {
+        if (!returnDateInput || !returnMileageInput || !returnTimeInput) {
             return;
         }
 
@@ -108,16 +197,20 @@
             if (!submitBtn) {
                 return;
             }
-            var returnDate = parseDateInput(returnDateInput.value);
+            var returnDateTime = combineDateTime(returnDateInput.value, returnTimeInput.value);
             var mileageRaw = returnMileageInput.value.trim();
             var returnMileage = parseNum(returnMileageInput.value, -1);
-            var daysOk = returnDate && pickupDate && inclusiveDays(pickupDate, returnDate) > 0;
+            var durationOk = split24h(pickupDateTime, returnDateTime) !== null;
             var mileageOk = mileageRaw !== '' && returnMileage >= startMileage;
-            submitBtn.disabled = !(daysOk && mileageOk);
+            submitBtn.disabled = !(durationOk && mileageOk);
         }
 
         function formatRatePerDay() {
             return formatMoney(rateForHireType()) + ' / day';
+        }
+
+        function formatRatePerHour() {
+            return formatMoney(hourRate) + ' / hr (beyond full days)';
         }
 
         function formatRatePerKm() {
@@ -126,6 +219,7 @@
 
         function setStaticRates() {
             setText('previewDailyRate', formatRatePerDay());
+            setText('previewHourRate', formatRatePerHour());
             setText('previewKmRate', formatRatePerKm());
             setText('previewFreeKmPerDay', Math.max(0, Math.floor(freeKmPerDay)) + ' km / day');
         }
@@ -174,8 +268,32 @@
             }
         }
 
+        function setPeriodPreview(pickupDt, actualReturnDt, billingDuration, bookedRateApplied) {
+            setText('previewPeriodFrom', 'From ' + formatDateTimeLabel(pickupDt));
+            setText('previewPeriodTo', 'To ' + formatDateTimeLabel(actualReturnDt));
+            var durationEl = document.getElementById('previewPeriodDuration');
+            if (durationEl) {
+                var durationText = formatDurationLabel(billingDuration);
+                if (bookedRateApplied) {
+                    durationText += ' · booked rate';
+                }
+                durationEl.textContent = durationText;
+                durationEl.classList.remove('d-none');
+            }
+        }
+
+        function clearPeriodPreview() {
+            setText('previewPeriodFrom', '—');
+            setText('previewPeriodTo', '—');
+            var durationEl = document.getElementById('previewPeriodDuration');
+            if (durationEl) {
+                durationEl.textContent = '';
+                durationEl.classList.add('d-none');
+            }
+        }
+
         function clearPreview(message) {
-            setText('previewPeriod', '—');
+            clearPeriodPreview();
             setText('previewStartMileage', startMileage + ' km');
             setText('previewReturnMileage', '—');
             setText('previewTripKm', '—');
@@ -184,8 +302,10 @@
             setText('previewIncludedKm', '—');
             setText('previewBillableExtraKm', '—');
             setText('previewDailyFormula', '');
+            setText('previewHourFormula', '');
             setText('previewKmFormula', '');
             setText('previewDailyCharge', '—');
+            setText('previewHourCharge', '—');
             setText('previewKmCharge', '—');
             setText('previewSubtotal', '—');
             var discountRow = document.getElementById('previewDiscountRow');
@@ -198,19 +318,19 @@
             if (badge) {
                 badge.textContent = 'Total: —';
             }
-            setText('previewHint', message || 'Enter return date and return odometer to calculate the total.');
+            setText('previewHint', message || 'Enter return date, time, and return odometer to calculate the total.');
             updateSubmitState();
         }
 
         function updatePreview() {
-            var returnDate = parseDateInput(returnDateInput.value);
+            var returnDateTime = combineDateTime(returnDateInput.value, returnTimeInput.value);
             var returnMileage = parseNum(returnMileageInput.value, -1);
 
             setText('previewStartMileage', startMileage + ' km');
             setStaticRates();
 
-            if (!returnDate || !pickupDate) {
-                clearPreview('Select a return date on or after the rental start.');
+            if (!returnDateTime || !pickupDateTime) {
+                clearPreview('Select return date and time after the rental start.');
                 return;
             }
 
@@ -226,23 +346,34 @@
                 return;
             }
 
-            var days = inclusiveDays(pickupDate, returnDate);
-            if (days <= 0) {
-                clearPreview('Return date cannot be before the rental start date.');
+            var duration = split24h(pickupDateTime, returnDateTime);
+            if (!duration) {
+                clearPreview('Return date/time must be after the rental start.');
                 return;
             }
 
+            var billingEnd = resolveBillingEnd(plannedReturnDateTime, returnDateTime);
+            var billingDuration = split24h(pickupDateTime, billingEnd);
+            if (!billingDuration) {
+                clearPreview('Could not calculate the booked rental period.');
+                return;
+            }
+            var bookedRateApplied = usesPlannedPeriodPrice(plannedReturnDateTime, returnDateTime);
+
+            var days = billingDuration.fullDays;
+            var extraHours = billingDuration.extraHours;
             var tripKm = returnMileage - startMileage;
             var freePerDay = Math.max(0, Math.floor(freeKmPerDay));
             var includedKm = freePerDay * days;
             var billableExtraKm = Math.max(0, tripKm - includedKm);
             var dailyCharge = employeeHire ? 0 : computeDailyCharge(days);
+            var hourCharge = employeeHire ? 0 : computeHourCharge(extraHours);
             var kmCharge = employeeHire ? 0 : kmRate * billableExtraKm;
-            var subtotal = employeeHire ? 0 : dailyCharge + kmCharge;
+            var subtotal = employeeHire ? 0 : dailyCharge + hourCharge + kmCharge;
             var priced = applyDiscountToTotal(subtotal);
             var dayLabel = days === 1 ? 'day' : 'days';
 
-            setText('previewPeriod', formatDateLabel(pickupDate) + ' → ' + formatDateLabel(returnDate) + ' (' + days + ' ' + dayLabel + ')');
+            setPeriodPreview(pickupDateTime, returnDateTime, billingDuration, bookedRateApplied);
             setText('previewReturnMileage', returnMileage + ' km');
             setText('previewTripKm', tripKm + ' km');
             setText('previewTripKmInlineValue', tripKm + ' km');
@@ -250,9 +381,19 @@
             setText('previewBillableExtraKm', billableExtraKm + ' km');
             if (employeeHire) {
                 setText('previewDailyFormula', 'Employee hire — waived');
+                setText('previewHourFormula', 'Employee hire — waived');
                 setText('previewKmFormula', 'Employee hire — waived');
             } else {
-                setText('previewDailyFormula', dailyChargeFormula(days));
+                if (days > 0) {
+                    setText('previewDailyFormula', dailyChargeFormula(days));
+                } else {
+                    setText('previewDailyFormula', 'No full 24-hour days');
+                }
+                if (extraHours > 0) {
+                    setText('previewHourFormula', hourChargeFormula(extraHours));
+                } else {
+                    setText('previewHourFormula', 'No extra hours beyond full days');
+                }
                 if (billableExtraKm > 0) {
                     setText('previewKmFormula', formatMoney(kmRate) + ' × ' + billableExtraKm + ' km');
                 } else {
@@ -260,17 +401,22 @@
                 }
             }
             setText('previewDailyCharge', formatMoney(dailyCharge));
+            setText('previewHourCharge', formatMoney(hourCharge));
             setText('previewKmCharge', formatMoney(kmCharge));
             updateDiscountRow(priced.subtotal, priced.discount, priced.total);
 
             setText('previewHint', employeeHire
                 ? 'Employee vehicle hire — total charge will be 0.00.'
-                : 'This total will be saved when you complete the rental.');
+                : bookedRateApplied
+                    ? 'Booked period charged (return on or before planned end). Extra km still applies.'
+                    : 'Includes extra time beyond the booked return date/time.');
             updateSubmitState();
         }
 
         returnDateInput.addEventListener('change', updatePreview);
         returnDateInput.addEventListener('input', updatePreview);
+        returnTimeInput.addEventListener('change', updatePreview);
+        returnTimeInput.addEventListener('input', updatePreview);
         returnMileageInput.addEventListener('change', updatePreview);
         returnMileageInput.addEventListener('input', updatePreview);
         if (discountInput) {

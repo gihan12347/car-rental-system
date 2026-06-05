@@ -43,14 +43,14 @@
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'overdue'} ? ' active' : ''" th:href="@{/rentals/overdue}">
                 <i class="bi bi-alarm" aria-hidden="true"></i><span>Overdue</span>
                 <span class="badge rounded-pill text-bg-danger ms-1"
-                      th:if="${rentalOverdueCount > 0}"
-                      th:text="${rentalOverdueCount}">0</span>
+                      th:if="${session.rentalOverdueCount != null and session.rentalOverdueCount > 0}"
+                      th:text="${session.rentalOverdueCount}">0</span>
             </a>
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'service-overdue'} ? ' active' : ''" th:href="@{/cars/service-overdue}">
                 <i class="bi bi-wrench-adjustable" aria-hidden="true"></i><span>Service</span>
                 <span class="badge rounded-pill text-bg-danger ms-1"
-                      th:if="${serviceOverdueCount > 0}"
-                      th:text="${serviceOverdueCount}">0</span>
+                      th:if="${session.serviceOverdueCount != null and session.serviceOverdueCount > 0}"
+                      th:text="${session.serviceOverdueCount}">0</span>
             </a>
             <a class="app-topbar-nav-link" th:classappend="${activeNav == 'rentals'} ? ' active' : ''" th:href="@{/rentals}">
                 <i class="bi bi-calendar3" aria-hidden="true"></i><span>Rentals</span>

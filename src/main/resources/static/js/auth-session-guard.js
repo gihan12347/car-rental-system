@@ -69,7 +69,10 @@
         return fetchAuthStatus().then(function (data) {
             if (data && data.authenticated) {
                 sessionStorage.setItem(ACTIVE_SESSION, '1');
-                window.location.replace(dashboardUrl());
+                var target = (data.landingUrl && data.landingUrl.length > 0)
+                    ? data.landingUrl
+                    : dashboardUrl();
+                window.location.replace(target);
                 return true;
             }
             sessionStorage.removeItem(ACTIVE_SESSION);

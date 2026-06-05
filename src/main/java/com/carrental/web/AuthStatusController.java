@@ -1,11 +1,14 @@
 package com.carrental.web;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -16,10 +19,15 @@ import java.util.Map;
 public class AuthStatusController {
 
     @GetMapping("/api/auth/status")
-    public Map<String, Boolean> status(Authentication authentication) {
+    public Map<String, Object> status(Authentication authentication) {
         boolean authenticated = authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken);
-        return Collections.singletonMap("authenticated", authenticated);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("authenticated", authenticated);
+        if (authenticated) {
+            body.put("landingUrl", "/dashboard");
+        }
+        return body;
     }
 }

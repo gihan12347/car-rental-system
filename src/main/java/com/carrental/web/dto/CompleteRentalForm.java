@@ -1,5 +1,7 @@
 package com.carrental.web.dto;
 
+import com.carrental.model.Rental;
+import com.carrental.service.RentalPeriodHelper;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Min;
@@ -7,6 +9,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class CompleteRentalForm {
 
@@ -15,6 +19,10 @@ public class CompleteRentalForm {
     @NotNull(message = "Return date is required.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate returnDate;
+
+    @NotNull(message = "Return time is required.")
+    @DateTimeFormat(pattern = "HH:mm")
+    private LocalTime returnTime;
 
     @NotNull(message = "Return mileage is required.")
     @Min(value = 0, message = "Return mileage must be zero or positive.")
@@ -46,6 +54,14 @@ public class CompleteRentalForm {
 
     public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
+    }
+
+    public LocalTime getReturnTime() {
+        return returnTime;
+    }
+
+    public void setReturnTime(LocalTime returnTime) {
+        this.returnTime = returnTime;
     }
 
     public Integer getReturnMileageKm() {
@@ -94,5 +110,17 @@ public class CompleteRentalForm {
 
     public void setCompletionComment(String completionComment) {
         this.completionComment = completionComment;
+    }
+
+    /** Defaults return date/time to the rental's booked (planned) return in the database. */
+    public static CompleteRentalForm forActiveRental(Rental rental) {
+        CompleteRentalForm form = new CompleteRentalForm();
+        if (rental != null) {
+            form.setRentalId(rental.getId());
+            LocalDateTime plannedReturn = RentalPeriodHelper.plannedReturnDateTime(rental);
+            form.setReturnDate(plannedReturn.toLocalDate());
+            form.setReturnTime(plannedReturn.toLocalTime().withSecond(0).withNano(0));
+        }
+        return form;
     }
 }

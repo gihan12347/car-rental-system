@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+
+
+<!-- Vehicle image on line 1, registration on line 2 -->
+
+<div th:fragment="rentalVehicleTwoLine(car, avatarSize)" class="rental-vehicle-two-line">
+
+    <span class="rental-vehicle-two-line__image">
+
+        <img th:if="${car.imagePath != null and !car.imagePath.isEmpty()}"
+
+             class="car-avatar flex-shrink-0"
+
+             th:classappend="${avatarSize == 'md'} ? ' car-avatar--md' : ' car-avatar--sm'"
+
+             th:src="${car.imagePath}" th:alt="${car.registrationNumber}"/>
+
+        <span th:if="${car.imagePath == null or car.imagePath.isEmpty()}"
+
+              class="car-avatar car-avatar--placeholder flex-shrink-0"
+
+              th:classappend="${avatarSize == 'md'} ? ' car-avatar--md' : ' car-avatar--sm'">
+
+            <i class="bi bi-car-front"></i>
+
+        </span>
+
+    </span>
+
+    <span class="rental-vehicle-two-line__reg"
+
+          th:text="${car.registrationNumber}">—</span>
+
+</div>
+
+
+
+<!-- Two-line rental period: start on line 1, end on line 2 -->
+
+<div th:fragment="rentalPeriodTwoLine(rental)" class="rental-period-two-line">
+
+    <span class="rental-period-two-line__row">
+
+        <span class="rental-period-two-line__label">From</span>
+
+        <span class="rental-period-two-line__value"
+
+              th:text="${rental.pickupDate != null ? rental.pickupDate : rental.hireDate}">—</span>
+
+        <span class="rental-period-two-line__time"
+
+              th:text="${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(rental.pickupTime, T(java.time.LocalTime).of(9, 0))}"></span>
+
+    </span>
+
+    <span class="rental-period-two-line__row">
+
+        <span class="rental-period-two-line__label">To</span>
+
+        <span class="rental-period-two-line__value"
+
+              th:text="${rental.returnDate != null ? rental.returnDate : rental.hireDate}">—</span>
+
+        <span class="rental-period-two-line__time"
+
+              th:text="${T(com.carrental.service.RentalDisplayHelper).formatTimeAmPm(rental.returnTime, rental.pickupTime != null ? rental.pickupTime : T(java.time.LocalTime).of(9, 0))}"></span>
+
+    </span>
+
+</div>
+
+
+
+<!-- Duration: billing days + extra hours on line 1, hire type on line 2 -->
+
+<div th:fragment="rentalDurationTwoLine(rental)" class="rental-duration-two-line">
+
+    <span class="rental-duration-two-line__primary"
+
+          th:text="${T(com.carrental.service.RentalDisplayHelper).formatDuration(rental)}">—</span>
+
+    <span class="rental-duration-two-line__type"
+
+          th:if="${rental.hireType != null}"
+
+          th:text="${rental.hireType.label}">—</span>
+
+</div>
+
+
+
+<!-- Customer summary for rental table -->
+
+<div th:fragment="rentalCustomerCell(rental)" class="rental-customer-cell">
+
+    <span class="rental-customer-cell__name" th:text="${rental.customerName}">—</span>
+
+    <span class="rental-customer-cell__meta"
+
+          th:if="${rental.customerIdNumber != null and !rental.customerIdNumber.isEmpty()}"
+
+          th:text="|ID ${rental.customerIdNumber}|"></span>
+
+    <span class="rental-customer-cell__meta rental-customer-cell__meta--truncate"
+
+          th:if="${rental.travelLocation != null and !rental.travelLocation.isEmpty()}"
+
+          th:text="${rental.travelLocation}"></span>
+
+</div>
+
+
+
+<!-- Rental status badges -->
+
+<div th:fragment="rentalStatusBadges(rental)" class="rental-status-badges">
+
+    <span class="badge badge-status rental-status-badges__status"
+
+          th:classappend="${rental.rentalStatus.name() == 'ACTIVE'} ? ' text-bg-warning text-dark' : (${rental.rentalStatus.name() == 'PENDING'} ? ' text-bg-info' : (${rental.rentalStatus.name() == 'CANCELLED'} ? ' text-bg-secondary' : ' text-bg-success'))"
+
+          th:text="${rental.rentalStatus}"></span>
+
+    <span class="badge bg-info-subtle text-info border border-info-subtle rental-status-badges__staff"
+
+          th:if="${rental.employeeHire}">Staff</span>
+
+</div>
+
+
+
+<!-- Hire price for rental lists -->
+
+<div th:fragment="rentalHirePrice(rental)"
+
+     th:with="hirePrice=${T(com.carrental.service.RentalPricingHelper).resolveDisplayHirePrice(rental)},
+
+              estimated=${T(com.carrental.service.RentalPricingHelper).isEstimatedHirePrice(rental)},
+
+              staffHire=${rental.employeeHire}"
+
+     class="rental-hire-price">
+
+    <span th:if="${hirePrice != null and staffHire}" class="rental-hire-price__amount text-muted">0.00</span>
+
+    <span th:if="${hirePrice != null and !staffHire}"
+
+          class="rental-hire-price__amount"
+
+          th:text="${#numbers.formatDecimal(hirePrice, 1, 'COMMA', 2, 'POINT')}">—</span>
+
+    <span th:if="${hirePrice == null}" class="rental-hire-price__amount text-muted">—</span>
+
+    <span th:if="${estimated and hirePrice != null}"
+
+          class="rental-hire-price__hint">Est. time only</span>
+
+    <span th:if="${staffHire}"
+
+          class="rental-hire-price__hint">Staff hire</span>
+
+    <span th:if="${!estimated and !staffHire and rental.rentalStatus.name() == 'COMPLETED' and hirePrice != null}"
+
+          class="rental-hire-price__hint">Final total</span>
+
+</div>
+
+
+
+</body>
+
+</html>
+
+

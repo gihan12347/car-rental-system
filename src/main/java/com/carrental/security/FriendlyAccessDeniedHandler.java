@@ -1,17 +1,18 @@
 package com.carrental.security;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Avoids the Whitelabel 403 page when the browser back button replays a stale form (invalid CSRF).
- */
+@Component
 public class FriendlyAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
@@ -20,6 +21,15 @@ public class FriendlyAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException {
         if (response.isCommitted()) {
+            return;
+        }
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)) {
+            response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
         String redirect = isCsrfFailure(accessDeniedException)

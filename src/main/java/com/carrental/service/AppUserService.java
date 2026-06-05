@@ -1,5 +1,6 @@
 package com.carrental.service;
 
+import com.carrental.model.AppRole;
 import com.carrental.model.AppUser;
 import com.carrental.repository.AppUserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +19,7 @@ public class AppUserService {
     }
 
     @Transactional
-    public void createUser(String username, String rawPassword) {
+    public void createUser(String username, String rawPassword, AppRole role) {
         String normalized = normalizeUsername(username);
         if (appUserRepository.findByUsername(normalized).isPresent()) {
             throw new IllegalArgumentException("Username \"" + normalized + "\" is already taken.");
@@ -26,6 +27,7 @@ public class AppUserService {
         AppUser user = new AppUser();
         user.setUsername(normalized);
         user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRole(role != null ? role : AppRole.USER);
         appUserRepository.save(user);
     }
 
