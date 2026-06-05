@@ -1,6 +1,6 @@
 /**
  * Full-screen curtain loader on POST form submissions.
- * Default: car-trunk video. Login: animated loading GIF.
+ * Default: car-trunk video. Login: light see-through curtain + loader.
  */
 (function (global) {
     'use strict';
@@ -20,7 +20,7 @@
         if (global.FleetDeskLoading && global.FleetDeskLoading.loginGifUrl) {
             return global.FleetDeskLoading.loginGifUrl;
         }
-        return '/images/login-loading.jpg';
+        return '/images/login-loading.gif';
     }
 
     function loginLoaderMarkup() {

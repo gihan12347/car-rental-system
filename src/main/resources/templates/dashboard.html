@@ -138,20 +138,20 @@
                     <div class="col-12 col-lg-5 col-xl-4">
                         <div class="dashboard-chart-card dashboard-chart-card--fleet-table">
                             <h3 class="dashboard-chart-title">Vehicle utilization</h3>
-                            <div class="table-responsive">
+                            <div class="dashboard-util-table-wrap">
                                 <table class="table app-table dashboard-util-table mb-0">
                                     <thead>
                                     <tr>
-                                        <th>Vehicle</th>
-                                        <th>Registration</th>
-                                        <th>Utilization</th>
+                                        <th class="dashboard-util-col-vehicle">Vehicle</th>
+                                        <th class="dashboard-util-col-reg">Registration</th>
+                                        <th class="dashboard-util-col-pct">Utilization</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr th:each="row : ${d.vehicleUtilization}">
-                                        <td class="fw-semibold" th:text="${row.vehicle}">—</td>
-                                        <td th:text="${row.registration}">—</td>
-                                        <td>
+                                        <td class="fw-semibold dashboard-util-col-vehicle" th:text="${row.vehicle}">—</td>
+                                        <td class="dashboard-util-col-reg" th:text="${row.registration}">—</td>
+                                        <td class="dashboard-util-col-pct">
                                             <div class="dashboard-util-bar-wrap">
                                                 <div class="dashboard-util-bar" th:style="|width: ${row.utilizationPercent}%|"></div>
                                                 <span th:text="${row.utilizationPercent + '%'}">0%</span>
