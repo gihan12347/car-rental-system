@@ -184,6 +184,30 @@
                             </div>
                             <div class="invalid-feedback d-block small" th:errors="*{carId}"></div>
                         </div>
+                        <div class="mb-3" id="nh-mileage-placeholder">
+                            <p class="small text-muted mb-0 rounded-3 border bg-light px-3 py-2">
+                                <i class="bi bi-speedometer2 me-1"></i>
+                                Select a vehicle to view and confirm handover mileage.
+                            </p>
+                        </div>
+                        <div class="mb-3 d-none" id="nh-mileage-wrap">
+                            <span class="form-label small fw-semibold d-block">Handover mileage</span>
+                            <div class="nh-mileage-panel border rounded-3 p-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                    <span class="small text-muted">Fleet record (<span id="nh-mileage-vehicle">—</span>)</span>
+                                    <span class="fw-semibold text-nowrap" id="nh-mileage-recorded">—</span>
+                                </div>
+                                <label class="form-label small fw-semibold mb-1" for="nh-mileage">Odometer at handover</label>
+                                <div class="input-group">
+                                    <input class="form-control" type="number" min="0" id="nh-mileage"
+                                           th:field="*{currentMileageKm}" required
+                                           aria-describedby="nh-mileage-hint"/>
+                                    <span class="input-group-text">km</span>
+                                </div>
+                                <div class="form-text mb-0 mt-2" id="nh-mileage-hint">Pre-filled from the fleet record. You can edit if the reading differs at handover.</div>
+                            </div>
+                            <div class="invalid-feedback d-block small" th:errors="*{currentMileageKm}"></div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label small fw-semibold" for="nh-name">Customer name</label>
                             <input class="form-control" id="nh-name" th:field="*{customerName}" autocomplete="name" required/>

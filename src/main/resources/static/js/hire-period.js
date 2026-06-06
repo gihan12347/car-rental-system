@@ -144,6 +144,12 @@
         var addressInput = byId('nh-address');
         var contactInput = byId('nh-contact');
         var travelInput = byId('nh-travel');
+        var mileageInput = byId('nh-mileage');
+        var mileageHint = byId('nh-mileage-hint');
+        var mileageWrap = byId('nh-mileage-wrap');
+        var mileagePlaceholder = byId('nh-mileage-placeholder');
+        var mileageRecorded = byId('nh-mileage-recorded');
+        var mileageVehicle = byId('nh-mileage-vehicle');
 
         if (!startInput || !endInput || !startTimeInput || !endTimeInput) {
             return;
@@ -163,11 +169,110 @@
                 && travelInput && travelInput.value.trim() !== '';
         }
 
+        function parseMileage(value) {
+            if (value === null || value === undefined || String(value).trim() === '') {
+                return null;
+            }
+            var n = parseInt(String(value).trim(), 10);
+            return isNaN(n) ? null : n;
+        }
+
+        function selectedCar() {
+            if (!carSelect || !carSelect.value) {
+                return null;
+            }
+            return carsById[carSelect.value] || null;
+        }
+
+        function isMileageValid() {
+            if (!mileageInput) {
+                return true;
+            }
+            var mileage = parseMileage(mileageInput.value);
+            if (mileage === null || mileage < 0) {
+                return false;
+            }
+            var car = selectedCar();
+            if (car && car.mileageKm != null && mileage < car.mileageKm) {
+                return false;
+            }
+            return true;
+        }
+
+        function updateMileageHint() {
+            if (!mileageHint) {
+                return;
+            }
+            var car = selectedCar();
+            if (!car) {
+                return;
+            }
+            var recorded = car.mileageKm != null ? car.mileageKm : 0;
+            var mileage = parseMileage(mileageInput ? mileageInput.value : '');
+            if (mileage !== null && mileage < recorded) {
+                mileageHint.textContent = 'Handover mileage cannot be lower than the fleet record (' + recorded + ' km).';
+                mileageHint.classList.add('text-danger');
+            } else if (mileage !== null && mileage > recorded) {
+                mileageHint.textContent = 'Handover reading is higher than the fleet record. It will update the vehicle to ' + mileage + ' km on submit.';
+                mileageHint.classList.remove('text-danger');
+            } else {
+                mileageHint.textContent = 'Pre-filled from the fleet record. You can edit if the reading differs at handover.';
+                mileageHint.classList.remove('text-danger');
+            }
+        }
+
+        function syncMileageSection(forcePrefill) {
+            var car = selectedCar();
+            if (!car) {
+                if (mileageWrap) {
+                    mileageWrap.classList.add('d-none');
+                }
+                if (mileagePlaceholder) {
+                    mileagePlaceholder.classList.remove('d-none');
+                }
+                if (mileageInput) {
+                    mileageInput.value = '';
+                    mileageInput.min = '0';
+                }
+                if (mileageRecorded) {
+                    mileageRecorded.textContent = '—';
+                }
+                if (mileageVehicle) {
+                    mileageVehicle.textContent = '—';
+                }
+                return;
+            }
+
+            if (mileageWrap) {
+                mileageWrap.classList.remove('d-none');
+            }
+            if (mileagePlaceholder) {
+                mileagePlaceholder.classList.add('d-none');
+            }
+
+            var recorded = car.mileageKm != null ? car.mileageKm : 0;
+            var reg = car.registrationNumber || 'vehicle';
+            if (mileageRecorded) {
+                mileageRecorded.textContent = recorded + ' km';
+            }
+            if (mileageVehicle) {
+                mileageVehicle.textContent = reg;
+            }
+            if (mileageInput) {
+                mileageInput.min = String(recorded);
+                if (forcePrefill || mileageInput.value === '' || parseMileage(mileageInput.value) === null) {
+                    mileageInput.value = String(recorded);
+                }
+            }
+            updateMileageHint();
+        }
+
         function isHireReady() {
             return currentDuration() !== null
                 && carSelect && carSelect.value !== ''
                 && !carSelect.disabled
-                && isCustomerComplete();
+                && isCustomerComplete()
+                && isMileageValid();
         }
 
         function refreshSubmit() {
@@ -202,6 +307,7 @@
                 carSelect.innerHTML = '';
                 carSelect.disabled = true;
             }
+            syncMileageSection(false);
             setSubmitEnabled(false);
             refreshSubmit();
         }
@@ -220,6 +326,7 @@
                 carSelect.innerHTML = '';
                 carSelect.disabled = true;
             }
+            syncMileageSection(false);
             setSubmitEnabled(false);
             refreshSubmit();
         }
@@ -297,6 +404,7 @@
                 carWrap.classList.remove('d-none');
             }
             refreshCarOptions();
+            syncMileageSection(false);
             refreshSubmit();
         }
 
@@ -370,6 +478,7 @@
 
         if (carSelect) {
             carSelect.addEventListener('change', function () {
+                syncMileageSection(true);
                 refreshSubmit();
                 updateRateHint();
             });
@@ -385,6 +494,12 @@
                 input.addEventListener('input', refreshSubmit);
             }
         });
+        if (mileageInput) {
+            mileageInput.addEventListener('input', function () {
+                updateMileageHint();
+                refreshSubmit();
+            });
+        }
 
         function initEmployeeNicLookup() {
             if (!idInput) {

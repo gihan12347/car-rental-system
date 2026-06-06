@@ -14,6 +14,7 @@ public class AvailableCarOption {
     private final BigDecimal rentalPricePerWeek;
     private final BigDecimal rentalPricePerMonth;
     private final BigDecimal extraPricePerHour;
+    private final Integer mileageKm;
 
     public AvailableCarOption(
             Long id,
@@ -23,7 +24,8 @@ public class AvailableCarOption {
             BigDecimal rentalPricePerDay,
             BigDecimal rentalPricePerWeek,
             BigDecimal rentalPricePerMonth,
-            BigDecimal extraPricePerHour) {
+            BigDecimal extraPricePerHour,
+            Integer mileageKm) {
         this.id = id;
         this.registrationNumber = registrationNumber;
         this.modelName = modelName;
@@ -32,6 +34,7 @@ public class AvailableCarOption {
         this.rentalPricePerWeek = rentalPricePerWeek;
         this.rentalPricePerMonth = rentalPricePerMonth;
         this.extraPricePerHour = extraPricePerHour;
+        this.mileageKm = mileageKm;
     }
 
     public Long getId() {
@@ -64,6 +67,10 @@ public class AvailableCarOption {
 
     public BigDecimal getExtraPricePerHour() {
         return extraPricePerHour;
+    }
+
+    public Integer getMileageKm() {
+        return mileageKm;
     }
 
     public String getLabel() {

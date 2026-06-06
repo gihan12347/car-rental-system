@@ -148,7 +148,8 @@ public class RentalService {
                         car.getRentalPricePerDay(),
                         CarPricingHelper.resolveWeekPrice(car),
                         CarPricingHelper.resolveMonthPrice(car),
-                        car.getExtraPricePerHour()))
+                        car.getExtraPricePerHour(),
+                        car.getMileageKm()))
                 .collect(Collectors.toList());
     }
 
@@ -175,7 +176,8 @@ public class RentalService {
             String customerAddress,
             String customerContact,
             String customerIdNumber,
-            String travelLocation) {
+            String travelLocation,
+            Integer currentMileageKm) {
         LocalTime pickupTime = startTime != null ? startTime : LocalTime.of(9, 0);
         LocalTime plannedReturnTime = endTime != null ? endTime : pickupTime;
         LocalDateTime pickupDateTime = RentalDurationHelper.combine(startDate, pickupTime);
@@ -185,6 +187,7 @@ public class RentalService {
         validatePeriod(startDate, endDate);
         blacklistedCustomerService.ensureNotBlacklisted(customerIdNumber);
         Car car = carService.getById(carId);
+        int handoverMileage = validateHandoverMileage(car, currentMileageKm);
         if (hasOverlappingBooking(carId, startDate, endDate)) {
             throw new IllegalStateException(
                     "This vehicle is already booked for part of the selected dates. Choose different dates or another car.");
@@ -210,8 +213,22 @@ public class RentalService {
         applyEmployeeHireIfMatched(rental, customerIdNumber);
         rentalRepository.save(rental);
 
+        car.setMileageKm(handoverMileage);
         syncCarAvailability(car, today);
         return rental;
+    }
+
+    private static int validateHandoverMileage(Car car, Integer currentMileageKm) {
+        if (currentMileageKm == null || currentMileageKm < 0) {
+            throw new IllegalArgumentException("Current mileage is required.");
+        }
+        Integer recorded = car.getMileageKm();
+        if (recorded != null && currentMileageKm < recorded) {
+            throw new IllegalArgumentException(
+                    "Current mileage (" + currentMileageKm + " km) cannot be less than the vehicle odometer ("
+                            + recorded + " km).");
+        }
+        return currentMileageKm;
     }
 
     @Transactional

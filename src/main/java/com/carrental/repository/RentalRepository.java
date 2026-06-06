@@ -52,7 +52,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             + "ORDER BY r.hireDate DESC")
     List<Rental> searchActiveByTerm(@Param("q") String q);
 
-    @Query("SELECT r FROM Rental r JOIN FETCH r.car ORDER BY r.hireDate DESC")
+    @Query("SELECT r FROM Rental r JOIN FETCH r.car WHERE r.rentalStatus != 'CANCELLED' ORDER BY r.hireDate DESC")
     List<Rental> findAllWithCar();
 
     @Query("SELECT r FROM Rental r JOIN FETCH r.car WHERE r.rentalStatus IN :statuses")

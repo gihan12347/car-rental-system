@@ -135,11 +135,13 @@ public class RentalController {
                     form.getCustomerAddress(),
                     form.getCustomerContact(),
                     form.getCustomerIdNumber(),
-                    form.getTravelLocation());
+                    form.getTravelLocation(),
+                    form.getCurrentMileageKm());
             if (Boolean.TRUE.equals(created.getEmployeeHire())) {
                 redirectAttributes.addFlashAttribute(
                         "successMessage",
-                        "Rental booked for the selected dates. Employee hire — no charge will apply.");
+                        "Rental booked for the selected dates. Vehicle odometer updated to "
+                                + form.getCurrentMileageKm() + " km. Employee hire — no charge will apply.");
                 return "redirect:/rentals/active";
             }
         } catch (IllegalStateException | IllegalArgumentException e) {
@@ -148,7 +150,10 @@ public class RentalController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return RedirectUtil.redirectToReferer(request, "/rentals");
         }
-        redirectAttributes.addFlashAttribute("successMessage", "Rental booked for the selected dates.");
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Rental booked for the selected dates. Vehicle odometer updated to "
+                        + form.getCurrentMileageKm() + " km.");
         return "redirect:/rentals/active";
     }
 

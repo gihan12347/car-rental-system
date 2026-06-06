@@ -4,6 +4,7 @@ import com.carrental.model.HireType;
 import com.carrental.service.RentalDurationHelper;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -45,6 +46,10 @@ public class RentalForm {
 
     @NotBlank(message = "Travel location is required.")
     private String travelLocation;
+
+    @NotNull(message = "Current mileage is required.")
+    @Min(value = 0, message = "Current mileage must be zero or positive.")
+    private Integer currentMileageKm;
 
     public RentalForm() {
         LocalDate today = LocalDate.now();
@@ -138,6 +143,14 @@ public class RentalForm {
 
     public void setTravelLocation(String travelLocation) {
         this.travelLocation = travelLocation;
+    }
+
+    public Integer getCurrentMileageKm() {
+        return currentMileageKm;
+    }
+
+    public void setCurrentMileageKm(Integer currentMileageKm) {
+        this.currentMileageKm = currentMileageKm;
     }
 
     public boolean isValidPeriod() {
