@@ -438,11 +438,12 @@ body.app-body {
   font-size: 0.875rem;
 }
 
-/* Mobile record cards — pill action buttons (icon-only below xl) */
+/* Mobile record cards — single-row pill actions with icon + label below xl */
 @media (max-width: 1199.98px) {
   .app-mobile-actions {
     display: block;
     margin-top: 0.15rem;
+    min-width: 0;
   }
 
   .app-mobile-actions .fleet-table-actions {
@@ -451,34 +452,41 @@ body.app-body {
     align-items: stretch;
     width: 100%;
     gap: 0.25rem;
-    padding: 0.25rem;
+    padding: 0.3rem;
   }
 
   .app-mobile-actions .fleet-table-actions__btn {
     flex: 1 1 0;
     min-width: 0;
     justify-content: center;
-    padding: 0.6rem 0.45rem;
-    gap: 0;
+    padding: 0.4rem 0.25rem;
+    gap: 0.2rem;
     flex-direction: row;
-    min-height: 2.65rem;
+    min-height: 2.5rem;
     position: relative;
   }
 
   .app-mobile-actions .fleet-table-actions__btn > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
     padding: 0;
-    margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip: auto;
     white-space: nowrap;
     border: 0;
+    font-size: 0.6rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    min-width: 0;
+    text-overflow: ellipsis;
   }
 
   .app-mobile-actions .fleet-table-actions__btn i {
-    font-size: 1.125rem;
+    font-size: 0.875rem;
+    flex-shrink: 0;
   }
 
   .app-mobile-actions .app-confirm-delete-trigger {
@@ -490,6 +498,7 @@ body.app-body {
 
   .app-mobile-actions .app-confirm-delete-trigger .fleet-table-actions__btn {
     width: 100%;
+    min-width: 0;
   }
 }
 
@@ -1803,12 +1812,14 @@ body.login-page {
   }
 
   .app-topbar-nav-link {
-    min-width: 2.85rem;
-    padding: 0.45rem 0.35rem;
-    gap: 0;
+    min-width: 4.15rem;
+    padding: 0.4rem 0.45rem;
+    gap: 0.12rem;
+    flex-direction: column;
     color: #64748b;
     background: transparent;
     border-radius: 0.65rem;
+    font-size: 0.62rem;
   }
 
   .app-topbar-nav-link i {
@@ -1843,18 +1854,6 @@ body.login-page {
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
   }
 
-  .app-topbar-nav-link > span:not(.badge) {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
   .app-topbar-nav-link .badge {
     position: absolute;
     top: 0.12rem;
@@ -1867,21 +1866,10 @@ body.login-page {
     line-height: 0.95rem;
   }
 
-  .app-signout-btn > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
   .app-signout-btn {
-    padding-left: 0.55rem;
-    padding-right: 0.55rem;
+    padding-left: 0.65rem;
+    padding-right: 0.75rem;
+    gap: 0.35rem;
   }
 }
 
@@ -2237,6 +2225,8 @@ body.login-page {
 .app-record-card__actions {
   display: grid;
   gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .app-record-card__actions--stacked {
@@ -2492,15 +2482,15 @@ body.login-page {
 
   .employees-page .employee-mobile-btn-set__btn {
     display: inline-flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: 0.15rem;
     flex: 1 1 0;
     min-width: 0;
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.35rem;
+    min-height: 3rem;
+    padding: 0.45rem 0.35rem;
     font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1;
@@ -2511,15 +2501,18 @@ body.login-page {
   }
 
   .employees-page .employee-mobile-btn-set__btn > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
     padding: 0;
-    margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip: auto;
     white-space: nowrap;
     border: 0;
+    font-size: 0.65rem;
+    max-width: 100%;
+    text-overflow: ellipsis;
   }
 
   .employees-page .employee-mobile-btn-set__btn i {
@@ -2528,23 +2521,27 @@ body.login-page {
   }
 
   .employees-page .employees-activity-bar__btn {
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
-    gap: 0;
-    padding: 0.5rem 0.35rem;
-    min-height: 2.75rem;
+    gap: 0.15rem;
+    padding: 0.45rem 0.35rem;
+    min-height: 3rem;
+    position: relative;
   }
 
   .employees-page .employees-activity-bar__btn > span:not(.employees-activity-bar__count) {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
     padding: 0;
-    margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip: auto;
     white-space: nowrap;
     border: 0;
+    font-size: 0.65rem;
+    max-width: 100%;
+    text-overflow: ellipsis;
   }
 
   .employees-page .employees-activity-bar__btn i {
@@ -2574,13 +2571,13 @@ body.login-page {
   }
 
   .employees-page .employee-mobile-btn-set--nav .employees-activity-bar__btn {
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
-    padding: 0.5rem 0.35rem;
-    gap: 0;
+    padding: 0.45rem 0.35rem;
+    gap: 0.15rem;
     font-size: 0.8125rem;
     text-align: center;
-    min-height: 2.75rem;
+    min-height: 3rem;
   }
 
   .employees-page .employee-mobile-btn-set__btn.btn-app-primary {
