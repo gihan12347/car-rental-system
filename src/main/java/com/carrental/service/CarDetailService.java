@@ -297,9 +297,6 @@ public class CarDetailService {
     }
 
     private LocalDate incomeDate(Rental rental) {
-        if (rental.getCompletedDate() != null) {
-            return rental.getCompletedDate();
-        }
         if (rental.getReturnDate() != null) {
             return rental.getReturnDate();
         }

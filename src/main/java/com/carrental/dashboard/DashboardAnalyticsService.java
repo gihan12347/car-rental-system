@@ -336,14 +336,10 @@ public class DashboardAnalyticsService {
             if (!rental.getCar().getId().equals(car.getId())) {
                 continue;
             }
-            LocalDate start = rental.getHireDate().isBefore(range.getStart()) ? range.getStart() : rental.getHireDate();
+            LocalDate start = rental.getHireDate().isBefore(range.getStart()) ? range.getStart() : rental.getPickupDate();
             LocalDate end = effectiveReturnDate(rental).isAfter(range.getEnd()) ? range.getEnd() : effectiveReturnDate(rental);
             if (!start.isAfter(end)) {
-                if (rental.getNumberOfDays() != null && rental.getNumberOfDays() > 0) {
-                    days += rental.getNumberOfDays();
-                } else {
-                    days += (int) ChronoUnit.DAYS.between(start, end) + 1;
-                }
+                  days += (int) ChronoUnit.DAYS.between(start, end);
             }
         }
         return days;
@@ -362,9 +358,6 @@ public class DashboardAnalyticsService {
     }
 
     private LocalDate revenueDate(Rental rental) {
-        if (rental.getCompletedDate() != null) {
-            return rental.getCompletedDate();
-        }
         if (rental.getRentalStatus() == RentalStatus.COMPLETED) {
             return effectiveReturnDate(rental);
         }
@@ -372,8 +365,8 @@ public class DashboardAnalyticsService {
     }
 
     private LocalDate effectiveReturnDate(Rental rental) {
-        if (rental.getCompletedDate() != null) {
-            return rental.getCompletedDate();
+        if (rental.getReturnDate() != null) {
+            return rental.getReturnDate();
         }
         return rental.getHireDate().plusDays(rental.getNumberOfDays());
     }

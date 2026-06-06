@@ -35,9 +35,7 @@ public final class RentalPeriodHelper {
     }
 
     public static LocalDate endDate(Rental rental) {
-        if (rental.getCompletedDate() != null) {
-            return rental.getCompletedDate();
-        } else if (rental.getReturnDate() != null) {
+        if (rental.getReturnDate() != null) {
             return rental.getReturnDate();
         } else {
             return startDate(rental).plusDays(Math.max(1, rental.getNumberOfDays()) - 1L);
