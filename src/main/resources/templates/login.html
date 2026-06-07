@@ -45,7 +45,6 @@
                     </div>
 
                     <form method="post" id="loginForm" th:attr="action=@{/login}" class="login-form"
-                          data-loading-variant="login"
                           data-loading-message="Signing in…"
                           data-loading-hint="Opening your dashboard…">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>

@@ -12,12 +12,13 @@
                 data-bs-auto-close="outside"
                 aria-expanded="false"
                 th:attr="aria-label=|'Notifications, ${session.fleetNotificationCount} alert${session.fleetNotificationCount == 1 ? '' : 's'}'|">
+            <span class="app-service-notify__ripple" aria-hidden="true"></span>
             <span class="app-service-notify__icon-shell">
                 <img class="app-service-notify__bell-icon"
                      th:src="@{/images/notification-bell.png}"
                      alt=""
-                     width="36"
-                     height="36"/>
+                     width="40"
+                     height="40"/>
             </span>
             <span class="app-service-notify__badge"
                   th:text="${session.fleetNotificationCount > 99 ? '99+' : session.fleetNotificationCount}">0</span>

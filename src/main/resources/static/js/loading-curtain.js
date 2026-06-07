@@ -1,77 +1,47 @@
 /**
- * Full-screen curtain loader on POST form submissions.
- * Default: car-trunk video. Login: light see-through curtain + loader.
+ * Blur curtain + circular logo loader on POST form submissions (login and app-wide).
  */
 (function (global) {
     'use strict';
 
     var OVERLAY_ID = 'appLoadingCurtain';
     var shown = false;
-    var activeVariant = 'default';
 
-    function mediaUrl() {
-        if (global.FleetDeskLoading && global.FleetDeskLoading.mediaUrl) {
-            return global.FleetDeskLoading.mediaUrl;
+    function logoUrl() {
+        if (global.FleetDeskLoading && global.FleetDeskLoading.logoUrl) {
+            return global.FleetDeskLoading.logoUrl;
         }
-        return '/media/car-trunk-loading.mp4';
+        return '/images/loading-logo.png';
     }
 
-    function loginLoadingGifUrl() {
-        if (global.FleetDeskLoading && global.FleetDeskLoading.loginGifUrl) {
-            return global.FleetDeskLoading.loginGifUrl;
-        }
-        return '/images/login-loading.gif';
-    }
-
-    function loginLoaderMarkup() {
+    function loaderMarkup() {
         return (
-            '<div class="app-loading-curtain__login-loader" aria-hidden="true">' +
-            '  <img class="app-loading-curtain__login-gif" alt="" decoding="async" role="presentation"/>' +
-            '  <div class="login-dots-loader" role="presentation" hidden>' +
-            '    <span class="login-dots-loader__dot"></span>' +
-            '    <span class="login-dots-loader__dot"></span>' +
-            '    <span class="login-dots-loader__dot"></span>' +
+            '<div class="app-loading-curtain__loader" aria-hidden="true">' +
+            '  <div class="app-loading-curtain__logo-ring">' +
+            '    <img class="app-loading-curtain__logo" alt="" decoding="async" role="presentation"/>' +
             '  </div>' +
             '</div>'
         );
     }
 
-    function refreshLoginLoader(overlay) {
+    function refreshLoader(overlay) {
         if (!overlay) {
             return;
         }
-        var img = overlay.querySelector('.app-loading-curtain__login-gif');
-        var dots = overlay.querySelector('.login-dots-loader');
-        if (!img) {
+        var logo = overlay.querySelector('.app-loading-curtain__logo');
+        if (!logo) {
             return;
         }
-        if (dots) {
-            dots.hidden = true;
-        }
-        img.hidden = false;
-        img.onload = function () {
-            img.hidden = false;
-            if (dots) {
-                dots.hidden = true;
-            }
-        };
-        img.onerror = function () {
-            img.hidden = true;
-            if (dots) {
-                dots.hidden = false;
-            }
-        };
-        var nextSrc = loginLoadingGifUrl();
-        if (img.getAttribute('src') !== nextSrc) {
-            img.setAttribute('src', nextSrc);
-        } else if (img.complete && img.naturalWidth === 0) {
-            img.onerror();
+        var nextSrc = logoUrl();
+        if (logo.getAttribute('src') !== nextSrc) {
+            logo.setAttribute('src', nextSrc);
         }
     }
 
     function buildOverlay() {
         var existing = document.getElementById(OVERLAY_ID);
         if (existing) {
+            refreshLoader(existing);
             return existing;
         }
 
@@ -85,19 +55,9 @@
         root.hidden = true;
 
         root.innerHTML =
-            '<div class="app-loading-curtain__veil" aria-hidden="true"></div>' +
-            '<div class="app-loading-curtain__panel app-loading-curtain__panel--top" aria-hidden="true"></div>' +
-            '<div class="app-loading-curtain__panel app-loading-curtain__panel--bottom" aria-hidden="true"></div>' +
+            '<div class="app-loading-curtain__blur" aria-hidden="true"></div>' +
             '<div class="app-loading-curtain__stage">' +
-            '  <div class="app-loading-curtain__glow" aria-hidden="true"></div>' +
-            '  <div class="app-loading-curtain__media app-loading-curtain__media--default">' +
-            '    <div class="app-loading-curtain__video-wrap">' +
-            '      <video class="app-loading-curtain__video" muted loop playsinline preload="auto" aria-hidden="true"></video>' +
-            '    </div>' +
-            '  </div>' +
-            '  <div class="app-loading-curtain__media app-loading-curtain__media--login" hidden>' +
-                 loginLoaderMarkup() +
-            '  </div>' +
+                 loaderMarkup() +
             '  <p class="app-loading-curtain__title" id="appLoadingCurtainTitle">Saving your changes…</p>' +
             '  <p class="app-loading-curtain__hint">Please wait</p>' +
             '  <div class="app-loading-curtain__progress" aria-hidden="true">' +
@@ -105,65 +65,9 @@
             '  </div>' +
             '</div>';
 
-        var video = root.querySelector('.app-loading-curtain__video');
-        if (video) {
-            video.src = mediaUrl();
-        }
-
         document.body.appendChild(root);
+        refreshLoader(root);
         return root;
-    }
-
-    function playVideo(overlay) {
-        var video = overlay.querySelector('.app-loading-curtain__video');
-        if (!video) {
-            return;
-        }
-        video.currentTime = 0;
-        var playPromise = video.play();
-        if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(function () { /* autoplay blocked */ });
-        }
-    }
-
-    function pauseVideo(overlay) {
-        var video = overlay.querySelector('.app-loading-curtain__video');
-        if (video) {
-            video.pause();
-        }
-    }
-
-    function resolveVariant(form) {
-        if (form && form.dataset && form.dataset.loadingVariant) {
-            return form.dataset.loadingVariant;
-        }
-        if (document.body.classList.contains('login-page')) {
-            return 'login';
-        }
-        return 'default';
-    }
-
-    function applyVariant(overlay, variant) {
-        activeVariant = variant === 'login' ? 'login' : 'default';
-        overlay.classList.toggle('app-loading-curtain--login', activeVariant === 'login');
-
-        var defaultMedia = overlay.querySelector('.app-loading-curtain__media--default');
-        var loginMedia = overlay.querySelector('.app-loading-curtain__media--login');
-        if (defaultMedia) {
-            if (activeVariant === 'login') {
-                defaultMedia.setAttribute('hidden', 'hidden');
-            } else {
-                defaultMedia.removeAttribute('hidden');
-            }
-        }
-        if (loginMedia) {
-            if (activeVariant === 'login') {
-                loginMedia.removeAttribute('hidden');
-                refreshLoginLoader(overlay);
-            } else {
-                loginMedia.setAttribute('hidden', 'hidden');
-            }
-        }
     }
 
     function show(message, options) {
@@ -174,7 +78,7 @@
         shown = true;
 
         var overlay = buildOverlay();
-        applyVariant(overlay, options.variant || 'default');
+        refreshLoader(overlay);
 
         var title = overlay.querySelector('.app-loading-curtain__title');
         if (title && message) {
@@ -183,7 +87,7 @@
 
         var hint = overlay.querySelector('.app-loading-curtain__hint');
         if (hint) {
-            hint.textContent = options.hint || (activeVariant === 'login' ? 'Opening your dashboard…' : 'Please wait');
+            hint.textContent = options.hint || 'Please wait';
         }
 
         overlay.hidden = false;
@@ -192,11 +96,6 @@
 
         requestAnimationFrame(function () {
             overlay.classList.add('is-active');
-            if (activeVariant === 'login') {
-                pauseVideo(overlay);
-            } else {
-                playVideo(overlay);
-            }
         });
     }
 
@@ -209,13 +108,12 @@
         overlay.classList.remove('is-active');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('app-loading-curtain-open');
-        pauseVideo(overlay);
 
         window.setTimeout(function () {
             if (!overlay.classList.contains('is-active')) {
                 overlay.hidden = true;
             }
-        }, 450);
+        }, 350);
     }
 
     function isPostForm(form) {
@@ -237,7 +135,7 @@
         if (submitter && submitter.dataset && submitter.dataset.loadingMessage) {
             return submitter.dataset.loadingMessage;
         }
-        if (form.id === 'loginForm' || form.action && form.action.indexOf('login') !== -1) {
+        if (form.id === 'loginForm' || (form.action && form.action.indexOf('login') !== -1)) {
             return 'Signing in…';
         }
         return 'Saving your changes…';
@@ -247,7 +145,7 @@
         if (form.dataset && form.dataset.loadingHint) {
             return form.dataset.loadingHint;
         }
-        if (resolveVariant(form) === 'login') {
+        if (form.id === 'loginForm' || (form.action && form.action.indexOf('login') !== -1)) {
             return 'Opening your dashboard…';
         }
         return 'Please wait';
@@ -259,7 +157,6 @@
             return;
         }
         show(messageForForm(form), {
-            variant: resolveVariant(form),
             hint: hintForForm(form)
         });
     }
