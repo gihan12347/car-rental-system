@@ -39,15 +39,4 @@ public class FleetAlertsSessionHelper {
         session.setAttribute(RENTAL_OVERDUE_COUNT, rentalAlerts.size());
         session.setAttribute(FLEET_NOTIFICATION_COUNT, serviceAlerts.size() + rentalAlerts.size());
     }
-
-    public void clear(HttpSession session) {
-        if (session == null) {
-            return;
-        }
-        session.setAttribute(SERVICE_OVERDUE_ALERTS, Collections.emptyList());
-        session.setAttribute(SERVICE_OVERDUE_COUNT, 0);
-        session.setAttribute(RENTAL_OVERDUE_ALERTS, Collections.emptyList());
-        session.setAttribute(RENTAL_OVERDUE_COUNT, 0);
-        session.setAttribute(FLEET_NOTIFICATION_COUNT, 0);
-    }
 }

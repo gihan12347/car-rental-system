@@ -6,10 +6,7 @@ import com.carrental.model.CarStatus;
 import com.carrental.model.MaintenanceRecord;
 import com.carrental.model.MaintenanceType;
 import com.carrental.model.Rental;
-import com.carrental.service.CarDetailService;
-import com.carrental.service.CarService;
-import com.carrental.service.FleetServiceAlertService;
-import com.carrental.service.MaintenanceRecordService;
+import com.carrental.service.*;
 import com.carrental.storage.CarImageStorageService;
 import com.carrental.web.dto.MaintenanceForm;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,6 +26,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,6 +47,7 @@ public class CarController {
     private final MaintenanceRecordService maintenanceRecordService;
     private final FleetServiceAlertService fleetServiceAlertService;
     private final ObjectMapper objectMapper;
+    private final FleetAlertsSessionHelper fleetAlertsSessionHelper;
 
     public CarController(
             CarService carService,
@@ -56,13 +55,14 @@ public class CarController {
             CarDetailService carDetailService,
             MaintenanceRecordService maintenanceRecordService,
             FleetServiceAlertService fleetServiceAlertService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, FleetAlertsSessionHelper fleetAlertsSessionHelper) {
         this.carService = carService;
         this.carImageStorageService = carImageStorageService;
         this.carDetailService = carDetailService;
         this.maintenanceRecordService = maintenanceRecordService;
         this.fleetServiceAlertService = fleetServiceAlertService;
         this.objectMapper = objectMapper;
+        this.fleetAlertsSessionHelper = fleetAlertsSessionHelper;
     }
 
     @GetMapping
@@ -179,7 +179,7 @@ public class CarController {
             @RequestParam("cost") String costRaw,
             @RequestParam(value = "maintenanceType", defaultValue = "OTHER") String maintenanceTypeRaw,
             @RequestParam(value = "nextServiceKm", required = false) String nextServiceKmRaw,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes, HttpSession session) {
         String monthParam = CarDetailService.parseMonth(month).format(DateTimeFormatter.ofPattern("yyyy-MM"));
         String redirectUrl = "redirect:/cars/" + id + "?month=" + monthParam;
 
@@ -227,6 +227,7 @@ public class CarController {
         } else {
             redirectAttributes.addFlashAttribute("successMessage", "Maintenance record saved.");
         }
+        fleetAlertsSessionHelper.refresh(session);
         return redirectUrl;
     }
 
@@ -311,13 +312,14 @@ public class CarController {
     }
 
     @GetMapping("/{id}/edit")
-    public String edit(@PathVariable Long id, Model model) {
+    public String edit(@PathVariable Long id, Model model, HttpSession session) {
         model.addAttribute("car", carService.getById(id));
         model.addAttribute("statuses", CarStatus.values());
         model.addAttribute("vehicleTypes", com.carrental.model.VehicleType.values());
         model.addAttribute("carDeleteRentalCount", carService.countRentalsForCar(id));
         model.addAttribute("carDeleteMaintenanceCount", carService.countMaintenanceForCar(id));
         model.addAttribute("activeNav", "cars");
+        fleetAlertsSessionHelper.refresh(session);
         return "cars/form";
     }
 

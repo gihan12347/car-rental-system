@@ -3,11 +3,7 @@ package com.carrental.web;
 import com.carrental.model.HireType;
 import com.carrental.model.Rental;
 import com.carrental.model.RentalStatus;
-import com.carrental.service.BlacklistedCustomerService;
-import com.carrental.service.RentalDurationHelper;
-import com.carrental.service.RentalPeriodHelper;
-import com.carrental.service.RentalPricingHelper;
-import com.carrental.service.RentalService;
+import com.carrental.service.*;
 import com.carrental.web.dto.AvailableCarOption;
 import com.carrental.web.dto.CompleteRentalForm;
 import com.carrental.web.dto.RentalForm;
@@ -27,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,10 +36,12 @@ public class RentalController {
 
     private final RentalService rentalService;
     private final BlacklistedCustomerService blacklistedCustomerService;
+    private final FleetAlertsSessionHelper fleetAlertsSessionHelper;
 
-    public RentalController(RentalService rentalService, BlacklistedCustomerService blacklistedCustomerService) {
+    public RentalController(RentalService rentalService, BlacklistedCustomerService blacklistedCustomerService, FleetAlertsSessionHelper fleetAlertsSessionHelper) {
         this.rentalService = rentalService;
         this.blacklistedCustomerService = blacklistedCustomerService;
+        this.fleetAlertsSessionHelper = fleetAlertsSessionHelper;
     }
 
     @GetMapping
@@ -80,8 +79,9 @@ public class RentalController {
     }
 
     @GetMapping("/overdue")
-    public String overdue(@RequestParam(value = "q", required = false) String q, Model model) {
+    public String overdue(@RequestParam(value = "q", required = false) String q, Model model, HttpSession session) {
         LocalDate today = LocalDate.now();
+        fleetAlertsSessionHelper.refresh(session);
         model.addAttribute("rentals", rentalService.searchOverdue(q));
         model.addAttribute("searchQuery", SearchQuery.normalize(q));
         model.addAttribute("listMode", "overdue");
@@ -179,7 +179,7 @@ public class RentalController {
             @Valid @ModelAttribute("completeForm") CompleteRentalForm form,
             BindingResult bindingResult,
             Model model,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes, HttpSession session) {
         form.setRentalId(id);
         Rental rental = rentalService.getByIdWithCar(id);
         populateCompletePage(model, rental, form);
@@ -212,6 +212,7 @@ public class RentalController {
             model.addAttribute("errorMessage", e.getMessage());
             return "rentals/complete";
         }
+        fleetAlertsSessionHelper.refresh(session);
         return "redirect:/rentals";
     }
 
@@ -219,7 +220,7 @@ public class RentalController {
     public String cancel(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            HttpServletRequest request, HttpSession session) {
         try {
             Rental rental = rentalService.cancelRental(id);
             redirectAttributes.addFlashAttribute(
@@ -230,6 +231,7 @@ public class RentalController {
         } catch (IllegalStateException | IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
+        fleetAlertsSessionHelper.refresh(session);
         return RedirectUtil.redirectToReferer(request, "/rentals");
     }
 

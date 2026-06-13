@@ -61,7 +61,7 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     @Query("SELECT r FROM Rental r WHERE r.car.id = :carId ORDER BY r.pickupDate DESC, r.hireDate DESC")
     List<Rental> findByCarIdOrderByPickupDateDesc(@Param("carId") Long carId);
 
-    @Query("SELECT r FROM Rental r WHERE r.car.id = :carId ORDER BY r.pickupDate DESC, r.hireDate DESC")
+    @Query("SELECT r FROM Rental r WHERE r.car.id = :carId and r.rentalStatus !='CANCELLED' ORDER BY r.pickupDate DESC, r.hireDate DESC")
     Page<Rental> findByCarIdOrderByPickupDateDesc(@Param("carId") Long carId, Pageable pageable);
 
     @Query("SELECT r FROM Rental r JOIN FETCH r.car WHERE r.id = :id")
