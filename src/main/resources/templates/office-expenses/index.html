@@ -99,8 +99,9 @@
                             </div>
                             <div>
                                 <div class="stat-label mb-0">Total expenses</div>
-                                <div class="stat-value stat-value--module mb-0"
-                                     th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0</div>
+                                <div class="stat-value stat-value--module mb-0 app-count-up"
+                                     th:attr="data-count-to=${totalExpenses}"
+                                     data-count-decimals="2">0</div>
                             </div>
                         </div>
                     </div>
@@ -111,8 +112,9 @@
                             </div>
                             <div>
                                 <div class="stat-label mb-0">Records in period</div>
-                                <div class="stat-value stat-value--module mb-0"
-                                     th:text="${expensesPage != null ? expensesPage.totalElements : 0}">0</div>
+                                <div class="stat-value stat-value--module mb-0 app-count-up"
+                                     th:attr="data-count-to=${expensesPage != null ? expensesPage.totalElements : 0}"
+                                     data-count-decimals="0">0</div>
                             </div>
                         </div>
                     </div>

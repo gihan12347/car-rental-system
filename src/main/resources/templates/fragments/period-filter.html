@@ -26,7 +26,7 @@
     <select th:id="${selectId}"
             name="period"
             class="form-select dashboard-period-select"
-            onchange="this.form.submit()">
+            onchange="window.FleetDeskLoadingCurtain ? window.FleetDeskLoadingCurtain.submitForm(this.form) : this.form.submit()">
         <option th:each="p : ${periods}"
                 th:value="${p.name()}"
                 th:text="${p.label}"

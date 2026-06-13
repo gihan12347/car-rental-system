@@ -46,8 +46,135 @@
         Chart.defaults.plugins.tooltip.cornerRadius = 8;
         Chart.defaults.plugins.tooltip.displayColors = true;
         Chart.defaults.plugins.tooltip.boxPadding = 4;
-        Chart.defaults.animation.duration = 600;
+        Chart.defaults.animation.duration = 900;
         Chart.defaults.animation.easing = 'easeOutQuart';
+        Chart.defaults.transitions.active.animation.duration = 350;
+        Chart.defaults.transitions.resize.animation.duration = 400;
+    }
+
+    function prefersReducedMotion() {
+        return typeof window !== 'undefined'
+            && window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function buildAnimation(type, animOpts) {
+        animOpts = animOpts || {};
+        if (prefersReducedMotion()) {
+            return { animation: { duration: 0 }, animations: {} };
+        }
+
+        var baseDelay = animOpts.baseDelay || 0;
+        var stagger = animOpts.stagger != null ? animOpts.stagger : 85;
+        var duration = animOpts.duration || 1500;
+
+        function delayFn(context) {
+            if (context.type === 'data' && context.mode === 'default') {
+                return baseDelay + context.dataIndex * stagger;
+            }
+            return baseDelay;
+        }
+
+        if (type === 'doughnut') {
+            return {
+                animation: {
+                    duration: duration,
+                    easing: 'easeOutQuart',
+                    delay: delayFn
+                },
+                animations: {
+                    circumference: {
+                        type: 'number',
+                        from: 0,
+                        duration: duration,
+                        easing: 'easeOutQuart',
+                        delay: delayFn
+                    }
+                }
+            };
+        }
+
+        if (type === 'line') {
+            return {
+                animation: {
+                    duration: duration,
+                    easing: 'easeOutQuart',
+                    delay: delayFn
+                },
+                animations: {
+                    y: {
+                        type: 'number',
+                        from: 0,
+                        duration: duration,
+                        easing: 'easeOutQuart',
+                        delay: delayFn
+                    },
+                    radius: {
+                        type: 'number',
+                        from: 0,
+                        duration: duration * 0.65,
+                        easing: 'easeOutQuart',
+                        delay: delayFn
+                    },
+                    x: false
+                }
+            };
+        }
+
+        return {
+            animation: {
+                duration: duration,
+                easing: 'easeOutQuart',
+                delay: delayFn
+            },
+            animations: {
+                y: {
+                    type: 'number',
+                    from: 0,
+                    duration: duration,
+                    easing: 'easeOutQuart',
+                    delay: delayFn
+                },
+                x: false
+            }
+        };
+    }
+
+    function applyAnimationToOptions(options, type, animOpts) {
+        var anim = buildAnimation(type, animOpts);
+        options.animation = Object.assign({}, options.animation || {}, anim.animation);
+        options.animations = Object.assign({}, options.animations || {}, anim.animations);
+        return options;
+    }
+
+    function markChartDrawing(canvasId) {
+        var canvas = document.getElementById(canvasId);
+        var shell = canvas ? canvas.closest('.dashboard-chart-shell') : null;
+        if (shell) {
+            shell.classList.add('is-chart-drawing');
+        }
+    }
+
+    function markChartReady(canvasId) {
+        var canvas = document.getElementById(canvasId);
+        var shell = canvas ? canvas.closest('.dashboard-chart-shell') : null;
+        if (shell) {
+            shell.classList.add('is-chart-ready');
+        }
+    }
+
+    function withReadyCallback(canvasId, options) {
+        if (!options.animation || typeof options.animation !== 'object') {
+            options.animation = {};
+        }
+        var userComplete = options.animation.onComplete;
+        options.animation.onComplete = function () {
+            markChartReady(canvasId);
+            if (typeof userComplete === 'function') {
+                userComplete.apply(this, arguments);
+            }
+        };
+        return options;
     }
 
     applyDefaults();
@@ -124,7 +251,7 @@
         };
     }
 
-    function baseCartesianOptions(extra) {
+    function baseCartesianOptions(extra, chartType, animOpts) {
         var opts = {
             responsive: true,
             maintainAspectRatio: false,
@@ -156,8 +283,10 @@
                         callback: function (v) { return formatCompact(v); }
                     }
                 }
-            }
+            },
+            animation: { duration: 1500, easing: 'easeOutQuart' }
         };
+        applyAnimationToOptions(opts, chartType || 'bar', animOpts);
         if (extra) {
             Object.keys(extra).forEach(function (key) {
                 opts[key] = extra[key];
@@ -178,18 +307,20 @@
         }
     }
 
-    function lineChart(canvasId, points, emptyId) {
+    function lineChart(canvasId, points, emptyId, animOpts) {
         var el = document.getElementById(canvasId);
         if (!el) {
             return null;
         }
         if (!hasData(points)) {
             toggleEmpty(canvasId, emptyId, true);
+            markChartReady(canvasId);
             return null;
         }
         toggleEmpty(canvasId, emptyId, false);
         var ctx = el.getContext('2d');
         var vals = values(points);
+        markChartDrawing(canvasId);
         return new Chart(el, {
             type: 'line',
             data: {
@@ -200,10 +331,10 @@
                     borderColor: COLORS.primary,
                     backgroundColor: createGradient(ctx, COLORS.primaryRgb, 0.28, 0.02),
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.42,
                     borderWidth: 2.5,
                     pointRadius: vals.map(function (v) { return v > 0 ? 5 : 0; }),
-                    pointHoverRadius: 7,
+                    pointHoverRadius: 8,
                     pointBackgroundColor: COLORS.surface,
                     pointBorderColor: COLORS.primary,
                     pointBorderWidth: 2,
@@ -211,22 +342,24 @@
                     spanGaps: true
                 }]
             },
-            options: baseCartesianOptions()
+            options: withReadyCallback(canvasId, baseCartesianOptions(null, 'line', animOpts))
         });
     }
 
-    function barChart(canvasId, points, emptyId) {
+    function barChart(canvasId, points, emptyId, animOpts) {
         var el = document.getElementById(canvasId);
         if (!el) {
             return null;
         }
         if (!hasData(points)) {
             toggleEmpty(canvasId, emptyId, true);
+            markChartReady(canvasId);
             return null;
         }
         toggleEmpty(canvasId, emptyId, false);
         var ctx = el.getContext('2d');
         var vals = values(points);
+        markChartDrawing(canvasId);
         return new Chart(el, {
             type: 'bar',
             data: {
@@ -244,7 +377,7 @@
                     maxBarThickness: 52
                 }]
             },
-            options: baseCartesianOptions({
+            options: withReadyCallback(canvasId, baseCartesianOptions({
                 scales: {
                     x: {
                         grid: { display: false },
@@ -268,17 +401,18 @@
                         }
                     }
                 }
-            })
+            }, 'bar', animOpts))
         });
     }
 
-    function doughnutChart(canvasId, points, emptyId) {
+    function doughnutChart(canvasId, points, emptyId, animOpts) {
         var el = document.getElementById(canvasId);
         if (!el) {
             return null;
         }
         if (!hasData(points)) {
             toggleEmpty(canvasId, emptyId, true);
+            markChartReady(canvasId);
             return null;
         }
         toggleEmpty(canvasId, emptyId, false);
@@ -286,8 +420,10 @@
         var total = vals.reduce(function (a, b) { return a + b; }, 0);
         if (total <= 0) {
             toggleEmpty(canvasId, emptyId, true);
+            markChartReady(canvasId);
             return null;
         }
+        markChartDrawing(canvasId);
         return new Chart(el, {
             type: 'doughnut',
             data: {
@@ -298,10 +434,10 @@
                     borderColor: COLORS.surface,
                     borderWidth: 3,
                     hoverBorderColor: COLORS.surface,
-                    hoverOffset: 6
+                    hoverOffset: 8
                 }]
             },
-            options: {
+            options: withReadyCallback(canvasId, applyAnimationToOptions({
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '62%',
@@ -328,11 +464,11 @@
                         }
                     }
                 }
-            }
+            }, 'doughnut', animOpts))
         });
     }
 
-    function groupedBarChart(canvasId, incomePoints, expensePoints, emptyId) {
+    function groupedBarChart(canvasId, incomePoints, expensePoints, emptyId, animOpts) {
         var el = document.getElementById(canvasId);
         if (!el) {
             return null;
@@ -343,11 +479,13 @@
         var hasExpense = expenseVals.some(function (v) { return v > 0; });
         if (!hasIncome && !hasExpense) {
             toggleEmpty(canvasId, emptyId, true);
+            markChartReady(canvasId);
             return null;
         }
         toggleEmpty(canvasId, emptyId, false);
         var ctx = el.getContext('2d');
         var chartLabels = labels(incomePoints.length ? incomePoints : expensePoints);
+        markChartDrawing(canvasId);
         return new Chart(el, {
             type: 'bar',
             data: {
@@ -371,7 +509,7 @@
                     }
                 ]
             },
-            options: {
+            options: withReadyCallback(canvasId, applyAnimationToOptions({
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
@@ -405,7 +543,7 @@
                         }
                     }
                 }
-            }
+            }, 'bar', animOpts))
         });
     }
 

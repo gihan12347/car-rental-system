@@ -38,25 +38,28 @@
                 <div class="col-6 col-xl-3">
                     <div class="stat-card p-3 p-lg-4 h-100">
                         <div class="stat-label mb-1">Total revenue</div>
-                        <div class="stat-value stat-value--sm" th:text="${#numbers.formatDecimal(d.totalRevenue, 1, 'COMMA', 0, 'POINT')}">0</div>
+                        <div class="stat-value stat-value--sm app-count-up" th:attr="data-count-to=${d.totalRevenue}">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-xl-3">
                     <div class="stat-card p-3 p-lg-4 h-100">
                         <div class="stat-label mb-1">Outstanding</div>
-                        <div class="stat-value stat-value--sm" th:text="${#numbers.formatDecimal(d.outstandingBalances, 1, 'COMMA', 0, 'POINT')}">0</div>
+                        <div class="stat-value stat-value--sm app-count-up" th:attr="data-count-to=${d.outstandingBalances}">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-xl-3">
                     <div class="stat-card p-3 p-lg-4 h-100">
                         <div class="stat-label mb-1">Total bookings</div>
-                        <div class="stat-value stat-value--sm" th:text="${d.totalBookings}">0</div>
+                        <div class="stat-value stat-value--sm app-count-up" th:attr="data-count-to=${d.totalBookings}" data-count-decimals="0">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-xl-3">
                     <div class="stat-card p-3 p-lg-4 h-100">
                         <div class="stat-label mb-1">Fleet utilization</div>
-                        <div class="stat-value stat-value--sm" th:text="${d.averageFleetUtilization + '%'}">0%</div>
+                        <div class="stat-value stat-value--sm app-count-up"
+                             th:attr="data-count-to=${d.averageFleetUtilization}"
+                             data-count-decimals="0"
+                             data-count-suffix="%">0%</div>
                     </div>
                 </div>
             </div>
@@ -83,13 +86,13 @@
                     <div class="col-6 col-md-3">
                         <div class="dashboard-metric dashboard-metric--inline">
                             <span class="dashboard-metric-label">Avg booking value</span>
-                            <strong th:text="${#numbers.formatDecimal(d.averageBookingValue, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                            <strong class="app-count-up" th:attr="data-count-to=${d.averageBookingValue}">0</strong>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="dashboard-metric dashboard-metric--inline">
                             <span class="dashboard-metric-label">Outstanding balances</span>
-                            <strong th:text="${#numbers.formatDecimal(d.outstandingBalances, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                            <strong class="app-count-up" th:attr="data-count-to=${d.outstandingBalances}">0</strong>
                         </div>
                     </div>
                 </div>

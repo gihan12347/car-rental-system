@@ -2678,6 +2678,76 @@ body.login-page {
   min-height: 200px;
 }
 
+.dashboard-revenue-charts--animating > .col-12:nth-child(1) .dashboard-chart-card {
+  opacity: 0;
+  animation: dashboard-chart-card-in 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.dashboard-revenue-charts--animating > .col-12:nth-child(2) .dashboard-chart-card {
+  opacity: 0;
+  animation: dashboard-chart-card-in 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.14s;
+}
+
+@keyframes dashboard-chart-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-chart-shell:not(.is-chart-drawing):not(.is-chart-ready) .dashboard-chart-canvas {
+  opacity: 0;
+  transform: scale(0.98) translateY(8px);
+}
+
+.dashboard-chart-shell.is-chart-drawing .dashboard-chart-canvas,
+.dashboard-chart-shell.is-chart-ready .dashboard-chart-canvas {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.25, 0.64, 1);
+}
+
+.dashboard-chart-shell:not(.is-chart-drawing)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--app-radius);
+  background: linear-gradient(
+    110deg,
+    rgba(248, 250, 252, 0) 0%,
+    rgba(248, 250, 252, 0.85) 42%,
+    rgba(238, 242, 255, 0.95) 50%,
+    rgba(248, 250, 252, 0.85) 58%,
+    rgba(248, 250, 252, 0) 100%
+  );
+  background-size: 220% 100%;
+  animation: dashboard-chart-shimmer 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dashboard-chart-shell.is-chart-ready::after {
+  opacity: 0;
+  animation: none;
+  transition: opacity 0.35s ease;
+}
+
+@keyframes dashboard-chart-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .dashboard-chart-shell--empty .dashboard-chart-canvas {
   opacity: 0.15;
   pointer-events: none;
@@ -2694,6 +2764,8 @@ body.login-page {
   max-height: 240px;
   overflow: hidden;
   z-index: 1;
+  border-radius: calc(var(--app-radius) - 2px);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.6) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
 .chart-empty {
@@ -2734,6 +2806,26 @@ body.login-page {
   width: 100% !important;
   height: 100% !important;
   max-height: 100%;
+}
+
+.app-count-up.is-counting,
+.dashboard-count-up.is-counting {
+  color: var(--app-accent);
+  transition: color 0.35s ease;
+}
+
+.app-count-up.is-counted,
+.dashboard-count-up.is-counted {
+  transition: color 0.4s ease;
+}
+
+.stat-value.app-count-up.is-counting,
+.stat-value.dashboard-count-up.is-counting {
+  text-shadow: 0 0 24px rgba(79, 70, 229, 0.18);
+}
+
+.dashboard-metric .app-count-up.is-counting {
+  color: var(--app-accent);
 }
 
 .stat-value--sm {
@@ -4675,5 +4767,23 @@ body.app-loading-curtain-open .app-loading-curtain {
   .app-loading-curtain__logo {
     opacity: 1;
     transform: none;
+  }
+
+  .dashboard-revenue-charts--animating .dashboard-chart-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .dashboard-chart-shell:not(.is-chart-drawing):not(.is-chart-ready) .dashboard-chart-canvas,
+  .dashboard-chart-shell.is-chart-drawing .dashboard-chart-canvas,
+  .dashboard-chart-shell.is-chart-ready .dashboard-chart-canvas {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .dashboard-chart-shell::after {
+    display: none;
   }
 }

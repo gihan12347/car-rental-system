@@ -9,6 +9,11 @@
             return;
         }
 
+        var chartsRow = document.querySelector('.dashboard-revenue-charts');
+        if (chartsRow) {
+            chartsRow.classList.add('dashboard-revenue-charts--animating');
+        }
+
         var data = {};
         try {
             var payloadEl = document.getElementById('dashboardChartPayload');
@@ -20,22 +25,27 @@
             return;
         }
 
+        var revenueAnim = { baseDelay: 120, stagger: 90, duration: 1600 };
+        var doughnutAnim = { baseDelay: 200, stagger: 120, duration: 1700 };
+
         if (data.revenueChart && data.revenueChart.length) {
             var isDaily = data.revenueChartTitle && data.revenueChartTitle.indexOf('Daily') === 0;
             if (isDaily) {
-                FleetCharts.lineChart('chartRevenue', data.revenueChart, 'chartRevenueEmpty');
+                FleetCharts.lineChart('chartRevenue', data.revenueChart, 'chartRevenueEmpty', revenueAnim);
             } else {
-                FleetCharts.barChart('chartRevenue', data.revenueChart, 'chartRevenueEmpty');
+                FleetCharts.barChart('chartRevenue', data.revenueChart, 'chartRevenueEmpty', revenueAnim);
             }
         } else {
-            FleetCharts.barChart('chartRevenue', [], 'chartRevenueEmpty');
+            FleetCharts.barChart('chartRevenue', [], 'chartRevenueEmpty', revenueAnim);
         }
 
-        if (data.revenueByVehicleType && data.revenueByVehicleType.length) {
-            FleetCharts.doughnutChart('chartRevenueByType', data.revenueByVehicleType, 'chartRevenueByTypeEmpty');
-        } else {
-            FleetCharts.doughnutChart('chartRevenueByType', [], 'chartRevenueByTypeEmpty');
-        }
+        window.setTimeout(function () {
+            if (data.revenueByVehicleType && data.revenueByVehicleType.length) {
+                FleetCharts.doughnutChart('chartRevenueByType', data.revenueByVehicleType, 'chartRevenueByTypeEmpty', doughnutAnim);
+            } else {
+                FleetCharts.doughnutChart('chartRevenueByType', [], 'chartRevenueByTypeEmpty', doughnutAnim);
+            }
+        }, 220);
     }
 
     if (document.readyState === 'loading') {

@@ -89,25 +89,25 @@
                 <div class="col-6 col-md-3">
                     <div class="dashboard-metric h-100">
                         <span class="dashboard-metric-label">Income (this month)</span>
-                        <strong th:text="${#numbers.formatDecimal(detail.totalIncome, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        <strong class="app-count-up" th:attr="data-count-to=${detail.totalIncome}">0</strong>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="dashboard-metric h-100">
                         <span class="dashboard-metric-label">Maintenance (this month)</span>
-                        <strong th:text="${#numbers.formatDecimal(detail.totalMaintenanceCost, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        <strong class="app-count-up" th:attr="data-count-to=${detail.totalMaintenanceCost}">0</strong>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="dashboard-metric h-100">
                         <span class="dashboard-metric-label">Lifetime income</span>
-                        <strong th:text="${#numbers.formatDecimal(detail.lifetimeIncome, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        <strong class="app-count-up" th:attr="data-count-to=${detail.lifetimeIncome}">0</strong>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="dashboard-metric h-100">
                         <span class="dashboard-metric-label">Lifetime maintenance</span>
-                        <strong th:text="${#numbers.formatDecimal(detail.lifetimeMaintenance, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                        <strong class="app-count-up" th:attr="data-count-to=${detail.lifetimeMaintenance}">0</strong>
                     </div>
                 </div>
             </div>
