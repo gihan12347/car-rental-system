@@ -42,6 +42,8 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**",
                                 "/uploads/cars/**",
+                                "/uploads/employees/**",
+                                "/uploads/profiles/**",
                                 "/sw.js",
                                 "/site.webmanifest",
                                 "/favicon.ico",

@@ -21,6 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload.employees.dir:uploads/employees}")
     private String employeesUploadDir;
 
+    @Value("${app.upload.profiles.dir:uploads/profiles}")
+    private String profilesUploadDir;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new HandlerInterceptor() {
@@ -42,6 +45,7 @@ public class WebConfig implements WebMvcConfigurer {
                         || uri.startsWith("/js/")
                         || uri.startsWith("/uploads/cars/")
                         || uri.startsWith("/uploads/employees/")
+                        || uri.startsWith("/uploads/profiles/")
                         || uri.startsWith("/icons/")
                         || uri.startsWith("/media/")
                         || "/favicon.ico".equals(uri)
@@ -60,6 +64,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(toResourceLocation(carsUploadDir));
         registry.addResourceHandler("/uploads/employees/**")
                 .addResourceLocations(toResourceLocation(employeesUploadDir));
+        registry.addResourceHandler("/uploads/profiles/**")
+                .addResourceLocations(toResourceLocation(profilesUploadDir));
     }
 
     private String toResourceLocation(String uploadDir) {

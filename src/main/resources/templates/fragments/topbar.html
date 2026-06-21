@@ -17,10 +17,16 @@
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0" sec:authorize="isAuthenticated()">
                 <div th:replace="~{fragments/service-alerts :: topbarNotifications}"></div>
-                <span class="app-topbar-user small text-muted d-none d-md-inline">
-                    <i class="bi bi-person-circle me-1" aria-hidden="true"></i>
-                    <span sec:authentication="name">user</span>
-                </span>
+                <a class="app-topbar-profile d-inline-flex align-items-center gap-2 text-decoration-none"
+                   th:href="@{/account}"
+                   th:title="|Account settings for ${#authentication.name}|">
+                    <img class="app-topbar-profile__avatar car-avatar car-avatar--sm flex-shrink-0"
+                         th:src="${session.PROFILE_IMAGE != null} ? ${session.PROFILE_IMAGE} : @{/images/account-avatar-default.png}"
+                         th:alt="|Profile photo for ${session.USERNAME != null ? session.USERNAME : #authentication.name}|"/>
+                    <span class="app-topbar-user small text-muted d-none d-md-inline">
+                        <span th:text="${session.USERNAME != null} ? ${session.USERNAME} : ${#authentication.name}">user</span>
+                    </span>
+                </a>
                 <form method="post" th:attr="action=@{/logout}" class="mb-0">
                     <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <button type="submit" class="btn btn-outline-soft btn-sm d-inline-flex align-items-center gap-1 app-signout-btn">

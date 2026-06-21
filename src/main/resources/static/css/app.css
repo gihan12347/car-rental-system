@@ -67,6 +67,59 @@ body.app-body {
   font-weight: 500;
 }
 
+.app-topbar-profile {
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem 0.15rem 0.15rem;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-topbar-profile:hover,
+.app-topbar-profile:focus-visible {
+  background: var(--app-accent-soft);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.12);
+}
+
+.app-topbar-profile__avatar {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(79, 70, 229, 0.18);
+  transition: transform 0.28s cubic-bezier(0.34, 1.25, 0.64, 1), box-shadow 0.28s ease;
+  animation: profile-avatar-in 0.6s cubic-bezier(0.34, 1.25, 0.64, 1) both,
+             profile-avatar-ring 2.8s ease-in-out 0.65s 1;
+}
+
+.app-topbar-profile:hover .app-topbar-profile__avatar,
+.app-topbar-profile:focus-visible .app-topbar-profile__avatar {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(79, 70, 229, 0.32);
+}
+
+.app-topbar-profile:active .app-topbar-profile__avatar {
+  transform: scale(1.02);
+}
+
+@keyframes profile-avatar-in {
+  from {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes profile-avatar-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(79, 70, 229, 0.18);
+  }
+
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(79, 70, 229, 0.28);
+  }
+}
+
 .app-page-header h1 {
   letter-spacing: -0.02em;
   font-weight: 700;
@@ -1799,6 +1852,17 @@ body.login-page {
   .app-topbar .app-service-notify__btn:focus,
   .app-topbar .app-service-notify__btn.show {
     background: rgba(220, 38, 38, 0.1);
+  }
+
+  .app-topbar-profile {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(79, 70, 229, 0.16);
+  }
+
+  .app-topbar-profile:hover,
+  .app-topbar-profile:focus-visible {
+    background: #fff;
+    border-color: rgba(79, 70, 229, 0.28);
   }
 
   .app-topbar-nav {
@@ -3883,6 +3947,34 @@ body.login-page {
   white-space: nowrap;
 }
 
+.account-section--profile {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.account-section__icon--profile {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+}
+
+.account-profile-photo-form__preview {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  transition: transform 0.28s cubic-bezier(0.34, 1.25, 0.64, 1), box-shadow 0.28s ease;
+  animation: profile-avatar-in 0.65s cubic-bezier(0.34, 1.25, 0.64, 1) 0.12s both;
+}
+
+.account-profile-photo-form__preview:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22);
+}
+
+.account-header__avatar {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  animation: profile-avatar-in 0.65s cubic-bezier(0.34, 1.25, 0.64, 1) both;
+}
+
 .account-layout {
   display: flex;
   flex-direction: column;
@@ -4785,5 +4877,19 @@ body.app-loading-curtain-open .app-loading-curtain {
 
   .dashboard-chart-shell::after {
     display: none;
+  }
+
+  .app-topbar-profile__avatar,
+  .account-header__avatar,
+  .account-profile-photo-form__preview {
+    animation: none;
+    transition: none;
+  }
+
+  .app-topbar-profile:hover .app-topbar-profile__avatar,
+  .app-topbar-profile:focus-visible .app-topbar-profile__avatar,
+  .app-topbar-profile:active .app-topbar-profile__avatar,
+  .account-profile-photo-form__preview:hover {
+    transform: none;
   }
 }

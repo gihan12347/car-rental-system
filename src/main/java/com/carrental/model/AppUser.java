@@ -7,11 +7,14 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "app_users")
 public class AppUser {
+
+    public static final String DEFAULT_PROFILE_IMAGE_PATH = "/images/account-avatar-default.png";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +29,16 @@ public class AppUser {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private AppRole role = AppRole.USER;
+
+    @Column(name = "profile_image_path", length = 255)
+    private String profileImagePath = DEFAULT_PROFILE_IMAGE_PATH;
+
+    @PrePersist
+    void ensureProfileImagePath() {
+        if (profileImagePath == null || profileImagePath.trim().isEmpty()) {
+            profileImagePath = DEFAULT_PROFILE_IMAGE_PATH;
+        }
+    }
 
     public Long getId() {
         return id;
@@ -57,5 +70,13 @@ public class AppUser {
 
     public void setRole(AppRole role) {
         this.role = role;
+    }
+
+    public String getProfileImagePath() {
+        return profileImagePath;
+    }
+
+    public void setProfileImagePath(String profileImagePath) {
+        this.profileImagePath = profileImagePath;
     }
 }

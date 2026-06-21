@@ -30,22 +30,29 @@ public class ImageStorageService {
     @Value("${app.upload.employees.dir:uploads/employees}")
     private String employeesDir;
 
+    @Value("${app.upload.profiles.dir:uploads/profiles}")
+    private String profilesDir;
+
     private final Map<ImageType, String> urlPrefixes = new HashMap<>();
     {
         urlPrefixes.put(ImageType.CAR, "/uploads/cars/");
         urlPrefixes.put(ImageType.EMPLOYEE, "/uploads/employees/");
+        urlPrefixes.put(ImageType.PROFILE, "/uploads/profiles/");
     }
 
     private Path carUploadRoot;
     private Path employeeUploadRoot;
+    private Path profileUploadRoot;
 
     @PostConstruct
     public void init() {
         carUploadRoot = createDirectory(carsDir);
         employeeUploadRoot = createDirectory(employeesDir);
+        profileUploadRoot = createDirectory(profilesDir);
 
         log.info("Car image uploads directory: {}", carUploadRoot);
         log.info("Employee image uploads directory: {}", employeeUploadRoot);
+        log.info("Profile image uploads directory: {}", profileUploadRoot);
     }
 
     private Path createDirectory(String path) {
@@ -68,6 +75,10 @@ public class ImageStorageService {
 
     public String storeEmployeeImage(MultipartFile file) throws IOException {
         return store(file, ImageType.EMPLOYEE);
+    }
+
+    public String storeProfileImage(MultipartFile file) throws IOException {
+        return store(file, ImageType.PROFILE);
     }
 
     public String store(MultipartFile file, ImageType imageType) throws IOException {
@@ -113,6 +124,8 @@ public class ImageStorageService {
                 delete(normalized, ImageType.CAR);
             } else if (normalized.startsWith("/uploads/employees/")) {
                 delete(normalized, ImageType.EMPLOYEE);
+            } else if (normalized.startsWith("/uploads/profiles/")) {
+                delete(normalized, ImageType.PROFILE);
             }
         } catch (Exception e) {
             log.warn("Could not delete image {}: {}", imagePath, e.getMessage());
@@ -166,13 +179,18 @@ public class ImageStorageService {
     }
 
     private Path getRoot(ImageType type) {
-        return type == ImageType.CAR
-                ? carUploadRoot
-                : employeeUploadRoot;
+        if (type == ImageType.CAR) {
+            return carUploadRoot;
+        }
+        if (type == ImageType.EMPLOYEE) {
+            return employeeUploadRoot;
+        }
+        return profileUploadRoot;
     }
 
     public enum ImageType {
         CAR,
-        EMPLOYEE
+        EMPLOYEE,
+        PROFILE
     }
 }
