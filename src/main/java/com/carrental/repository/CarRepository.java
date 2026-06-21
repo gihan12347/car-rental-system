@@ -2,6 +2,7 @@ package com.carrental.repository;
 
 import com.carrental.model.Car;
 import com.carrental.model.CarStatus;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,8 +11,10 @@ import java.util.List;
 
 public interface CarRepository extends JpaRepository<Car, Long> {
 
+    @Cacheable(value = "carsByStatus", key = "#status")
     List<Car> findByStatusOrderByRegistrationNumberAsc(CarStatus status);
 
+    @Cacheable(value = "carsAllSorted")
     List<Car> findAllByOrderByRegistrationNumberAsc();
 
     @Query("SELECT c FROM Car c WHERE c.nextServiceKm IS NOT NULL AND c.mileageKm >= c.nextServiceKm "
@@ -24,5 +27,6 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             + "CONCAT('', c.mileageKm) LIKE CONCAT('%', :q, '%') OR "
             + "CONCAT('', c.passengerCount) LIKE CONCAT('%', :q, '%') "
             + "ORDER BY c.registrationNumber ASC")
+    @Cacheable(value = "carsSearch", key = "#q.toLowerCase()")
     List<Car> searchByTerm(@Param("q") String q);
 }

@@ -1,6 +1,6 @@
 package com.carrental.config;
 
-import com.carrental.storage.CarImageStorageService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -9,15 +9,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CarImageStorageService carImageStorageService;
+    @Value("${app.upload.cars.dir:uploads/cars}")
+    private String carsUploadDir;
 
-    public WebConfig(CarImageStorageService carImageStorageService) {
-        this.carImageStorageService = carImageStorageService;
-    }
+    @Value("${app.upload.employees.dir:uploads/employees}")
+    private String employeesUploadDir;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -39,6 +41,7 @@ public class WebConfig implements WebMvcConfigurer {
                         || uri.startsWith("/images/")
                         || uri.startsWith("/js/")
                         || uri.startsWith("/uploads/cars/")
+                        || uri.startsWith("/uploads/employees/")
                         || uri.startsWith("/icons/")
                         || uri.startsWith("/media/")
                         || "/favicon.ico".equals(uri)
@@ -53,10 +56,21 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String location = carImageStorageService.getUploadRoot().toUri().toString();
+        registry.addResourceHandler("/uploads/cars/**")
+                .addResourceLocations(toResourceLocation(carsUploadDir));
+        registry.addResourceHandler("/uploads/employees/**")
+                .addResourceLocations(toResourceLocation(employeesUploadDir));
+    }
+
+    private String toResourceLocation(String uploadDir) {
+        Path root = Paths.get(uploadDir);
+        root = root.isAbsolute()
+                ? root.normalize()
+                : root.toAbsolutePath().normalize();
+        String location = root.toUri().toString();
         if (!location.endsWith("/")) {
             location = location + "/";
         }
-        registry.addResourceHandler("/uploads/cars/**").addResourceLocations(location);
+        return location;
     }
 }

@@ -122,9 +122,14 @@
                             <tr th:each="e : ${employees}" class="employees-table-row">
                                 <td class="text-muted" th:text="${e.id}"></td>
                                 <td class="fw-semibold">
-                                    <a class="text-decoration-none employees-table-row__link"
-                                       th:href="@{/employees/{id}(id=${e.id})}"
-                                       th:text="${e.name}"></a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img class="car-avatar car-avatar--sm flex-shrink-0"
+                                             th:src="${e.employeeImagePath != null and !#strings.isEmpty(e.employeeImagePath)} ? ${e.employeeImagePath} : @{/images/employee-avatar-default.png}"
+                                             th:alt="${e.name}"/>
+                                        <a class="text-decoration-none employees-table-row__link"
+                                           th:href="@{/employees/{id}(id=${e.id})}"
+                                           th:text="${e.name}"></a>
+                                    </div>
                                 </td>
                                 <td th:text="${e.nic}"></td>
                                 <td class="text-nowrap" th:text="${e.jobStartDate}"></td>
@@ -400,13 +405,25 @@
                     th:text="${employeeForm.id != null} ? 'Edit employee' : 'Add employee'">Add employee</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="employeeFormEl" method="post" novalidate
+            <form id="employeeFormEl" method="post" enctype="multipart/form-data" novalidate
                   th:action="${employeeForm.id != null} ? @{/employees/{id}(id=${employeeForm.id})} : @{/employees}"
                   th:object="${employeeForm}">
                 <th:block th:replace="~{fragments/csrf :: csrfField}"></th:block>
                 <input type="hidden" name="tab" value="employees"/>
                 <input type="hidden" name="q" th:value="${searchQuery}"/>
+                <input type="hidden" th:field="*{imagePath}"/>
                 <div class="modal-body">
+                    <div class="col-12 mb-3">
+                        <label class="form-label small fw-semibold" for="emp-image">Employee photo</label>
+                        <div class="d-flex align-items-center gap-3 mb-2" th:if="*{imagePath != null and !#strings.isEmpty(imagePath)}">
+                            <img class="car-avatar car-avatar--md flex-shrink-0"
+                                 th:src="*{imagePath}"
+                                 alt="Current employee photo"/>
+                            <span class="small text-muted">Current photo</span>
+                        </div>
+                        <input class="form-control" type="file" id="emp-image" name="employeeImage" accept="image/*"/>
+                        <div class="form-text">Optional — JPEG, PNG, or WebP.</div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold" for="emp-name">Name</label>
                         <input class="form-control" id="emp-name" type="text" required th:field="*{name}"/>

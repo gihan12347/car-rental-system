@@ -40,6 +40,9 @@ public class Employee {
     @Column(nullable = false, length = 16)
     private EmployeeStatus status = EmployeeStatus.PERMANENT;
 
+    @Column(name = "employee_image_path", nullable = false)
+    private String employeeImagePath;
+
     public Long getId() {
         return id;
     }
@@ -79,4 +82,8 @@ public class Employee {
     public void setStatus(EmployeeStatus status) {
         this.status = status;
     }
+
+    public String getEmployeeImagePath() { return employeeImagePath; }
+
+    public void setEmployeeImagePath(String employeeImagePath) { this.employeeImagePath = employeeImagePath; }
 }

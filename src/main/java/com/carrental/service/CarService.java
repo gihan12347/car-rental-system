@@ -5,7 +5,7 @@ import com.carrental.model.CarStatus;
 import com.carrental.repository.CarRepository;
 import com.carrental.repository.MaintenanceRecordRepository;
 import com.carrental.repository.RentalRepository;
-import com.carrental.storage.CarImageStorageService;
+import com.carrental.storage.ImageStorageService;
 import com.carrental.web.SearchQuery;
 import com.carrental.web.dto.CarDeleteImpact;
 import org.springframework.stereotype.Service;
@@ -21,17 +21,19 @@ public class CarService {
     private final CarRepository carRepository;
     private final RentalRepository rentalRepository;
     private final MaintenanceRecordRepository maintenanceRecordRepository;
-    private final CarImageStorageService carImageStorageService;
+    private final ImageStorageService imageStorageService;
+    private final CacheService cacheService;
 
     public CarService(
             CarRepository carRepository,
             RentalRepository rentalRepository,
             MaintenanceRecordRepository maintenanceRecordRepository,
-            CarImageStorageService carImageStorageService) {
+            ImageStorageService imageStorageService, CacheService cacheService) {
         this.carRepository = carRepository;
         this.rentalRepository = rentalRepository;
         this.maintenanceRecordRepository = maintenanceRecordRepository;
-        this.carImageStorageService = carImageStorageService;
+        this.imageStorageService = imageStorageService;
+        this.cacheService = cacheService;
     }
 
     public List<Car> listAll() {
@@ -68,6 +70,7 @@ public class CarService {
             car.setVehicleType(com.carrental.model.VehicleType.SEDAN);
         }
         CarPricingHelper.normalizeHirePrices(car);
+        cacheService.clearFleetCaches();
         return carRepository.save(car);
     }
 
@@ -113,9 +116,10 @@ public class CarService {
 
         rentalRepository.deleteByCar_Id(carId);
         maintenanceRecordRepository.deleteByCar_Id(carId);
-        carImageStorageService.deleteIfPresent(car.getImagePath());
+        imageStorageService.deleteIfPresent(car.getImagePath());
         carRepository.deleteById(carId);
 
+        cacheService.clearEmployeeCaches();
         return "Vehicle " + registration + " and all linked data removed ("
                 + rentals + " rental" + (rentals == 1 ? "" : "s")
                 + ", " + maintenance + " maintenance record" + (maintenance == 1 ? "" : "s") + ").";

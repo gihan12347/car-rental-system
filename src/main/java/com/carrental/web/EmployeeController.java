@@ -10,6 +10,7 @@ import com.carrental.service.EmployeePaymentPeriodFilter;
 import com.carrental.service.EmployeePaymentService;
 import com.carrental.service.EmployeeRentalService;
 import com.carrental.service.EmployeeService;
+import com.carrental.storage.ImageStorageService;
 import com.carrental.web.dto.EmployeeForm;
 import com.carrental.web.dto.EmployeePaymentForm;
 import org.springframework.data.domain.Page;
@@ -24,9 +25,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,14 +45,16 @@ public class EmployeeController {
     private final EmployeeService employeeService;
     private final EmployeePaymentService employeePaymentService;
     private final EmployeeRentalService employeeRentalService;
+    private final ImageStorageService imageStorageService;
 
     public EmployeeController(
             EmployeeService employeeService,
             EmployeePaymentService employeePaymentService,
-            EmployeeRentalService employeeRentalService) {
+            EmployeeRentalService employeeRentalService, ImageStorageService imageStorageService) {
         this.employeeService = employeeService;
         this.employeePaymentService = employeePaymentService;
         this.employeeRentalService = employeeRentalService;
+        this.imageStorageService = imageStorageService;
     }
 
     @GetMapping
@@ -223,6 +228,7 @@ public class EmployeeController {
             @RequestParam(value = "q", required = false) String q,
             @Valid @ModelAttribute("employeeForm") EmployeeForm form,
             BindingResult bindingResult,
+            @RequestParam(value = "employeeImage", required = false) MultipartFile employeeImage,
             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.employeeForm", bindingResult);
@@ -232,9 +238,12 @@ public class EmployeeController {
             return redirectIndex(tab, q, null, null, null, 0);
         }
         try {
+            if (employeeImage != null && !employeeImage.isEmpty()) {
+                form.setImagePath(imageStorageService.storeEmployeeImage(employeeImage));
+            }
             employeeService.save(form);
             redirectAttributes.addFlashAttribute("successMessage", "Employee saved.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IOException e) {
             redirectAttributes.addFlashAttribute("employeeForm", form);
             redirectAttributes.addFlashAttribute("openEmployeeModal", Boolean.TRUE);
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -249,6 +258,7 @@ public class EmployeeController {
             @RequestParam(value = "q", required = false) String q,
             @Valid @ModelAttribute("employeeForm") EmployeeForm form,
             BindingResult bindingResult,
+            @RequestParam(value = "employeeImage", required = false) MultipartFile employeeImage,
             RedirectAttributes redirectAttributes) {
         form.setId(id);
         if (bindingResult.hasErrors()) {
@@ -259,9 +269,16 @@ public class EmployeeController {
             return redirectIndex(tab, q, null, null, null, 0);
         }
         try {
+            if (employeeImage != null && !employeeImage.isEmpty()) {
+                if (form.getId() != null) {
+                    Employee existing = employeeService.getById(form.getId());
+                    imageStorageService.deleteIfPresent(existing.getEmployeeImagePath());
+                }
+                form.setImagePath(imageStorageService.storeEmployeeImage(employeeImage));
+            }
             employeeService.save(form);
             redirectAttributes.addFlashAttribute("successMessage", "Employee updated.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IOException e) {
             redirectAttributes.addFlashAttribute("employeeForm", form);
             redirectAttributes.addFlashAttribute("openEmployeeModal", Boolean.TRUE);
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

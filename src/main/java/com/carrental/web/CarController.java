@@ -7,7 +7,7 @@ import com.carrental.model.MaintenanceRecord;
 import com.carrental.model.MaintenanceType;
 import com.carrental.model.Rental;
 import com.carrental.service.*;
-import com.carrental.storage.CarImageStorageService;
+import com.carrental.storage.ImageStorageService;
 import com.carrental.web.dto.MaintenanceForm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +42,7 @@ import java.util.Map;
 public class CarController {
 
     private final CarService carService;
-    private final CarImageStorageService carImageStorageService;
+    private final ImageStorageService imageStorageService;
     private final CarDetailService carDetailService;
     private final MaintenanceRecordService maintenanceRecordService;
     private final FleetServiceAlertService fleetServiceAlertService;
@@ -51,13 +51,13 @@ public class CarController {
 
     public CarController(
             CarService carService,
-            CarImageStorageService carImageStorageService,
+            ImageStorageService imageStorageService,
             CarDetailService carDetailService,
             MaintenanceRecordService maintenanceRecordService,
             FleetServiceAlertService fleetServiceAlertService,
             ObjectMapper objectMapper, FleetAlertsSessionHelper fleetAlertsSessionHelper) {
         this.carService = carService;
-        this.carImageStorageService = carImageStorageService;
+        this.imageStorageService = imageStorageService;
         this.carDetailService = carDetailService;
         this.maintenanceRecordService = maintenanceRecordService;
         this.fleetServiceAlertService = fleetServiceAlertService;
@@ -103,7 +103,7 @@ public class CarController {
         }
         try {
             if (carImage != null && !carImage.isEmpty()) {
-                modalCar.setImagePath(carImageStorageService.store(carImage));
+                modalCar.setImagePath(imageStorageService.storeCarImage(carImage));
             }
             carService.save(modalCar);
         } catch (IllegalArgumentException e) {
@@ -360,14 +360,11 @@ public class CarController {
         try {
             Car existing = carService.getById(id);
             if (carImage != null && !carImage.isEmpty()) {
-                car.setImagePath(carImageStorageService.store(carImage));
+                car.setImagePath(imageStorageService.storeCarImage(carImage));
             } else {
                 car.setImagePath(existing.getImagePath());
             }
             carService.save(car);
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "cars/form";
         } catch (IOException e) {
             model.addAttribute("errorMessage", "Could not store image: " + e.getMessage());
             return "cars/form";

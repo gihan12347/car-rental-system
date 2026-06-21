@@ -18,12 +18,14 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeePaymentRepository employeePaymentRepository;
+    private final CacheService cacheService;
 
     public EmployeeService(
             EmployeeRepository employeeRepository,
-            EmployeePaymentRepository employeePaymentRepository) {
+            EmployeePaymentRepository employeePaymentRepository, CacheService cacheService) {
         this.employeeRepository = employeeRepository;
         this.employeePaymentRepository = employeePaymentRepository;
+        this.cacheService = cacheService;
     }
 
     public List<Employee> listAll() {
@@ -107,11 +109,16 @@ public class EmployeeService {
             }
             employee = new Employee();
         }
-
         employee.setName(form.getName().trim());
         employee.setNic(nic);
         employee.setJobStartDate(form.getJobStartDate());
         employee.setStatus(form.getStatus());
+        if (form.getImagePath() != null && !form.getImagePath().trim().isEmpty()) {
+            employee.setEmployeeImagePath(form.getImagePath().trim());
+        } else if (form.getId() == null) {
+            employee.setEmployeeImagePath(EmployeeForm.DEFAULT_IMAGE_PATH);
+        }
+        cacheService.clearEmployeeCaches();
         return employeeRepository.save(employee);
     }
 
@@ -119,6 +126,7 @@ public class EmployeeService {
     public void delete(Long id) {
         getById(id);
         employeePaymentRepository.deleteByEmployeeId(id);
+        cacheService.clearEmployeeCaches();
         employeeRepository.deleteById(id);
     }
 
@@ -129,6 +137,7 @@ public class EmployeeService {
         form.setNic(employee.getNic());
         form.setJobStartDate(employee.getJobStartDate());
         form.setStatus(employee.getStatus());
+        form.setImagePath(employee.getEmployeeImagePath());
         return form;
     }
 

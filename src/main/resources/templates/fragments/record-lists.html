@@ -162,9 +162,9 @@
      th:if="${employees != null and !employees.isEmpty()}">
     <article class="app-record-card" th:each="e : ${employees}">
         <div class="app-record-card__header">
-            <span class="car-avatar car-avatar--md car-avatar--placeholder flex-shrink-0">
-                <i class="bi bi-person"></i>
-            </span>
+            <img class="car-avatar car-avatar--md flex-shrink-0"
+                 th:src="${e.employeeImagePath != null and !#strings.isEmpty(e.employeeImagePath)} ? ${e.employeeImagePath} : @{/images/employee-avatar-default.png}"
+                 th:alt="${e.name}"/>
             <div class="min-w-0 flex-grow-1">
                 <h3 class="app-record-card__title mb-1">
                     <a class="app-record-card__link text-decoration-none"

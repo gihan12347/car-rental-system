@@ -1,11 +1,13 @@
 package com.carrental.repository;
 
 import com.carrental.model.AppUser;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
+    @Cacheable(value = "appUsersByUsername", key = "#username")
     Optional<AppUser> findByUsername(String username);
 }

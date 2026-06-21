@@ -23,6 +23,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // Cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.ehcache:ehcache:3.10.8'
+    implementation 'javax.cache:cache-api:1.1.1'
     // Explicit version — BOM sometimes does not resolve this artifact in all Gradle setups
     runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
     testRuntimeOnly 'com.h2database:h2'

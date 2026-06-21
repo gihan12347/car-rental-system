@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public class EmployeeForm {
+    public static final String DEFAULT_IMAGE_PATH = "/images/employee-avatar-default.png";
 
     private Long id;
 
@@ -23,6 +24,8 @@ public class EmployeeForm {
 
     @NotNull(message = "Status is required.")
     private EmployeeStatus status = EmployeeStatus.PERMANENT;
+
+    private String imagePath = DEFAULT_IMAGE_PATH;
 
     public Long getId() {
         return id;
@@ -63,4 +66,8 @@ public class EmployeeForm {
     public void setStatus(EmployeeStatus status) {
         this.status = status;
     }
+
+    public String getImagePath() { return imagePath; }
+
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 }

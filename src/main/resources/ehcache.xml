@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config
+        xmlns="http://www.ehcache.org/v3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:jsr107="http://www.ehcache.org/v3/jsr107"
+        xsi:schemaLocation="
+            http://www.ehcache.org/v3
+            http://www.ehcache.org/schema/ehcache-core.xsd
+            http://www.ehcache.org/v3/jsr107
+            http://www.ehcache.org/schema/ehcache-107-ext.xsd">
+    <!-- REQUIRED for Spring + JCache integration -->
+    <service>
+        <jsr107:defaults enable-management="true"
+                         enable-statistics="true"/>
+    </service>
+    <!-- ================= USERS ================= -->
+    <cache alias="appUsersByUsername">
+        <key-type>java.lang.String</key-type>
+        <value-type>com.carrental.model.AppUser</value-type>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+        </resources>
+    </cache>
+    <!-- ================= EMPLOYEES ================= -->
+    <cache alias="employeesAllSorted">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
+    <cache alias="employeesActiveByStatus">
+        <key-type>com.carrental.model.EmployeeStatus</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">20</heap>
+        </resources>
+    </cache>
+    <cache alias="employeesByNic">
+        <key-type>java.lang.String</key-type>
+        <value-type>com.carrental.model.Employee</value-type>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">500</heap>
+        </resources>
+    </cache>
+    <cache alias="employeesSearch">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    <!-- ================= CARS ================= -->
+    <cache alias="carsByStatus">
+        <key-type>com.carrental.model.CarStatus</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">50</heap>
+        </resources>
+    </cache>
+    <cache alias="carsAllSorted">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
+    <cache alias="carsSearch">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.util.List</value-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">200</heap>
+        </resources>
+    </cache>
+</config>
