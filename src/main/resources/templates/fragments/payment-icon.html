@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Mobile: cash.jpg · Desktop (xl+): Bootstrap icon -->
+<th:block th:fragment="inline">
+    <i class="bi bi-wallet2 app-payment-icon__glyph d-none d-xl-inline" aria-hidden="true"></i>
+    <img class="app-payment-icon__img app-payment-icon__img--inline d-xl-none"
+         th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
+</th:block>
+
+<th:block th:fragment="stat">
+    <i class="bi bi-wallet2 app-payment-icon__glyph d-none d-xl-inline" aria-hidden="true"></i>
+    <img class="app-payment-icon__img app-payment-icon__img--stat d-xl-none"
+         th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
+</th:block>
+
+<th:block th:fragment="cardAvatar">
+    <span class="car-avatar car-avatar--md flex-shrink-0 overflow-hidden app-payment-card-avatar">
+        <img class="app-payment-icon__img app-payment-icon__img--card d-xl-none"
+             th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
+        <i class="bi bi-wallet2 app-payment-icon__glyph d-none d-xl-inline" aria-hidden="true"></i>
+    </span>
+</th:block>
+
+<th:block th:fragment="button">
+    <i class="bi bi-cash-coin app-payment-icon__glyph d-none d-xl-inline" aria-hidden="true"></i>
+    <img class="app-payment-icon__img app-payment-icon__img--inline d-xl-none"
+         th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
+</th:block>
+
+<th:block th:fragment="empty">
+    <i class="bi bi-wallet2 app-payment-icon__glyph d-none d-xl-inline" aria-hidden="true"></i>
+    <img class="app-payment-icon__img app-payment-icon__img--empty d-xl-none"
+         th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
+</th:block>
+</body>
+</html>

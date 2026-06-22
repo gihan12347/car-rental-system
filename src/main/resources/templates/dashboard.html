@@ -138,6 +138,31 @@
                     <p class="small text-muted mb-0 dashboard-section-subtitle">Sell low performers, buy high-demand vehicles, track service needs.</p>
                 </div>
                 <div class="row g-2 g-lg-3 dashboard-fleet-layout">
+                    <div class="col-12" th:if="${!d.rentalOverdue.isEmpty()}">
+                        <div class="dashboard-list-card dashboard-list-card--compact dashboard-list-card--rental-overdue">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <h3 class="dashboard-chart-title mb-0 text-danger">
+                                    <i class="bi bi-alarm me-1" aria-hidden="true"></i>Overdue rentals
+                                </h3>
+                                <span class="badge rounded-pill text-bg-danger"
+                                      th:text="${session.rentalOverdueCount != null ? session.rentalOverdueCount : d.rentalOverdue.size()}">0</span>
+                            </div>
+                            <ul class="dashboard-mini-list dashboard-mini-list--overdue mb-2">
+                                <li th:each="item : ${d.rentalOverdue}">
+                                    <a class="dashboard-overdue-link text-decoration-none"
+                                       th:href="@{/rentals/{id}/complete(id=${item.rentalId})}">
+                                        <span class="fw-semibold" th:text="${item.customerName}">Customer</span>
+                                        <small class="dashboard-mini-list__reg text-muted"
+                                               th:text="${item.registrationNumber}">—</small>
+                                        <small class="text-danger fw-semibold" th:text="${item.daysOverdueLabel}">—</small>
+                                        <small class="text-muted"
+                                               th:text="|due ${#temporals.format(item.expectedReturnDate, 'd MMM yyyy')}|"></small>
+                                    </a>
+                                </li>
+                            </ul>
+                            <a th:href="@{/rentals/overdue}" class="small fw-semibold">View all overdue rentals</a>
+                        </div>
+                    </div>
                     <div class="col-12 col-lg-5 col-xl-4">
                         <div class="dashboard-chart-card dashboard-chart-card--fleet-table">
                             <h3 class="dashboard-chart-title">Vehicle utilization</h3>
@@ -176,8 +201,10 @@
                                     <h3 class="dashboard-chart-title">Idle vehicles</h3>
                                     <ul class="dashboard-mini-list mb-0" th:if="${!d.idleVehicles.isEmpty()}">
                                         <li th:each="item : ${d.idleVehicles}">
-                                            <span th:text="${item.name}">—</span>
-                                            <small class="text-muted" th:text="${item.detail}"></small>
+                                            <span class="fw-semibold" th:text="${item.name}">—</span>
+                                            <small class="dashboard-mini-list__reg text-muted"
+                                                   th:if="${item.registration != null and !#strings.isEmpty(item.registration)}"
+                                                   th:text="${item.registration}"></small>
                                         </li>
                                     </ul>
                                     <p class="small text-muted mb-0" th:if="${d.idleVehicles.isEmpty()}">No idle vehicles flagged.</p>
@@ -188,7 +215,10 @@
                                     <h3 class="dashboard-chart-title">Frequently rented</h3>
                                     <ul class="dashboard-mini-list mb-0" th:if="${!d.frequentlyRented.isEmpty()}">
                                         <li th:each="item : ${d.frequentlyRented}">
-                                            <span th:text="${item.name}">—</span>
+                                            <span class="fw-semibold" th:text="${item.name}">—</span>
+                                            <small class="dashboard-mini-list__reg text-muted"
+                                                   th:if="${item.registration != null and !#strings.isEmpty(item.registration)}"
+                                                   th:text="${item.registration}"></small>
                                             <small th:text="${item.detail}"></small>
                                         </li>
                                     </ul>
@@ -200,7 +230,10 @@
                                     <h3 class="dashboard-chart-title">Low performing</h3>
                                     <ul class="dashboard-mini-list mb-0" th:if="${!d.lowPerformingVehicles.isEmpty()}">
                                         <li th:each="item : ${d.lowPerformingVehicles}">
-                                            <span th:text="${item.name}">—</span>
+                                            <span class="fw-semibold" th:text="${item.name}">—</span>
+                                            <small class="dashboard-mini-list__reg text-muted"
+                                                   th:if="${item.registration != null and !#strings.isEmpty(item.registration)}"
+                                                   th:text="${item.registration}"></small>
                                             <small class="text-muted" th:text="${item.detail}"></small>
                                         </li>
                                     </ul>
@@ -212,13 +245,21 @@
                                     <h3 class="dashboard-chart-title">Currently rented · nearing service</h3>
                                     <p class="small fw-semibold mb-1 dashboard-fleet-subhead">On hire now</p>
                                     <ul class="dashboard-mini-list mb-2" th:if="${!d.currentlyRented.isEmpty()}">
-                                        <li th:each="item : ${d.currentlyRented}" th:text="${item.name}">—</li>
+                                        <li th:each="item : ${d.currentlyRented}">
+                                            <span class="fw-semibold" th:text="${item.name}">—</span>
+                                            <small class="dashboard-mini-list__reg text-muted"
+                                                   th:if="${item.registration != null and !#strings.isEmpty(item.registration)}"
+                                                   th:text="${item.registration}"></small>
+                                        </li>
                                     </ul>
                                     <p class="small text-muted mb-0" th:if="${d.currentlyRented.isEmpty()}">No cars on hire.</p>
                                     <p class="small fw-semibold mb-1 mt-2 dashboard-fleet-subhead text-danger">Service overdue</p>
                                     <ul class="dashboard-mini-list mb-2" th:if="${!d.serviceOverdue.isEmpty()}">
                                         <li th:each="item : ${d.serviceOverdue}">
-                                            <span th:text="${item.name}">—</span>
+                                            <span class="fw-semibold" th:text="${item.name}">—</span>
+                                            <small class="dashboard-mini-list__reg text-muted"
+                                                   th:if="${item.registration != null and !#strings.isEmpty(item.registration)}"
+                                                   th:text="${item.registration}"></small>
                                             <small class="text-danger" th:text="${item.detail}"></small>
                                         </li>
                                     </ul>

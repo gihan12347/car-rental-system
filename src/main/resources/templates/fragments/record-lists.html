@@ -195,7 +195,7 @@
                 <a class="fleet-table-actions__btn fleet-table-actions__btn--view"
                    th:href="@{/employees/{id}(id=${e.id})}"
                    title="Payments">
-                    <i class="bi bi-wallet2" aria-hidden="true"></i>
+                    <th:block th:replace="~{fragments/payment-icon :: inline}"></th:block>
                     <span>Payments</span>
                 </a>
                 <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
@@ -236,9 +236,7 @@
      th:if="${payments != null and !payments.isEmpty()}">
     <article class="app-record-card" th:each="p : ${payments}">
         <div class="app-record-card__header">
-            <span class="car-avatar car-avatar--md car-avatar--placeholder flex-shrink-0">
-                <i class="bi bi-wallet2"></i>
-            </span>
+            <th:block th:replace="~{fragments/payment-icon :: cardAvatar}"></th:block>
             <div class="min-w-0 flex-grow-1">
                 <h3 class="app-record-card__title mb-1">
                     <a class="app-record-card__link text-decoration-none"
@@ -301,8 +299,9 @@
      th:if="${payments != null and !payments.isEmpty()}">
     <article class="app-record-card" th:each="p : ${payments}">
         <div class="app-record-card__header">
-            <span class="car-avatar car-avatar--md car-avatar--placeholder flex-shrink-0">
-                <i class="bi bi-wallet2"></i>
+            <span class="car-avatar car-avatar--md flex-shrink-0 overflow-hidden app-payment-card-avatar">
+                <img class="app-payment-icon__img app-payment-icon__img--card"
+                     th:src="@{/images/cash.jpg}" alt="" role="presentation"/>
             </span>
             <div class="min-w-0 flex-grow-1">
                 <h3 class="app-record-card__title mb-1" th:text="${p.paymentDate}">—</h3>

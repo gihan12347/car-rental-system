@@ -13,6 +13,8 @@ import com.carrental.service.EmployeePaymentPeriodFilter;
 import com.carrental.service.EmployeePaymentService;
 import com.carrental.service.FleetServiceAlertService;
 import com.carrental.service.OfficeExpenseService;
+import com.carrental.service.RentalService;
+import com.carrental.web.dto.RentalOverdueAlert;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -45,18 +47,21 @@ public class DashboardAnalyticsService {
     private final BlacklistedCustomerRepository blacklistedCustomerRepository;
     private final EmployeePaymentService employeePaymentService;
     private final OfficeExpenseService officeExpenseService;
+    private final RentalService rentalService;
 
     public DashboardAnalyticsService(
             CarRepository carRepository,
             RentalRepository rentalRepository,
             BlacklistedCustomerRepository blacklistedCustomerRepository,
             EmployeePaymentService employeePaymentService,
-            OfficeExpenseService officeExpenseService) {
+            OfficeExpenseService officeExpenseService,
+            RentalService rentalService) {
         this.carRepository = carRepository;
         this.rentalRepository = rentalRepository;
         this.blacklistedCustomerRepository = blacklistedCustomerRepository;
         this.employeePaymentService = employeePaymentService;
         this.officeExpenseService = officeExpenseService;
+        this.rentalService = rentalService;
     }
 
     public DashboardData build(DateRange range, DashboardPeriod period) {
@@ -73,6 +78,7 @@ public class DashboardAnalyticsService {
 
         populateRevenue(data, rentals, range, period);
         populateFleetUtilization(data, cars, rentals, range, today);
+        populateRentalOverdue(data);
         data.setTotalBookings(countBookingsInPeriod(rentals, range));
         populateCustomers(data, rentals, range);
         populateOperatingCosts(data, range);
@@ -105,7 +111,8 @@ public class DashboardAnalyticsService {
         BigDecimal completedSum = BigDecimal.ZERO;
 
         for (Rental rental : rentals) {
-            if (rental.getRentalStatus() == RentalStatus.CANCELLED) {
+            if (rental.getRentalStatus() == RentalStatus.CANCELLED
+                || rental.getEmployeeHire()) {
                 continue;
             }
 
@@ -196,25 +203,31 @@ public class DashboardAnalyticsService {
             utilTotal += utilization;
 
             if (car.getStatus() == CarStatus.AVAILABLE && utilization < 20) {
-                idle.add(new DashboardData.NamedValueRow(label, car.getRegistrationNumber(), BigDecimal.valueOf(utilization)));
+                idle.add(new DashboardData.NamedValueRow(
+                        label, car.getRegistrationNumber(), null, BigDecimal.valueOf(utilization)));
             }
             if (bookingCount >= 2) {
-                frequent.add(new DashboardData.NamedValueRow(label, bookingCount + " hires", BigDecimal.valueOf(bookingCount)));
+                frequent.add(new DashboardData.NamedValueRow(
+                        label, car.getRegistrationNumber(), bookingCount + " hires", BigDecimal.valueOf(bookingCount)));
             }
             if (utilization < 35) {
-                low.add(new DashboardData.NamedValueRow(label, utilization + "% utilization", BigDecimal.valueOf(utilization)));
+                low.add(new DashboardData.NamedValueRow(
+                        label, car.getRegistrationNumber(), utilization + "% utilization", BigDecimal.valueOf(utilization)));
             }
             if (car.getStatus() == CarStatus.UNAVAILABLE) {
-                rentedNow.add(new DashboardData.NamedValueRow(label, car.getRegistrationNumber(), BigDecimal.ZERO));
+                rentedNow.add(new DashboardData.NamedValueRow(
+                        label, car.getRegistrationNumber(), null, BigDecimal.ZERO));
             }
             if (FleetServiceAlertService.isServiceOverdue(car)) {
                 serviceOverdue.add(new DashboardData.NamedValueRow(
                         label,
+                        car.getRegistrationNumber(),
                         car.getMileageKm() + " / " + car.getNextServiceKm() + " km (overdue)",
                         BigDecimal.valueOf(car.getMileageKm() - car.getNextServiceKm())));
             } else if (FleetServiceAlertService.isServiceDueSoon(car)) {
                 serviceDueSoon.add(new DashboardData.NamedValueRow(
                         label,
+                        car.getRegistrationNumber(),
                         car.getMileageKm() + " / " + car.getNextServiceKm() + " km",
                         BigDecimal.ZERO));
             }
@@ -233,6 +246,14 @@ public class DashboardAnalyticsService {
         sortByValueDesc(serviceOverdue);
         data.setNearingService(limit(serviceDueSoon, 5));
         data.setServiceOverdue(limit(serviceOverdue, 5));
+    }
+
+    private void populateRentalOverdue(DashboardData data) {
+        List<RentalOverdueAlert> alerts = rentalService.findOverdueAlerts();
+        if (alerts.size() > 5) {
+            alerts = new ArrayList<RentalOverdueAlert>(alerts.subList(0, 5));
+        }
+        data.setRentalOverdue(alerts);
     }
 
     private long countBookingsInPeriod(List<Rental> rentals, DateRange range) {

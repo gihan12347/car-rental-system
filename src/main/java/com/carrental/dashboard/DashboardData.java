@@ -1,5 +1,7 @@
 package com.carrental.dashboard;
 
+import com.carrental.web.dto.RentalOverdueAlert;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +49,7 @@ public class DashboardData {
     private List<NamedValueRow> currentlyRented = new ArrayList<NamedValueRow>();
     private List<NamedValueRow> nearingService = new ArrayList<NamedValueRow>();
     private List<NamedValueRow> serviceOverdue = new ArrayList<NamedValueRow>();
+    private List<RentalOverdueAlert> rentalOverdue = new ArrayList<RentalOverdueAlert>();
     private List<NamedValueRow> topCustomers = new ArrayList<NamedValueRow>();
 
     public String getPeriodLabel() {
@@ -321,6 +324,14 @@ public class DashboardData {
         this.serviceOverdue = serviceOverdue;
     }
 
+    public List<RentalOverdueAlert> getRentalOverdue() {
+        return rentalOverdue;
+    }
+
+    public void setRentalOverdue(List<RentalOverdueAlert> rentalOverdue) {
+        this.rentalOverdue = rentalOverdue;
+    }
+
     public List<NamedValueRow> getTopCustomers() {
         return topCustomers;
     }
@@ -360,6 +371,7 @@ public class DashboardData {
 
     public static class NamedValueRow {
         private String name;
+        private String registration;
         private String detail;
         private BigDecimal value = BigDecimal.ZERO;
 
@@ -372,12 +384,27 @@ public class DashboardData {
             this.value = value;
         }
 
+        public NamedValueRow(String name, String registration, String detail, BigDecimal value) {
+            this.name = name;
+            this.registration = registration;
+            this.detail = detail;
+            this.value = value;
+        }
+
         public String getName() {
             return name;
         }
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getRegistration() {
+            return registration;
+        }
+
+        public void setRegistration(String registration) {
+            this.registration = registration;
         }
 
         public String getDetail() {
