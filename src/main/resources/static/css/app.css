@@ -1855,14 +1855,21 @@ body.login-page {
   }
 
   .app-topbar-profile {
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(79, 70, 229, 0.16);
+    background: transparent;
+    border: none;
+    padding: 0;
   }
 
   .app-topbar-profile:hover,
   .app-topbar-profile:focus-visible {
-    background: #fff;
-    border-color: rgba(79, 70, 229, 0.28);
+    background: transparent;
+    box-shadow: none;
+    border: none;
+  }
+
+  .app-topbar-profile .app-topbar-profile__avatar.car-avatar {
+    background: transparent;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(79, 70, 229, 0.18);
   }
 
   .app-topbar-nav {
