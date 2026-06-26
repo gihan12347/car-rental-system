@@ -62,6 +62,12 @@
                 <i class="bi bi-building"></i><span>Office expenses</span>
             </a>
             <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
+               th:classappend="${activeNav == 'application-parameters'} ? ' active' : ''"
+               th:href="@{/application-parameters}"
+               th:if="${session.USER_ROLE == 'ROLE_ADMIN'}">
+                <i class="bi bi-sliders"></i><span>Parameters</span>
+            </a>
+            <a class="app-nav-link nav-link d-flex align-items-center gap-2 rounded-3"
                th:classappend="${activeNav == 'account'} ? ' active' : ''"
                th:href="@{/account}">
                 <i class="bi bi-person-gear"></i><span>Account</span>

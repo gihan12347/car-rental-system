@@ -1,19 +1,10 @@
 package com.carrental.dashboard;
 
-import com.carrental.model.Car;
-import com.carrental.model.CarStatus;
-import com.carrental.model.DashboardPeriod;
-import com.carrental.model.Rental;
-import com.carrental.model.RentalStatus;
-import com.carrental.model.VehicleType;
+import com.carrental.model.*;
 import com.carrental.repository.BlacklistedCustomerRepository;
 import com.carrental.repository.CarRepository;
 import com.carrental.repository.RentalRepository;
-import com.carrental.service.EmployeePaymentPeriodFilter;
-import com.carrental.service.EmployeePaymentService;
-import com.carrental.service.FleetServiceAlertService;
-import com.carrental.service.OfficeExpenseService;
-import com.carrental.service.RentalService;
+import com.carrental.service.*;
 import com.carrental.web.dto.RentalOverdueAlert;
 import org.springframework.stereotype.Service;
 
@@ -34,13 +25,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.time.temporal.TemporalAdjusters;
+import static com.carrental.model.ApplicationParameterCode.LOW_UTILIZATION_THRESHOLD;
+import static com.carrental.model.ApplicationParameterCode.TOP_CUSTOMERS_LIMIT;
 
 @Service
 public class DashboardAnalyticsService {
 
     private static final DateTimeFormatter DAY_FMT = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
     private static final DateTimeFormatter MONTH_FMT = DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH);
-    private static final int TOP_CUSTOMERS_LIMIT = 3;
 
     private final CarRepository carRepository;
     private final RentalRepository rentalRepository;
@@ -48,6 +40,7 @@ public class DashboardAnalyticsService {
     private final EmployeePaymentService employeePaymentService;
     private final OfficeExpenseService officeExpenseService;
     private final RentalService rentalService;
+    private final ApplicationParameterService applicationParameterService;
 
     public DashboardAnalyticsService(
             CarRepository carRepository,
@@ -55,13 +48,14 @@ public class DashboardAnalyticsService {
             BlacklistedCustomerRepository blacklistedCustomerRepository,
             EmployeePaymentService employeePaymentService,
             OfficeExpenseService officeExpenseService,
-            RentalService rentalService) {
+            RentalService rentalService, ApplicationParameterService applicationParameterService) {
         this.carRepository = carRepository;
         this.rentalRepository = rentalRepository;
         this.blacklistedCustomerRepository = blacklistedCustomerRepository;
         this.employeePaymentService = employeePaymentService;
         this.officeExpenseService = officeExpenseService;
         this.rentalService = rentalService;
+        this.applicationParameterService = applicationParameterService;
     }
 
     public DashboardData build(DateRange range, DashboardPeriod period) {
@@ -210,7 +204,7 @@ public class DashboardAnalyticsService {
                 frequent.add(new DashboardData.NamedValueRow(
                         label, car.getRegistrationNumber(), bookingCount + " hires", BigDecimal.valueOf(bookingCount)));
             }
-            if (utilization < 35) {
+            if (utilization < applicationParameterService.passInt(LOW_UTILIZATION_THRESHOLD.name())) {
                 low.add(new DashboardData.NamedValueRow(
                         label, car.getRegistrationNumber(), utilization + "% utilization", BigDecimal.valueOf(utilization)));
             }
@@ -272,6 +266,7 @@ public class DashboardAnalyticsService {
         Map<String, LocalDate> firstSeen = new HashMap<String, LocalDate>();
         Map<String, BigDecimal> revenueByNic = new HashMap<String, BigDecimal>();
         Map<String, String> nameByNic = new HashMap<String, String>();
+        Map<String, Integer> rentalsByNic = new HashMap<String, Integer>();
 
         long complaints = 0;
         int durationTotal = 0;
@@ -297,6 +292,7 @@ public class DashboardAnalyticsService {
                 if (!nic.isEmpty()) {
                     revenueByNic.put(nic, sum(revenueByNic.get(nic), revenueAmount(rental)));
                     nameByNic.put(nic, rental.getCustomerName());
+                    rentalsByNic.put(nic, rentalsByNic.getOrDefault(nic, 0) + 1);
                 }
             }
 
@@ -334,21 +330,24 @@ public class DashboardAnalyticsService {
         data.setAverageRentalDuration(durationCount == 0
                 ? BigDecimal.ZERO
                 : BigDecimal.valueOf(durationTotal * 1.0 / durationCount).setScale(1, RoundingMode.HALF_UP));
-        data.setTopCustomers(topCustomersByNic(nameByNic, revenueByNic));
+        data.setTopCustomers(topCustomersByNic(nameByNic, revenueByNic, rentalsByNic));
     }
 
     private List<DashboardData.NamedValueRow> topCustomersByNic(
             Map<String, String> namesByNic,
-            Map<String, BigDecimal> revenueByNic) {
+            Map<String, BigDecimal> revenueByNic,
+            Map<String, Integer> rentalsByNic) {
         List<DashboardData.NamedValueRow> rows = new ArrayList<DashboardData.NamedValueRow>();
         for (Map.Entry<String, BigDecimal> entry : revenueByNic.entrySet()) {
+            String nic = entry.getKey();
             rows.add(new DashboardData.NamedValueRow(
-                    namesByNic.get(entry.getKey()),
-                    entry.getKey(),
-                    entry.getValue()));
+                    namesByNic.get(nic),
+                    nic,
+                    entry.getValue(),
+                    rentalsByNic.getOrDefault(nic, 0)));
         }
         sortByValueDesc(rows);
-        return limit(rows, TOP_CUSTOMERS_LIMIT);
+        return limit(rows, applicationParameterService.passInt(TOP_CUSTOMERS_LIMIT.name()));
     }
 
     private int rentedDaysForCar(Car car, List<Rental> rentals, DateRange range) {
@@ -396,8 +395,7 @@ public class DashboardAnalyticsService {
         if (rental.getTotalPrice() != null) {
             return rental.getTotalPrice();
         }
-        return rental.getCar().getRentalPricePerDay()
-                .multiply(BigDecimal.valueOf(rental.getNumberOfDays()));
+        return getOutStandingBalanceByTripType(rental);
     }
 
     private String vehicleLabel(Car car) {
@@ -570,5 +568,20 @@ public class DashboardAnalyticsService {
             return rows;
         }
         return new ArrayList<DashboardData.NamedValueRow>(rows.subList(0, max));
+    }
+
+    public static BigDecimal getOutStandingBalanceByTripType(Rental rental) {
+        BigDecimal renalPricePerDay;
+        switch (rental.getHireType()) {
+            case PER_MONTH :
+                renalPricePerDay =  rental.getCar().getRentalPricePerMonth();
+                break;
+            case PER_WEEK :
+                renalPricePerDay = rental.getCar().getRentalPricePerWeek();
+                break;
+            default :
+                renalPricePerDay = rental.getCar().getRentalPricePerDay();
+        }
+        return renalPricePerDay.multiply(BigDecimal.valueOf(rental.getNumberOfDays()));
     }
 }

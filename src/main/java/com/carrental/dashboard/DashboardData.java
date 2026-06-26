@@ -374,6 +374,7 @@ public class DashboardData {
         private String registration;
         private String detail;
         private BigDecimal value = BigDecimal.ZERO;
+        private int count;
 
         public NamedValueRow() {
         }
@@ -382,6 +383,13 @@ public class DashboardData {
             this.name = name;
             this.detail = detail;
             this.value = value;
+        }
+
+        public NamedValueRow(String name, String detail, BigDecimal value, int count) {
+            this.name = name;
+            this.detail = detail;
+            this.value = value;
+            this.count = count;
         }
 
         public NamedValueRow(String name, String registration, String detail, BigDecimal value) {
@@ -421,6 +429,14 @@ public class DashboardData {
 
         public void setValue(BigDecimal value) {
             this.value = value;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public void setCount(int count) {
+            this.count = count;
         }
     }
 

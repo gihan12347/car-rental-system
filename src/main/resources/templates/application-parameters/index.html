@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="pageTitle='Application parameters'">
+<head th:replace="~{fragments/head :: commonHead}"></head>
+<body class="app-body application-parameters-page">
+<div class="d-flex min-vh-100 app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/nav-offcanvas :: navOffcanvas}"></div>
+    <div class="app-content flex-grow-1 overflow-auto d-flex flex-column">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <main class="container-fluid py-3 py-lg-4 px-3 px-lg-5 flex-grow-1 app-main">
+            <div th:if="${successMessage}" class="alert app-alert alert-success d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert app-alert alert-danger d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <header class="app-page-header mb-4">
+                <h1 class="h2 mb-1">Application parameters</h1>
+                <p class="lead mb-0 text-muted">Configure system values used by dashboards and analytics.</p>
+            </header>
+
+            <div class="app-card-table" th:if="${!parameters.isEmpty()}">
+                <div class="table-responsive d-none d-xl-block">
+                    <table class="table app-table mb-0 align-middle">
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Value</th>
+                               <th class="text-end fleet-table-actions-col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${parameters}">
+                            <td class="text-nowrap fw-semibold font-monospace small" th:text="${p.code}">CODE</td>
+                            <td th:text="${p.description}">Description</td>
+                            <td class="text-nowrap font-monospace" th:text="${p.value}">0</td>
+                            <td class="text-end fleet-table-actions-col">
+                                <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                                   th:href="@{/application-parameters/{code}/edit(code=${p.code})}">Edit</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="app-record-list d-xl-none p-3">
+                    <article class="app-record-card" th:each="p : ${parameters}">
+                        <div class="app-record-card__header">
+                            <span class="car-avatar car-avatar--md car-avatar--placeholder flex-shrink-0">
+                                <i class="bi bi-sliders" aria-hidden="true"></i>
+                            </span>
+                            <div class="min-w-0 flex-grow-1">
+                                <h3 class="app-record-card__title mb-1 font-monospace small" th:text="${p.code}">CODE</h3>
+                                <p class="small text-muted mb-1" th:text="${p.description}">Description</p>
+                                <span class="badge bg-light text-dark border font-monospace" th:text="${p.value}">0</span>
+                                <span class="badge ms-1"
+                                      th:classappend="${p.displayed} ? ' text-bg-success' : ' text-bg-secondary'"
+                                      th:text="${p.displayed} ? 'Displayed' : 'Hidden'">Displayed</span>
+                            </div>
+                        </div>
+                        <div class="app-record-card__actions app-mobile-actions" role="group" aria-label="Parameter actions">
+                            <a class="fleet-table-actions__btn fleet-table-actions__btn--edit"
+                               th:href="@{/application-parameters/{code}/edit(code=${p.code})}">
+                                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                <span>Edit</span>
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="app-card-table empty-state" th:if="${parameters.isEmpty()}">
+                <i class="bi bi-sliders" aria-hidden="true"></i>
+                <p class="fw-semibold mb-1">No parameters configured</p>
+                <p class="small text-muted mb-0">Default parameters are created automatically on startup.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

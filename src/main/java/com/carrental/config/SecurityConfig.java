@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .antMatchers(HttpMethod.POST, "/account/users").hasRole("ADMIN")
                         .antMatchers(HttpMethod.GET, "/employees").hasRole("ADMIN")
                         .antMatchers(HttpMethod.GET, "/office-expenses").hasRole("ADMIN")
+                        .antMatchers("/application-parameters/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .invalidSessionUrl("/login?expired=1"))

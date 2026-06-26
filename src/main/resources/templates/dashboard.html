@@ -317,14 +317,31 @@
                     <div class="dashboard-customer-top">
                         <div class="dashboard-list-card dashboard-list-card--compact h-100 mb-0">
                             <h3 class="dashboard-chart-title mb-2">Top customers</h3>
-                            <ul class="dashboard-mini-list mb-0" th:if="${!d.topCustomers.isEmpty()}">
-                                <li th:each="item : ${d.topCustomers}">
-                                    <span class="dashboard-customer-top__name">
-                                        <span th:text="${item.name}">—</span>
-                                        <small class="text-muted" th:if="${item.detail != null and !#strings.isEmpty(item.detail)}"
-                                               th:text="|NIC: ${item.detail}|">NIC</small>
-                                    </span>
-                                    <strong th:text="${#numbers.formatDecimal(item.value, 1, 'COMMA', 0, 'POINT')}">0</strong>
+                            <ul class="dashboard-top-customers mb-0" th:if="${!d.topCustomers.isEmpty()}">
+                                <li class="dashboard-top-customers__item" th:each="item, iter : ${d.topCustomers}">
+                                    <span class="dashboard-top-customers__avatar" aria-hidden="true"
+                                          th:text="${item.name == null or #strings.isEmpty(item.name) ? '?' : #strings.toUpperCase(#strings.substring(item.name, 0, 1))}">S</span>
+                                    <div class="dashboard-top-customers__content">
+                                        <div class="dashboard-top-customers__primary">
+                                            <span class="dashboard-top-customers__name" th:text="${item.name}">—</span>
+                                            <span class="dashboard-top-customers__amount">
+                                                <span class="dashboard-top-customers__amount-value"
+                                                      th:text="${#numbers.formatDecimal(item.value, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                                <span class="dashboard-top-customers__amount-label">revenue</span>
+                                            </span>
+                                        </div>
+                                        <div class="dashboard-top-customers__secondary">
+                                            <small class="dashboard-top-customers__nic text-muted"
+                                                   th:if="${item.detail != null and !#strings.isEmpty(item.detail)}"
+                                                   th:text="|NIC ${item.detail}|">NIC</small>
+                                            <span class="dashboard-top-customers__rentals">
+                                                <img class="dashboard-top-customers__rentals-icon"
+                                                     th:src="@{/images/calendar.png}" alt="" role="presentation"/>
+                                                <span th:text="${item.count}">0</span>
+                                                <span th:text="${item.count == 1} ? ' rental' : ' rentals'"> rentals</span>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </li>
                             </ul>
                             <p class="small text-muted mb-0" th:if="${d.topCustomers.isEmpty()}">No customer revenue in this period.</p>

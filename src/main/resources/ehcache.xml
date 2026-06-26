@@ -96,4 +96,14 @@
             <heap unit="entries">200</heap>
         </resources>
     </cache>
+    <cache alias="applicationParameterByCode">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.lang.String</value-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">200</heap>
+        </resources>
+    </cache>
 </config>
