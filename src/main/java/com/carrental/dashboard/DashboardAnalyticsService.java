@@ -196,7 +196,7 @@ public class DashboardAnalyticsService {
                     bookingCount + " bookings in period"));
             utilTotal += utilization;
 
-            if (car.getStatus() == CarStatus.AVAILABLE && utilization < 20) {
+            if (car.getStatus() == CarStatus.AVAILABLE) {
                 idle.add(new DashboardData.NamedValueRow(
                         label, car.getRegistrationNumber(), null, BigDecimal.valueOf(utilization)));
             }
